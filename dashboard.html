@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tableau de bord — Ma Cave à Vin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux:   #6B1A2A;
+      --bordeaux-dk:#4A1020;
+      --gold:       #C9A84C;
+      --cream:      #F7F3ED;
+      --stone:      #E8E0D5;
+      --ink:        #1C1410;
+      --muted:      #7A6E66;
+      --bg:         #F2EDE6;
+      --white:      #FFFFFF;
+      --rouge:      #8B2635;
+      --blanc:      #C8A84B;
+      --rose:       #D4788A;
+      --petillant:  #5B8FA8;
+      --vert:       #52b788;
+      --orange:     #e07b39;
+    }
+
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--bordeaux-dk);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .header-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300;
+      color: var(--cream); letter-spacing: 0.05em;
+    }
+    .header-logo span { color: var(--gold); font-style: italic; }
+
+    /* Navigation */
+    nav { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      background: none;
+      border: none;
+      color: rgba(247,243,237,0.6);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 1px;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .nav-btn:hover { color: var(--cream); background: rgba(255,255,255,0.08); }
+    .nav-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    #user-prenom { font-size: 0.8rem; color: rgba(247,243,237,0.7); }
+    .btn-deconnexion {
+      background: none; border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold); padding: 0.4rem 1rem;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; border-radius: 1px; transition: all 0.2s;
+    }
+    .btn-deconnexion:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── MAIN ── */
+    main { max-width: 1300px; margin: 0 auto; padding: 2rem; }
+
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300;
+      color: var(--ink); margin-bottom: 0.3rem;
+    }
+    .page-subtitle { font-size: 0.82rem; color: var(--muted); margin-bottom: 2rem; letter-spacing: 0.05em; }
+
+    /* ── GRILLE DE SECTIONS ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      padding: 1.5rem;
+    }
+    .card-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--stone);
+    }
+
+    /* Colonnes */
+    .col-4  { grid-column: span 4; }
+    .col-6  { grid-column: span 6; }
+    .col-8  { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    @media (max-width: 900px) {
+      .col-4, .col-6, .col-8 { grid-column: span 12; }
+    }
+    @media (min-width: 901px) and (max-width: 1100px) {
+      .col-4 { grid-column: span 6; }
+    }
+
+    /* ── KPI VALEUR ── */
+    .kpi-principale {
+      text-align: center;
+      padding: 1rem 0 0.5rem;
+    }
+    .kpi-principale .montant {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem; font-weight: 600;
+      color: var(--bordeaux); line-height: 1;
+    }
+    .kpi-principale .label {
+      font-size: 0.72rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted);
+      margin-top: 0.3rem;
+    }
+    .kpi-row {
+      display: flex; gap: 1rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--stone);
+    }
+    .kpi-small { flex: 1; text-align: center; }
+    .kpi-small .val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 600; color: var(--ink);
+    }
+    .kpi-small .lbl {
+      font-size: 0.68rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); margin-top: 0.2rem;
+    }
+
+    /* ── BARRES COULEUR ── */
+    .couleur-list { display: flex; flex-direction: column; gap: 0.9rem; }
+    .couleur-row { display: flex; flex-direction: column; gap: 0.3rem; }
+    .couleur-header { display: flex; justify-content: space-between; align-items: center; }
+    .couleur-nom { font-size: 0.85rem; color: var(--ink); display: flex; align-items: center; gap: 0.5rem; }
+    .couleur-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .couleur-vals { font-size: 0.8rem; color: var(--muted); }
+    .barre-track { height: 6px; background: var(--stone); border-radius: 3px; overflow: hidden; }
+    .barre-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+    /* ── DONUT ── */
+    .donut-wrap { display: flex; align-items: center; gap: 1.5rem; }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legende { display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+    .legende-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+    .legende-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legende-label { flex: 1; color: var(--ink); }
+    .legende-val { color: var(--muted); font-size: 0.78rem; }
+
+    /* ── TABLEAU MATURITÉ ── */
+    .maturite-table { width: 100%; border-collapse: collapse; }
+    .maturite-table th {
+      font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); padding: 0 0.75rem 0.6rem; text-align: left;
+      border-bottom: 1px solid var(--stone);
+    }
+    .maturite-table td {
+      padding: 0.7rem 0.75rem; font-size: 0.84rem;
+      border-bottom: 1px solid var(--stone);
+    }
+    .maturite-table tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.2rem 0.55rem; border-radius: 20px; font-weight: 500;
+    }
+    .badge-jeune    { background: #fef9ec; color: #b08020; }
+    .badge-maturite { background: #edfaf3; color: #2d7a52; }
+    .badge-apogee   { background: #eaf4fb; color: #2a6080; }
+    .badge-declin   { background: #fef0f0; color: #a03030; }
+
+    /* ── TIMELINE DEGUSTATION ── */
+    .timeline-years { display: flex; flex-direction: column; gap: 0; }
+    .timeline-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.65rem 0; border-bottom: 1px solid var(--stone);
+    }
+    .timeline-row:last-child { border-bottom: none; }
+    .timeline-annee {
+      width: 48px; font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 600; color: var(--bordeaux);
+      flex-shrink: 0;
+    }
+    .timeline-annee.past { color: var(--muted); font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 400; }
+    .timeline-bar-wrap { flex: 1; }
+    .timeline-bar-track { height: 8px; background: var(--stone); border-radius: 4px; overflow: hidden; }
+    .timeline-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--bordeaux), var(--gold)); }
+    .timeline-count { width: 60px; text-align: right; font-size: 0.82rem; color: var(--muted); }
+    .timeline-now { background: rgba(107,26,42,0.04); border-radius: 2px; }
+
+    /* ── DERNIERS MOUVEMENTS ── */
+    .mouvement-list { display: flex; flex-direction: column; gap: 0; }
+    .mouvement-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.75rem 0; border-bottom: 1px solid var(--stone);
+    }
+    .mouvement-item:last-child { border-bottom: none; }
+    .mouvement-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0;
+    }
+    .icon-entree { background: #edfaf3; }
+    .icon-sortie { background: #fef0f0; }
+    .mouvement-info { flex: 1; min-width: 0; }
+    .mouvement-nom { font-size: 0.88rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mouvement-date { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+    .mouvement-qty {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 600;
+      flex-shrink: 0;
+    }
+    .qty-plus  { color: var(--vert); }
+    .qty-minus { color: #B94040; }
+
+    /* ── REGIONS ── */
+    .region-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 280px; overflow-y: auto; }
+    .region-row { display: flex; align-items: center; gap: 0.75rem; }
+    .region-nom { font-size: 0.84rem; color: var(--ink); width: 130px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .region-bar-wrap { flex: 1; }
+    .region-bar-track { height: 5px; background: var(--stone); border-radius: 3px; overflow: hidden; }
+    .region-bar-fill { height: 100%; border-radius: 3px; background: var(--bordeaux); opacity: 0.6; }
+    .region-count { font-size: 0.78rem; color: var(--muted); width: 30px; text-align: right; flex-shrink: 0; }
+
+    /* ── EMPTY ── */
+    .empty { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+    .empty .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+    /* ── CHARGEMENT ── */
+    #loading {
+      position: fixed; inset: 0;
+      background: var(--cream);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; gap: 1rem;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--stone);
+      border-top-color: var(--bordeaux);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+<!-- Écran de chargement -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Analyse de votre cave…</p>
+</div>
+
+<header>
+  <div class="header-logo">🍷 Ma <span>Cave</span></div>
+  <nav>
+    <a class="nav-btn" href="cave.html">🍾 Ma cave</a>
+    <a class="nav-btn active" href="dashboard.html">📊 Tableau de bord</a>
+  </nav>
+  <div class="header-right">
+    <span id="user-prenom"></span>
+    <button class="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">Tableau de bord</div>
+  <div class="page-subtitle" id="date-maj"></div>
+
+  <div class="dashboard-grid">
+
+    <!-- ── VALEUR TOTALE ── -->
+    <div class="card col-4">
+      <div class="card-title">Valeur de ma cave</div>
+      <div class="kpi-principale">
+        <div class="montant" id="val-totale">—</div>
+        <div class="label">Prix d'achat total</div>
+      </div>
+      <div class="kpi-row">
+        <div class="kpi-small">
+          <div class="val" id="val-nb-bouteilles">—</div>
+          <div class="lbl">Bouteilles</div>
+        </div>
+        <div class="kpi-small">
+          <div class="val" id="val-nb-vins">—</div>
+          <div class="lbl">Références</div>
+        </div>
+        <div class="kpi-small">
+          <div class="val" id="val-prix-moyen">—</div>
+          <div class="lbl">Prix moyen</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── RÉPARTITION COULEURS ── -->
+    <div class="card col-4">
+      <div class="card-title">Par couleur</div>
+      <div class="couleur-list" id="couleur-list"></div>
+    </div>
+
+    <!-- ── PHASES DE MATURITÉ ── -->
+    <div class="card col-4">
+      <div class="card-title">Phases de maturité</div>
+      <div id="phases-wrap"></div>
+    </div>
+
+    <!-- ── VALEUR PAR COULEUR ── -->
+    <div class="card col-6">
+      <div class="card-title">Valeur par couleur</div>
+      <div id="valeur-couleur-wrap"></div>
+    </div>
+
+    <!-- ── RÉGIONS ── -->
+    <div class="card col-6">
+      <div class="card-title">Répartition par région</div>
+      <div class="region-list" id="region-list"></div>
+    </div>
+
+    <!-- ── TIMELINE DÉGUSTATION ── -->
+    <div class="card col-6">
+      <div class="card-title">Fenêtre de dégustation</div>
+      <div class="timeline-years" id="timeline-wrap"></div>
+    </div>
+
+    <!-- ── MATURITÉ DÉTAIL ── -->
+    <div class="card col-6">
+      <div class="card-title">État des bouteilles</div>
+      <table class="maturite-table">
+        <thead>
+          <tr>
+            <th>Vin</th>
+            <th>Millésime</th>
+            <th>Qté</th>
+            <th>État</th>
+            <th>Maturité</th>
+          </tr>
+        </thead>
+        <tbody id="maturite-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- ── BOUTEILLES À BOIRE BIENTÔT ── -->
+    <div class="card col-6">
+      <div class="card-title">À boire cette année et l'année prochaine</div>
+      <table class="maturite-table">
+        <thead>
+          <tr>
+            <th>Vin</th>
+            <th>Millésime</th>
+            <th>Qté</th>
+            <th>Jusqu'en</th>
+            <th>Accords</th>
+          </tr>
+        </thead>
+        <tbody id="bientot-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- ── DÉPASSÉES ── -->
+    <div class="card col-6">
+      <div class="card-title">⚠️ Bouteilles dépassées ou à consommer vite</div>
+      <table class="maturite-table">
+        <thead>
+          <tr>
+            <th>Vin</th>
+            <th>Millésime</th>
+            <th>Qté</th>
+            <th>Fin maturité</th>
+          </tr>
+        </thead>
+        <tbody id="depasse-tbody"></tbody>
+      </table>
+    </div>
+
+    <!-- ── DERNIÈRES ENTRÉES ── -->
+    <div class="card col-12">
+      <div class="card-title">Dernières bouteilles ajoutées</div>
+      <table class="maturite-table">
+        <thead>
+          <tr>
+            <th>Vin</th>
+            <th>Château / Domaine</th>
+            <th>Couleur</th>
+            <th>Millésime</th>
+            <th>Région</th>
+            <th>Quantité</th>
+            <th>Prix unitaire</th>
+            <th>Ajouté le</th>
+          </tr>
+        </thead>
+        <tbody id="entrees-tbody"></tbody>
+      </table>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+// =============================================
+//  🔑 REMPLACE CES 2 LIGNES AVEC TES CLÉS
+// =============================================
+const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+// =============================================
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const COULEURS_CONFIG = {
+  rouge:     { label: 'Rouge',     color: '#8B2635' },
+  blanc:     { label: 'Blanc',     color: '#C8A84B' },
+  rosé:      { label: 'Rosé',      color: '#D4788A' },
+  pétillant: { label: 'Pétillant', color: '#5B8FA8' },
+  autre:     { label: 'Autre',     color: '#7A6E66' },
+};
+
+const CHF = v => v != null ? v.toLocaleString('fr-CH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + ' CHF' : '—';
+const fmt = d => new Date(d).toLocaleDateString('fr-CH', { day: '2-digit', month: 'short', year: 'numeric' });
+
+// ── INIT ──
+(async () => {
+  await new Promise(r => setTimeout(r, 300));
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return window.location.href = 'index.html';
+
+  const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
+  document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+  document.getElementById('date-maj').textContent = `Mise à jour le ${fmt(new Date())}`;
+
+  const { data, error } = await sb.from('bouteilles').select('*').order('created_at', { ascending: false });
+  if (error) { console.error(error); return; }
+
+  const bouteilles = data || [];
+  document.getElementById('loading').style.display = 'none';
+
+  if (bouteilles.length === 0) {
+    document.querySelector('.dashboard-grid').innerHTML =
+      `<div class="card col-12"><div class="empty"><div class="icon">🍾</div><p>Votre cave est vide. <a href="cave.html" style="color:var(--bordeaux)">Ajoutez vos premières bouteilles</a> pour voir les statistiques.</p></div></div>`;
+    return;
+  }
+
+  renderValeur(bouteilles);
+  renderCouleurs(bouteilles);
+  renderPhases(bouteilles);
+  renderValeurCouleur(bouteilles);
+  renderRegions(bouteilles);
+  renderTimeline(bouteilles);
+  renderMaturite(bouteilles);
+  renderBientot(bouteilles);
+  renderDepasse(bouteilles);
+  renderEntrees(bouteilles);
+})();
+
+async function seDeconnecter() {
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+// ── VALEUR TOTALE ──
+function renderValeur(b) {
+  const totalQty   = b.reduce((s, x) => s + (x.quantite || 1), 0);
+  const totalPrix  = b.reduce((s, x) => s + ((x.prix_achat || 0) * (x.quantite || 1)), 0);
+  const prixMoyen  = totalQty > 0 ? totalPrix / totalQty : 0;
+
+  document.getElementById('val-totale').textContent        = CHF(totalPrix);
+  document.getElementById('val-nb-bouteilles').textContent = totalQty;
+  document.getElementById('val-nb-vins').textContent       = b.length;
+  document.getElementById('val-prix-moyen').textContent    = prixMoyen > 0 ? CHF(prixMoyen) : '—';
+}
+
+// ── COULEURS ──
+function renderCouleurs(b) {
+  const totalQty = b.reduce((s, x) => s + (x.quantite || 1), 0);
+  const groups = {};
+  b.forEach(x => {
+    const c = x.couleur || 'autre';
+    if (!groups[c]) groups[c] = { qty: 0, refs: 0 };
+    groups[c].qty  += (x.quantite || 1);
+    groups[c].refs += 1;
+  });
+
+  const ordre = ['rouge','blanc','rosé','pétillant','autre'];
+  const el = document.getElementById('couleur-list');
+  el.innerHTML = ordre.filter(c => groups[c]).map(c => {
+    const cfg = COULEURS_CONFIG[c] || { label: c, color: '#999' };
+    const pct = totalQty > 0 ? Math.round((groups[c].qty / totalQty) * 100) : 0;
+    return `
+    <div class="couleur-row">
+      <div class="couleur-header">
+        <div class="couleur-nom">
+          <div class="couleur-dot" style="background:${cfg.color}"></div>
+          ${cfg.label}
+        </div>
+        <div class="couleur-vals">${groups[c].qty} btl · ${pct}%</div>
+      </div>
+      <div class="barre-track">
+        <div class="barre-fill" style="width:${pct}%;background:${cfg.color}"></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── PHASES DE MATURITÉ ──
+function renderPhases(b) {
+  const annee = new Date().getFullYear();
+  let jeune = 0, maturite = 0, apogee = 0, declin = 0, sansInfo = 0;
+
+  b.forEach(x => {
+    const qty = x.quantite || 1;
+    if (!x.annee_maturite_debut && !x.annee_maturite_fin) { sansInfo += qty; return; }
+    const debut = x.annee_maturite_debut || annee;
+    const fin   = x.annee_maturite_fin   || annee;
+    const mid   = debut + Math.floor((fin - debut) / 2);
+    if (annee < debut)       jeune    += qty;
+    else if (annee <= mid)   maturite += qty;
+    else if (annee <= fin)   apogee   += qty;
+    else                     declin   += qty;
+  });
+
+  const total = jeune + maturite + apogee + declin + sansInfo;
+  const phases = [
+    { label: 'Trop jeune',   val: jeune,    color: '#C8A84B', emoji: '⏳' },
+    { label: 'En maturité',  val: maturite, color: '#52b788', emoji: '✅' },
+    { label: 'À l\'apogée',  val: apogee,   color: '#5B8FA8', emoji: '🌟' },
+    { label: 'En déclin',    val: declin,   color: '#B94040', emoji: '⚠️' },
+  ];
+
+  document.getElementById('phases-wrap').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+      ${phases.map(p => `
+        <div style="text-align:center;padding:0.75rem;background:var(--bg);border-radius:2px">
+          <div style="font-size:1.4rem;margin-bottom:0.3rem">${p.emoji}</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600;color:${p.color}">${p.val}</div>
+          <div style="font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem">${p.label}</div>
+        </div>`).join('')}
+    </div>
+    ${sansInfo > 0 ? `<div style="font-size:0.75rem;color:var(--muted);text-align:center;margin-top:0.75rem">${sansInfo} bouteille${sansInfo>1?'s':''} sans information de maturité</div>` : ''}
+  `;
+}
+
+// ── VALEUR PAR COULEUR ──
+function renderValeurCouleur(b) {
+  const groups = {};
+  b.forEach(x => {
+    const c = x.couleur || 'autre';
+    if (!groups[c]) groups[c] = { prix: 0, qty: 0 };
+    groups[c].prix += (x.prix_achat || 0) * (x.quantite || 1);
+    groups[c].qty  += (x.quantite || 1);
+  });
+
+  const max = Math.max(...Object.values(groups).map(g => g.prix));
+  const ordre = ['rouge','blanc','rosé','pétillant','autre'];
+  const rows = ordre.filter(c => groups[c] && groups[c].prix > 0);
+
+  if (rows.length === 0) {
+    document.getElementById('valeur-couleur-wrap').innerHTML = `<div class="empty"><div class="icon">💰</div><p>Aucun prix renseigné</p></div>`;
+    return;
+  }
+
+  document.getElementById('valeur-couleur-wrap').innerHTML = `
+    <div class="couleur-list">
+      ${rows.map(c => {
+        const cfg = COULEURS_CONFIG[c] || { label: c, color: '#999' };
+        const pct = max > 0 ? Math.round((groups[c].prix / max) * 100) : 0;
+        return `
+        <div class="couleur-row">
+          <div class="couleur-header">
+            <div class="couleur-nom"><div class="couleur-dot" style="background:${cfg.color}"></div>${cfg.label}</div>
+            <div class="couleur-vals">${CHF(groups[c].prix)}</div>
+          </div>
+          <div class="barre-track"><div class="barre-fill" style="width:${pct}%;background:${cfg.color}"></div></div>
+        </div>`;
+      }).join('')}
+    </div>`;
+}
+
+// ── RÉGIONS ──
+function renderRegions(b) {
+  const groups = {};
+  b.forEach(x => {
+    const r = x.region || x.appellation || 'Non renseigné';
+    if (!groups[r]) groups[r] = 0;
+    groups[r] += (x.quantite || 1);
+  });
+
+  const sorted = Object.entries(groups).sort((a,b) => b[1]-a[1]);
+  const max = sorted[0]?.[1] || 1;
+  const el = document.getElementById('region-list');
+
+  if (sorted.length === 0) {
+    el.innerHTML = `<div class="empty"><p>Aucune région renseignée</p></div>`;
+    return;
+  }
+
+  el.innerHTML = sorted.map(([r, qty]) => {
+    const pct = Math.round((qty / max) * 100);
+    return `
+    <div class="region-row">
+      <div class="region-nom" title="${r}">${r}</div>
+      <div class="region-bar-wrap">
+        <div class="region-bar-track"><div class="region-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="region-count">${qty}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── TIMELINE DÉGUSTATION ──
+function renderTimeline(b) {
+  const annee = new Date().getFullYear();
+  const annees = {};
+
+  // Compter les bouteilles par fenêtre d'apogée
+  b.forEach(x => {
+    if (!x.annee_maturite_debut || !x.annee_maturite_fin) return;
+    for (let a = x.annee_maturite_debut; a <= x.annee_maturite_fin; a++) {
+      if (!annees[a]) annees[a] = 0;
+      annees[a] += (x.quantite || 1);
+    }
+  });
+
+  // Afficher de -2 ans à +6 ans
+  const rows = [];
+  for (let a = annee - 2; a <= annee + 6; a++) {
+    rows.push({ annee: a, qty: annees[a] || 0 });
+  }
+
+  const max = Math.max(...rows.map(r => r.qty), 1);
+  const el = document.getElementById('timeline-wrap');
+
+  if (Object.keys(annees).length === 0) {
+    el.innerHTML = `<div class="empty"><div class="icon">📅</div><p>Aucune information de maturité renseignée</p></div>`;
+    return;
+  }
+
+  el.innerHTML = rows.map(r => {
+    const pct = Math.round((r.qty / max) * 100);
+    const isNow = r.annee === annee;
+    const isPast = r.annee < annee;
+    return `
+    <div class="timeline-row ${isNow ? 'timeline-now' : ''}">
+      <div class="timeline-annee ${isPast ? 'past' : ''}">${isPast ? '<'+r.annee : r.annee === annee ? '→ '+r.annee : r.annee}</div>
+      <div class="timeline-bar-wrap">
+        <div class="timeline-bar-track">
+          <div class="timeline-bar-fill" style="width:${pct}%;opacity:${isPast?0.3:1}"></div>
+        </div>
+      </div>
+      <div class="timeline-count">${r.qty > 0 ? r.qty + ' btl' : '—'}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── ÉTAT MATURITÉ PAR BOUTEILLE ──
+function renderMaturite(b) {
+  const annee = new Date().getFullYear();
+  const avecInfo = b.filter(x => x.annee_maturite_debut || x.annee_maturite_fin).slice(0, 12);
+
+  if (avecInfo.length === 0) {
+    document.getElementById('maturite-tbody').innerHTML = `<tr><td colspan="5" class="empty">Aucune information de maturité</td></tr>`;
+    return;
+  }
+
+  document.getElementById('maturite-tbody').innerHTML = avecInfo.map(x => {
+    const debut = x.annee_maturite_debut;
+    const fin   = x.annee_maturite_fin;
+    const mid   = debut && fin ? debut + Math.floor((fin - debut) / 2) : null;
+    let badge = '';
+    if (!debut && !fin) badge = '';
+    else if (annee < debut) badge = `<span class="badge badge-jeune">⏳ Trop jeune</span>`;
+    else if (mid && annee <= mid) badge = `<span class="badge badge-maturite">✅ En maturité</span>`;
+    else if (fin && annee <= fin) badge = `<span class="badge badge-apogee">🌟 Apogée</span>`;
+    else badge = `<span class="badge badge-declin">⚠️ En déclin</span>`;
+
+    return `<tr>
+      <td><strong>${x.nom}</strong>${x.chateau ? `<br><small style="color:var(--muted)">${x.chateau}</small>` : ''}</td>
+      <td>${x.millesime || '—'}</td>
+      <td>${x.quantite ?? 1}</td>
+      <td>${badge}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${debut && fin ? `${debut}–${fin}` : debut || fin || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// ── À BOIRE BIENTÔT ──
+function renderBientot(b) {
+  const annee = new Date().getFullYear();
+  const bientot = b.filter(x =>
+    x.annee_maturite_debut && x.annee_maturite_fin &&
+    annee >= x.annee_maturite_debut &&
+    annee <= x.annee_maturite_fin + 1
+  ).sort((a,b) => (a.annee_maturite_fin||9999) - (b.annee_maturite_fin||9999));
+
+  if (bientot.length === 0) {
+    document.getElementById('bientot-tbody').innerHTML = `<tr><td colspan="5" class="empty">Aucun vin à boire cette année ou l'année prochaine</td></tr>`;
+    return;
+  }
+
+  document.getElementById('bientot-tbody').innerHTML = bientot.map(x => `
+    <tr>
+      <td><strong>${x.nom}</strong></td>
+      <td>${x.millesime || '—'}</td>
+      <td>${x.quantite ?? 1}</td>
+      <td>${x.annee_maturite_fin}</td>
+      <td style="font-size:0.78rem;color:var(--muted)">${x.plats_accords || '—'}</td>
+    </tr>`).join('');
+}
+
+// ── BOUTEILLES DÉPASSÉES ──
+function renderDepasse(b) {
+  const annee = new Date().getFullYear();
+  const depasse = b.filter(x =>
+    x.annee_maturite_fin && annee > x.annee_maturite_fin
+  ).sort((a,b) => (b.annee_maturite_fin||0) - (a.annee_maturite_fin||0));
+
+  if (depasse.length === 0) {
+    document.getElementById('depasse-tbody').innerHTML = `<tr><td colspan="4"><div class="empty">✅ Aucune bouteille dépassée</div></td></tr>`;
+    return;
+  }
+
+  document.getElementById('depasse-tbody').innerHTML = depasse.map(x => {
+    const depasseDepuis = annee - x.annee_maturite_fin;
+    return `<tr>
+      <td><strong>${x.nom}</strong>${x.chateau ? `<br><small style="color:var(--muted)">${x.chateau}</small>` : ''}</td>
+      <td>${x.millesime || '—'}</td>
+      <td>${x.quantite ?? 1}</td>
+      <td><span class="badge badge-declin">Depuis ${x.annee_maturite_fin} (${depasseDepuis} an${depasseDepuis>1?'s':''})</span></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── DERNIÈRES ENTRÉES ──
+function renderEntrees(b) {
+  const dernieres = b.slice(0, 10); // déjà trié par created_at DESC
+  document.getElementById('entrees-tbody').innerHTML = dernieres.map(x => {
+    const cfg = COULEURS_CONFIG[x.couleur] || { color: '#999' };
+    return `<tr>
+      <td><strong>${x.nom}</strong></td>
+      <td>${x.chateau || '—'}</td>
+      <td><span style="display:inline-flex;align-items:center;gap:0.4rem"><span style="width:8px;height:8px;border-radius:50%;background:${cfg.color};flex-shrink:0;display:inline-block"></span>${x.couleur || '—'}</span></td>
+      <td>${x.millesime || '—'}</td>
+      <td>${x.region || '—'}</td>
+      <td>${x.quantite ?? 1} btl</td>
+      <td>${x.prix_achat ? CHF(x.prix_achat) : '—'}</td>
+      <td style="color:var(--muted);font-size:0.78rem">${x.created_at ? fmt(x.created_at) : '—'}</td>
+    </tr>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

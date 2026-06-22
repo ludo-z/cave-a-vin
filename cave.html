@@ -66,6 +66,19 @@
       letter-spacing: 0.05em;
     }
 
+    nav { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      background: none; border: none;
+      color: rgba(247,243,237,0.6);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.5rem 1rem; cursor: pointer; border-radius: 1px;
+      transition: all 0.2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .nav-btn:hover { color: var(--cream); background: rgba(255,255,255,0.08); }
+    .nav-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+
     .btn-deconnexion {
       background: none;
       border: 1px solid rgba(201,168,76,0.4);
@@ -568,6 +581,10 @@
 
 <header>
   <div class="header-logo">🍷 Ma <span>Cave</span></div>
+  <nav>
+    <a class="nav-btn active" href="cave.html">🍾 Ma cave</a>
+    <a class="nav-btn" href="dashboard.html">📊 Tableau de bord</a>
+  </nav>
   <div class="header-right">
     <span id="user-prenom"></span>
     <button class="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
@@ -823,8 +840,8 @@
 // =============================================
 //  🔑 REMPLACE CES 2 LIGNES AVEC TES CLÉS
 // =============================================
-const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+const SUPABASE_URL = 'https://XXXX.supabase.co';
+const SUPABASE_KEY = 'eyJ...TON_ANON_KEY...';
 // =============================================
 
 const { createClient } = supabase;

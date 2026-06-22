@@ -184,6 +184,22 @@
     }
     .vue-btn.active { background: var(--bordeaux); color: white; }
 
+    .btn-importer {
+      padding: 0.65rem 1.2rem;
+      background: white;
+      color: var(--bordeaux);
+      border: 1px solid var(--bordeaux);
+      border-radius: 1px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .btn-importer:hover { background: var(--cream); }
+
     .btn-ajouter {
       padding: 0.65rem 1.5rem;
       background: var(--bordeaux);
@@ -603,6 +619,7 @@
       <button class="vue-btn active" id="btn-cartes" onclick="setVue('cartes')" title="Vue cartes">⊞</button>
       <button class="vue-btn" id="btn-tableau" onclick="setVue('tableau')" title="Vue tableau">☰</button>
     </div>
+    <button class="btn-importer" onclick="ouvrirImport()">⬆ Importer</button>
     <button class="btn-ajouter" onclick="ouvrirAjout()">+ Ajouter</button>
   </div>
 
@@ -735,13 +752,79 @@
   </div>
 </div>
 
+<!-- ═══ MODAL IMPORT CSV/EXCEL ═══ -->
+<div class="overlay" id="modal-import">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title">Importer des bouteilles</div>
+      <button class="btn-close" onclick="fermerModal('modal-import')">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <!-- Télécharger le modèle -->
+      <div style="background:var(--stone);border-radius:2px;padding:1rem 1.25rem;margin-bottom:1.5rem">
+        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem">Étape 1 — Télécharger le modèle</div>
+        <div style="font-size:0.88rem;color:var(--ink);margin-bottom:0.75rem">Remplis ce fichier CSV avec tes vins, puis importe-le ci-dessous.</div>
+        <button class="btn-secondary" onclick="telechargerModele()" style="font-size:0.78rem">⬇ Télécharger le modèle CSV</button>
+      </div>
+
+      <!-- Colonnes acceptées -->
+      <div style="margin-bottom:1.5rem">
+        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem">Colonnes reconnues</div>
+        <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
+          ${['nom','chateau','couleur','millesime','region','appellation','quantite','prix_achat','annee_maturite_debut','annee_maturite_fin','plats_accords','note_perso'].map(c =>
+            `<span style="font-size:0.72rem;padding:0.2rem 0.5rem;background:rgba(107,26,42,0.08);color:var(--bordeaux);border-radius:1px;font-family:monospace">${c}</span>`
+          ).join('')}
+        </div>
+        <div style="font-size:0.78rem;color:var(--muted);margin-top:0.5rem">⚠️ La colonne <code>nom</code> et <code>couleur</code> sont obligatoires. Couleurs acceptées : <strong>rouge, blanc, rosé, pétillant, autre</strong></div>
+      </div>
+
+      <!-- Zone de dépôt -->
+      <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Étape 2 — Importer ton fichier</div>
+      <div id="drop-zone" style="border:2px dashed var(--stone);border-radius:2px;padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s"
+           onclick="document.getElementById('f-import').click()"
+           ondragover="event.preventDefault();this.style.borderColor='var(--bordeaux)'"
+           ondragleave="this.style.borderColor='var(--stone)'"
+           ondrop="gererDrop(event)">
+        <div style="font-size:2rem;margin-bottom:0.5rem">📂</div>
+        <div style="font-size:0.9rem;color:var(--ink)">Glisse ton fichier ici ou clique pour choisir</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">CSV ou Excel (.csv, .xlsx, .xls)</div>
+        <input type="file" id="f-import" accept=".csv,.xlsx,.xls" style="display:none" onchange="lireFichier(event)"/>
+      </div>
+
+      <!-- Aperçu -->
+      <div id="import-apercu" style="display:none;margin-top:1.25rem">
+        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Aperçu — <span id="import-count"></span></div>
+        <div style="max-height:200px;overflow-y:auto;border:1px solid var(--stone);border-radius:2px">
+          <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
+            <thead style="background:var(--stone);position:sticky;top:0">
+              <tr id="apercu-head"></tr>
+            </thead>
+            <tbody id="apercu-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div id="import-erreurs" style="display:none;margin-top:1rem;padding:0.75rem 1rem;background:#fdf0f0;color:#B94040;border-left:3px solid #B94040;border-radius:1px;font-size:0.83rem"></div>
+      <div id="import-succes" style="display:none;margin-top:1rem;padding:0.75rem 1rem;background:#f0fdf4;color:#2d6a4f;border-left:3px solid #52b788;border-radius:1px;font-size:0.83rem"></div>
+
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fermerModal('modal-import')">Annuler</button>
+      <button class="btn-save" id="btn-lancer-import" onclick="lancerImport()" disabled style="opacity:0.5">Importer les bouteilles</button>
+    </div>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script>
 // =============================================
 //  🔑 REMPLACE CES 2 LIGNES AVEC TES CLÉS
 // =============================================
-const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+const SUPABASE_URL = 'https://XXXX.supabase.co';
+const SUPABASE_KEY = 'eyJ...TON_ANON_KEY...';
 // =============================================
 
 const { createClient } = supabase;
@@ -1073,7 +1156,175 @@ async function confirmerSuppression(id, nom) {
   if (!error) await chargerBouteilles();
 }
 
-// ── UTILS ──
+
+// ── IMPORT CSV / EXCEL ──
+let donneesImport = [];
+
+function ouvrirImport() {
+  donneesImport = [];
+  document.getElementById('f-import').value = '';
+  document.getElementById('import-apercu').style.display = 'none';
+  document.getElementById('import-erreurs').style.display = 'none';
+  document.getElementById('import-succes').style.display = 'none';
+  document.getElementById('btn-lancer-import').disabled = true;
+  document.getElementById('btn-lancer-import').style.opacity = '0.5';
+  document.getElementById('drop-zone').style.borderColor = 'var(--stone)';
+  ouvrirModal('modal-import');
+}
+
+function telechargerModele() {
+  const entetes = 'nom,chateau,couleur,millesime,region,appellation,quantite,prix_achat,annee_maturite_debut,annee_maturite_fin,plats_accords,note_perso';
+  const exemple = 'Gevrey-Chambertin,Domaine Rossignol-Trapet,rouge,2019,Bourgogne,AOC Gevrey-Chambertin,6,45.00,2024,2032,Gibier et fromages,Belle robe grenat';
+  const blob = new Blob([entetes + '\n' + exemple], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'modele-cave-a-vin.csv';
+  a.click();
+}
+
+function gererDrop(e) {
+  e.preventDefault();
+  document.getElementById('drop-zone').style.borderColor = 'var(--stone)';
+  const file = e.dataTransfer.files[0];
+  if (file) traiterFichier(file);
+}
+
+function lireFichier(e) {
+  const file = e.target.files[0];
+  if (file) traiterFichier(file);
+}
+
+function traiterFichier(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+  const reader = new FileReader();
+
+  if (ext === 'csv') {
+    reader.onload = ev => parserCSV(ev.target.result);
+    reader.readAsText(file, 'UTF-8');
+  } else if (['xlsx', 'xls'].includes(ext)) {
+    reader.onload = ev => parserExcel(ev.target.result);
+    reader.readAsArrayBuffer(file);
+  } else {
+    afficherErreurImport('Format non supporté. Utilise un fichier .csv, .xlsx ou .xls');
+  }
+}
+
+function parserCSV(texte) {
+  const lignes = texte.trim().split('\n').map(l => l.split(',').map(c => c.trim().replace(/^"|"$/g, '')));
+  if (lignes.length < 2) return afficherErreurImport('Le fichier est vide ou mal formaté.');
+  const entetes = lignes[0].map(e => e.toLowerCase().trim());
+  const donnees = lignes.slice(1).filter(l => l.some(c => c)).map(l => {
+    const obj = {};
+    entetes.forEach((h, i) => obj[h] = l[i] || '');
+    return obj;
+  });
+  validerEtAfficher(entetes, donnees);
+}
+
+function parserExcel(buffer) {
+  const wb = XLSX.read(buffer, { type: 'array' });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  const donnees = XLSX.utils.sheet_to_json(ws, { defval: '' });
+  if (!donnees.length) return afficherErreurImport('Le fichier Excel est vide.');
+  const entetes = Object.keys(donnees[0]).map(e => e.toLowerCase().trim());
+  const donneesNorm = donnees.map(row => {
+    const obj = {};
+    Object.entries(row).forEach(([k, v]) => obj[k.toLowerCase().trim()] = String(v));
+    return obj;
+  });
+  validerEtAfficher(entetes, donneesNorm);
+}
+
+function validerEtAfficher(entetes, donnees) {
+  document.getElementById('import-erreurs').style.display = 'none';
+  document.getElementById('import-succes').style.display = 'none';
+
+  if (!entetes.includes('nom')) return afficherErreurImport('Colonne "nom" introuvable. Vérifie les entêtes de ton fichier.');
+
+  const couleursValides = ['rouge', 'blanc', 'rosé', 'rose', 'pétillant', 'petillant', 'autre', ''];
+  const erreurs = [];
+  donnees.forEach((row, i) => {
+    if (!row['nom']) erreurs.push(`Ligne ${i + 2} : nom manquant`);
+    const c = (row['couleur'] || '').toLowerCase();
+    if (c && !couleursValides.includes(c)) erreurs.push(`Ligne ${i + 2} : couleur "${row['couleur']}" invalide`);
+  });
+
+  if (erreurs.length > 3) return afficherErreurImport('Trop d\'erreurs dans le fichier :\n' + erreurs.slice(0, 3).join('\n') + `\n... et ${erreurs.length - 3} autres`);
+  if (erreurs.length) return afficherErreurImport(erreurs.join('\n'));
+
+  donneesImport = donnees;
+
+  // Aperçu
+  const colsAfficher = ['nom', 'chateau', 'couleur', 'millesime', 'quantite'].filter(c => entetes.includes(c));
+  document.getElementById('apercu-head').innerHTML = colsAfficher.map(c => `<th style="padding:0.4rem 0.6rem;text-align:left;font-size:0.7rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted)">${c}</th>`).join('');
+  document.getElementById('apercu-body').innerHTML = donnees.slice(0, 5).map(row =>
+    `<tr style="border-bottom:1px solid var(--stone)">${colsAfficher.map(c => `<td style="padding:0.4rem 0.6rem">${row[c] || '—'}</td>`).join('')}</tr>`
+  ).join('') + (donnees.length > 5 ? `<tr><td colspan="${colsAfficher.length}" style="padding:0.4rem 0.6rem;color:var(--muted);font-style:italic">... et ${donnees.length - 5} autres lignes</td></tr>` : '');
+
+  document.getElementById('import-count').textContent = `${donnees.length} bouteille${donnees.length > 1 ? 's' : ''} détectée${donnees.length > 1 ? 's' : ''}`;
+  document.getElementById('import-apercu').style.display = 'block';
+  document.getElementById('btn-lancer-import').disabled = false;
+  document.getElementById('btn-lancer-import').style.opacity = '1';
+}
+
+function afficherErreurImport(msg) {
+  const el = document.getElementById('import-erreurs');
+  el.textContent = '⚠️ ' + msg;
+  el.style.display = 'block';
+  document.getElementById('import-apercu').style.display = 'none';
+  document.getElementById('btn-lancer-import').disabled = true;
+  document.getElementById('btn-lancer-import').style.opacity = '0.5';
+}
+
+async function lancerImport() {
+  if (!donneesImport.length) return;
+  const btn = document.getElementById('btn-lancer-import');
+  btn.disabled = true;
+  btn.textContent = 'Import en cours…';
+
+  const { data: { session } } = await sb.auth.getSession();
+  const userId = session.user.id;
+
+  const normaliserCouleur = c => {
+    const map = { 'rose': 'rosé', 'petillant': 'pétillant' };
+    const v = (c || '').toLowerCase().trim();
+    return map[v] || v || 'autre';
+  };
+
+  const payload = donneesImport.map(row => ({
+    user_id:              userId,
+    nom:                  row['nom'] || '',
+    chateau:              row['chateau'] || null,
+    couleur:              normaliserCouleur(row['couleur']),
+    millesime:            parseInt(row['millesime']) || null,
+    region:               row['region'] || null,
+    appellation:          row['appellation'] || null,
+    quantite:             parseInt(row['quantite']) || 1,
+    prix_achat:           parseFloat(row['prix_achat']) || null,
+    annee_maturite_debut: parseInt(row['annee_maturite_debut']) || null,
+    annee_maturite_fin:   parseInt(row['annee_maturite_fin']) || null,
+    plats_accords:        row['plats_accords'] || null,
+    note_perso:           row['note_perso'] || null,
+  }));
+
+  const { error } = await sb.from('bouteilles').insert(payload);
+  btn.disabled = false;
+  btn.textContent = 'Importer les bouteilles';
+
+  if (error) {
+    afficherErreurImport('Erreur lors de l\'import : ' + error.message);
+  } else {
+    const el = document.getElementById('import-succes');
+    el.textContent = `✅ ${payload.length} bouteille${payload.length > 1 ? 's' : ''} importée${payload.length > 1 ? 's' : ''} avec succès !`;
+    el.style.display = 'block';
+    document.getElementById('import-apercu').style.display = 'none';
+    donneesImport = [];
+    btn.disabled = true;
+    btn.style.opacity = '0.5';
+    await chargerBouteilles();
+  }
+}
+
 function ouvrirModal(id)  { document.getElementById(id).classList.add('open'); }
 function fermerModal(id)  { document.getElementById(id).classList.remove('open'); }
 

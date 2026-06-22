@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ma Cave à Vin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bordeaux:   #6B1A2A;
+      --bordeaux-dk:#4A1020;
+      --gold:       #C9A84C;
+      --cream:      #F7F3ED;
+      --stone:      #E8E0D5;
+      --ink:        #1C1410;
+      --muted:      #7A6E66;
+      --error:      #B94040;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bordeaux-dk);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Motif de fond subtil */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        radial-gradient(ellipse 80% 60% at 20% 80%, rgba(107,26,42,0.6) 0%, transparent 60%),
+        radial-gradient(ellipse 60% 80% at 80% 20%, rgba(201,168,76,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .card {
+      background: var(--cream);
+      border-radius: 2px;
+      width: 100%;
+      max-width: 420px;
+      padding: 3rem 2.5rem;
+      position: relative;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.5), 0 0 0 1px rgba(201,168,76,0.2);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--bordeaux), var(--gold), var(--bordeaux));
+    }
+
+    .logo {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-icon {
+      font-size: 2.8rem;
+      line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+
+    .logo h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem;
+      font-weight: 300;
+      color: var(--ink);
+      letter-spacing: 0.05em;
+      line-height: 1.1;
+    }
+
+    .logo span {
+      font-style: italic;
+      color: var(--bordeaux);
+    }
+
+    .logo p {
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-top: 0.4rem;
+    }
+
+    /* Tabs connexion / inscription */
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid var(--stone);
+      margin-bottom: 2rem;
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: none;
+      border: none;
+      padding: 0.75rem 0;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      cursor: pointer;
+      position: relative;
+      transition: color 0.2s;
+    }
+
+    .tab-btn.active {
+      color: var(--bordeaux);
+    }
+
+    .tab-btn.active::after {
+      content: '';
+      position: absolute;
+      bottom: -1px; left: 20%; right: 20%;
+      height: 2px;
+      background: var(--bordeaux);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.72rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="email"],
+    input[type="password"],
+    input[type="text"] {
+      width: 100%;
+      padding: 0.75rem 1rem;
+      border: 1px solid var(--stone);
+      border-radius: 1px;
+      background: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      color: var(--ink);
+      transition: border-color 0.2s, box-shadow 0.2s;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: var(--bordeaux);
+      box-shadow: 0 0 0 3px rgba(107,26,42,0.08);
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--bordeaux);
+      color: white;
+      border: none;
+      border-radius: 1px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      cursor: pointer;
+      margin-top: 0.5rem;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn-primary:hover { background: var(--bordeaux-dk); }
+    .btn-primary:active { transform: scale(0.99); }
+    .btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .msg {
+      padding: 0.75rem 1rem;
+      border-radius: 1px;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      display: none;
+    }
+    .msg.error  { background: #fdf0f0; color: var(--error); border-left: 3px solid var(--error); }
+    .msg.success{ background: #f0fdf4; color: #2d6a4f; border-left: 3px solid #52b788; }
+    .msg.show   { display: block; }
+
+    .divider {
+      text-align: center;
+      color: var(--stone);
+      font-size: 0.75rem;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      position: absolute;
+      top: 50%; width: 40%;
+      height: 1px;
+      background: var(--stone);
+    }
+    .divider::before { left: 0; }
+    .divider::after  { right: 0; }
+
+    .panel { display: none; }
+    .panel.active { display: block; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="logo">
+      <div class="logo-icon">🍷</div>
+      <h1>Ma <span>Cave</span></h1>
+      <p>Gestion de cave personnelle</p>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('connexion')">Connexion</button>
+      <button class="tab-btn" onclick="switchTab('inscription')">Inscription</button>
+    </div>
+
+    <!-- CONNEXION -->
+    <div id="panel-connexion" class="panel active">
+      <div class="form-group">
+        <label for="login-email">Adresse e-mail</label>
+        <input type="email" id="login-email" placeholder="vous@exemple.com" />
+      </div>
+      <div class="form-group">
+        <label for="login-pwd">Mot de passe</label>
+        <input type="password" id="login-pwd" placeholder="••••••••" />
+      </div>
+      <button class="btn-primary" onclick="seConnecter()">Entrer dans ma cave</button>
+      <div id="msg-connexion" class="msg"></div>
+    </div>
+
+    <!-- INSCRIPTION -->
+    <div id="panel-inscription" class="panel">
+      <div class="form-group">
+        <label for="reg-nom">Votre prénom</label>
+        <input type="text" id="reg-nom" placeholder="Jean-Pierre" />
+      </div>
+      <div class="form-group">
+        <label for="reg-email">Adresse e-mail</label>
+        <input type="email" id="reg-email" placeholder="vous@exemple.com" />
+      </div>
+      <div class="form-group">
+        <label for="reg-pwd">Mot de passe</label>
+        <input type="password" id="reg-pwd" placeholder="8 caractères minimum" />
+      </div>
+      <button class="btn-primary" onclick="sInscrire()">Créer mon compte</button>
+      <div id="msg-inscription" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- Supabase SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // =============================================
+    //  🔑 REMPLACE CES 2 LIGNES AVEC TES CLÉS
+    // =============================================
+    const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+    // =============================================
+
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    // Redirect si déjà connecté
+    sb.auth.getSession().then(({ data }) => {
+      if (data.session) window.location.href = 'cave.html';
+    });
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab-btn').forEach((b, i) =>
+        b.classList.toggle('active', (i === 0 && tab === 'connexion') || (i === 1 && tab === 'inscription'))
+      );
+      document.getElementById('panel-connexion').classList.toggle('active', tab === 'connexion');
+      document.getElementById('panel-inscription').classList.toggle('active', tab === 'inscription');
+    }
+
+    function showMsg(id, text, type) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = `msg ${type} show`;
+    }
+
+    async function seConnecter() {
+      const email = document.getElementById('login-email').value.trim();
+      const pwd   = document.getElementById('login-pwd').value;
+      if (!email || !pwd) return showMsg('msg-connexion', 'Merci de remplir tous les champs.', 'error');
+
+      const btn = document.querySelector('#panel-connexion .btn-primary');
+      btn.disabled = true; btn.textContent = 'Connexion…';
+
+      const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
+      if (error) {
+        showMsg('msg-connexion', 'Email ou mot de passe incorrect.', 'error');
+        btn.disabled = false; btn.textContent = 'Entrer dans ma cave';
+      } else {
+        window.location.href = 'cave.html';
+      }
+    }
+
+    async function sInscrire() {
+      const nom   = document.getElementById('reg-nom').value.trim();
+      const email = document.getElementById('reg-email').value.trim();
+      const pwd   = document.getElementById('reg-pwd').value;
+      if (!nom || !email || !pwd) return showMsg('msg-inscription', 'Merci de remplir tous les champs.', 'error');
+      if (pwd.length < 8) return showMsg('msg-inscription', 'Le mot de passe doit faire au moins 8 caractères.', 'error');
+
+      const btn = document.querySelector('#panel-inscription .btn-primary');
+      btn.disabled = true; btn.textContent = 'Création…';
+
+      const { error } = await sb.auth.signUp({
+        email, password: pwd,
+        options: { data: { prenom: nom } }
+      });
+
+      if (error) {
+        showMsg('msg-inscription', error.message, 'error');
+        btn.disabled = false; btn.textContent = 'Créer mon compte';
+      } else {
+        showMsg('msg-inscription', '✅ Compte créé ! Vérifiez votre e-mail pour confirmer votre inscription.', 'success');
+        btn.disabled = false; btn.textContent = 'Créer mon compte';
+      }
+    }
+
+    // Touche Entrée pour valider
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Enter') return;
+      const activePanel = document.querySelector('.panel.active').id;
+      if (activePanel === 'panel-connexion') seConnecter();
+      else sInscrire();
+    });
+  </script>
+</body>
+</html>

@@ -264,24 +264,33 @@
   <script>
     // =============================================
     //  🔑 REMPLACE CES 2 LIGNES AVEC TES CLÉS
-// =============================================
-const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
-const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
-// =============================================
+    // =============================================
+    const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+    const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+    // =============================================
 
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
     // Redirect si déjà connecté
-    // onAuthStateChange gère tous les cas : session existante, confirmation email, etc.
-    let dejaRedirige = false;
-    sb.auth.onAuthStateChange((event, session) => {
-      if (dejaRedirige) return;
-      if (session) {
-        dejaRedirige = true;
-        window.location.href = 'cave.html';
-      }
-    });
+    // On ignore les tokens de confirmation email pour éviter les boucles
+    const hash = window.location.hash;
+    const hashParams = new URLSearchParams(hash.replace('#', '?'));
+    const tokenType = hashParams.get('type');
+
+    if (tokenType === 'signup' || tokenType === 'recovery') {
+      // Lien de confirmation email : attendre que Supabase traite le token
+      sb.auth.onAuthStateChange((event, session) => {
+        if (event === 'SIGNED_IN' && session) {
+          window.location.href = 'cave.html';
+        }
+      });
+    } else {
+      // Vérification normale : si déjà connecté, aller sur cave.html
+      sb.auth.getSession().then(({ data }) => {
+        if (data.session) window.location.href = 'cave.html';
+      });
+    }
 
     function switchTab(tab) {
       document.querySelectorAll('.tab-btn').forEach((b, i) =>

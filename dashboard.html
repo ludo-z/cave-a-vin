@@ -449,17 +449,11 @@ const CHF = v => v != null ? v.toLocaleString('fr-CH', { minimumFractionDigits: 
 const fmt = d => new Date(d).toLocaleDateString('fr-CH', { day: '2-digit', month: 'short', year: 'numeric' });
 
 // ── INIT ──
-let appInitialise = false;
+(async () => {
+  await new Promise(r => setTimeout(r, 300));
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return window.location.href = 'index.html';
 
-sb.auth.onAuthStateChange(async (event, session) => {
-  if (appInitialise) return;
-
-  if (!session) {
-    window.location.href = 'index.html';
-    return;
-  }
-
-  appInitialise = true;
   const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
   document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
   document.getElementById('date-maj').textContent = `Mise à jour le ${fmt(new Date())}`;

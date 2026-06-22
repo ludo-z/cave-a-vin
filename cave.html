@@ -839,8 +839,19 @@ let photoFile = null;
 
 // ── INIT ──
 (async () => {
+  // Petite pause pour laisser Supabase finaliser la session après redirection
+  await new Promise(r => setTimeout(r, 300));
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) return window.location.href = 'index.html';
+  if (!session) {
+    // Deuxième tentative après un délai plus long (cas redirection email)
+    await new Promise(r => setTimeout(r, 700));
+    const { data: retry } = await sb.auth.getSession();
+    if (!retry.session) return window.location.href = 'index.html';
+    const prenom = retry.session.user.user_metadata?.prenom || retry.session.user.email.split('@')[0];
+    document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+    await chargerBouteilles();
+    return;
+  }
   const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
   document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
   await chargerBouteilles();

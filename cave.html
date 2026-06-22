@@ -568,6 +568,78 @@
     .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
     .detail-img { width: 100%; max-height: 200px; object-fit: cover; border-radius: 2px; margin-bottom: 1rem; }
 
+    /* ── IA AUTO-REMPLISSAGE ── */
+    .ia-search-box {
+      grid-column: 1 / -1;
+      background: linear-gradient(135deg, rgba(107,26,42,0.04), rgba(201,168,76,0.06));
+      border: 1px solid rgba(107,26,42,0.15);
+      border-radius: 2px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.25rem;
+    }
+    .ia-search-label {
+      font-size: 0.68rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--bordeaux);
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .ia-search-row {
+      display: flex;
+      gap: 0.5rem;
+    }
+    .ia-search-input {
+      flex: 1;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid var(--stone);
+      border-radius: 1px;
+      background: white;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      color: var(--ink);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .ia-search-input:focus { border-color: var(--bordeaux); }
+    .ia-search-input::placeholder { color: var(--muted); font-style: italic; }
+    .btn-ia {
+      padding: 0.65rem 1.1rem;
+      background: var(--bordeaux);
+      color: white;
+      border: none;
+      border-radius: 1px;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: background 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .btn-ia:hover { background: var(--bordeaux-dk); }
+    .btn-ia:disabled { opacity: 0.6; cursor: not-allowed; }
+    .ia-status {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 0.5rem;
+      min-height: 1.2em;
+      font-style: italic;
+    }
+    .ia-status.ok    { color: #2d6a4f; font-style: normal; }
+    .ia-status.error { color: var(--error); font-style: normal; }
+    .champ-ia {
+      transition: background 0.4s;
+    }
+    .champ-ia.rempli {
+      background: rgba(82,183,136,0.08) !important;
+      border-color: #52b788 !important;
+    }
+
     /* Responsive */
     @media (max-width: 600px) {
       .form-grid { grid-template-columns: 1fr; }
@@ -672,14 +744,29 @@
     </div>
     <div class="modal-body">
       <div class="form-grid">
+
+        <!-- IA AUTO-REMPLISSAGE -->
+        <div class="ia-search-box full">
+          <div class="ia-search-label">✨ Remplissage automatique par IA</div>
+          <div class="ia-search-row">
+            <input type="text" class="ia-search-input" id="ia-query"
+              placeholder="Ex : Château Margaux 2015, Gevrey-Chambertin Rossignol-Trapet 2019…"
+              onkeydown="if(event.key==='Enter') rechercherIA()"/>
+            <button class="btn-ia" id="btn-ia" onclick="rechercherIA()">
+              ✨ Analyser
+            </button>
+          </div>
+          <div class="ia-status" id="ia-status">Décrivez le vin pour que l'IA remplisse les champs automatiquement</div>
+        </div>
+
         <div class="section-sep">Identification</div>
         <div class="form-group full">
           <label>Nom du vin *</label>
-          <input type="text" id="f-nom" placeholder="ex : Gevrey-Chambertin"/>
+          <input type="text" id="f-nom" class="champ-ia" placeholder="ex : Gevrey-Chambertin"/>
         </div>
         <div class="form-group full">
           <label>Château / Domaine</label>
-          <input type="text" id="f-chateau" placeholder="ex : Domaine Rossignol-Trapet"/>
+          <input type="text" id="f-chateau" class="champ-ia" placeholder="ex : Domaine Rossignol-Trapet"/>
         </div>
         <div class="form-group">
           <label>Couleur *</label>
@@ -694,15 +781,15 @@
         </div>
         <div class="form-group">
           <label>Millésime</label>
-          <input type="number" id="f-millesime" placeholder="2019" min="1900" max="2099"/>
+          <input type="number" id="f-millesime" class="champ-ia" placeholder="2019" min="1900" max="2099"/>
         </div>
         <div class="form-group">
           <label>Région</label>
-          <input type="text" id="f-region" placeholder="ex : Bourgogne"/>
+          <input type="text" id="f-region" class="champ-ia" placeholder="ex : Bourgogne"/>
         </div>
         <div class="form-group">
           <label>Appellation</label>
-          <input type="text" id="f-appellation" placeholder="ex : AOC Gevrey-Chambertin"/>
+          <input type="text" id="f-appellation" class="champ-ia" placeholder="ex : AOC Gevrey-Chambertin"/>
         </div>
 
         <div class="section-sep">Cave & Valeur</div>
@@ -718,19 +805,19 @@
         <div class="section-sep">Maturité & Accords</div>
         <div class="form-group">
           <label>À boire à partir de</label>
-          <input type="number" id="f-maturite-debut" placeholder="2025" min="2000" max="2100"/>
+          <input type="number" id="f-maturite-debut" class="champ-ia" placeholder="2025" min="2000" max="2100"/>
         </div>
         <div class="form-group">
           <label>À boire jusqu'en</label>
-          <input type="number" id="f-maturite-fin" placeholder="2035" min="2000" max="2100"/>
+          <input type="number" id="f-maturite-fin" class="champ-ia" placeholder="2035" min="2000" max="2100"/>
         </div>
         <div class="form-group full">
           <label>Accords mets & plats</label>
-          <input type="text" id="f-plats" placeholder="ex : Agneau, gibier, fromages affinés"/>
+          <input type="text" id="f-plats" class="champ-ia" placeholder="ex : Agneau, gibier, fromages affinés"/>
         </div>
         <div class="form-group full">
           <label>Notes personnelles</label>
-          <textarea id="f-note" placeholder="Robe, nez, bouche, impressions…"></textarea>
+          <textarea id="f-note" class="champ-ia" placeholder="Robe, nez, bouche, impressions…"></textarea>
         </div>
 
         <div class="section-sep">Photo de l'étiquette</div>
@@ -862,20 +949,17 @@ sb.auth.onAuthStateChange(async (event, session) => {
   // Ignorer les événements après la première initialisation
   if (appInitialise) return;
 
-  if (event === 'INITIAL_SESSION') {
-    if (!session) {
-      // Pas de session au démarrage : retour connexion
-      window.location.href = 'index.html';
-      return;
-    }
-    // Session valide : initialiser l'app
-    appInitialise = true;
-    const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
-    document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
-    await chargerBouteilles();
-  } else if (event === 'SIGNED_OUT') {
+  if (!session) {
+    // Pas de session : retour à la page de connexion
     window.location.href = 'index.html';
+    return;
   }
+
+  // Session valide : initialiser l'app
+  appInitialise = true;
+  const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
+  document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+  await chargerBouteilles();
 });
 
 async function seDeconnecter() {
@@ -1065,6 +1149,10 @@ function ouvrirAjout() {
     if (el) el.value = '';
   });
   document.getElementById('f-couleur').value = '';
+  document.getElementById('ia-query').value = '';
+  document.getElementById('ia-status').textContent = 'Décrivez le vin pour que l\'IA remplisse les champs automatiquement';
+  document.getElementById('ia-status').className = 'ia-status';
+  document.querySelectorAll('.champ-ia').forEach(el => el.classList.remove('rempli'));
   document.getElementById('photo-preview-wrap').innerHTML = `<div>📷 Cliquer pour ajouter une photo</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">JPG, PNG — max 2 Mo</div>`;
   const msg = document.getElementById('msg-form');
   msg.className = 'msg-modal'; msg.textContent = '';

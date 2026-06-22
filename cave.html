@@ -946,20 +946,20 @@ let photoFile = null;
 let appInitialise = false;
 
 sb.auth.onAuthStateChange(async (event, session) => {
-  // Ignorer les événements après la première initialisation
   if (appInitialise) return;
 
-  if (!session) {
-    // Pas de session : retour à la page de connexion
+  if (event === 'INITIAL_SESSION') {
+    if (!session) {
+      window.location.href = 'index.html';
+      return;
+    }
+    appInitialise = true;
+    const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
+    document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+    await chargerBouteilles();
+  } else if (event === 'SIGNED_OUT') {
     window.location.href = 'index.html';
-    return;
   }
-
-  // Session valide : initialiser l'app
-  appInitialise = true;
-  const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
-  document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
-  await chargerBouteilles();
 });
 
 async function seDeconnecter() {
@@ -1443,6 +1443,102 @@ async function lancerImport() {
     btn.style.opacity = '0.5';
     await chargerBouteilles();
   }
+}
+
+// ── IA AUTO-REMPLISSAGE ──
+async function rechercherIA() {
+  const query = document.getElementById('ia-query').value.trim();
+  if (!query) return;
+
+  const btn    = document.getElementById('btn-ia');
+  const status = document.getElementById('ia-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Analyse…';
+  status.textContent = "L'IA analyse le vin, patientez…";
+  status.className = 'ia-status';
+
+  const prompt = `Tu es un expert en vins. L'utilisateur décrit un vin : "${query}"
+Réponds UNIQUEMENT en JSON valide, sans texte avant ni après, sans markdown.
+Format exact :
+{
+  "nom": "appellation ou nom du vin",
+  "chateau": "nom du château ou domaine (ou null)",
+  "couleur": "rouge|blanc|rosé|pétillant|autre",
+  "millesime": 2019,
+  "region": "région viticole",
+  "appellation": "appellation officielle avec AOC/AOP si applicable",
+  "annee_maturite_debut": 2024,
+  "annee_maturite_fin": 2035,
+  "plats_accords": "accords mets courts séparés par virgules",
+  "note_perso": "description courte du vin : robe, nez, bouche (2-3 phrases)"
+}
+Si tu ne connais pas le vin ou une info, mets null pour ce champ.
+Pour le millésime : si l'utilisateur l'a précisé utilise-le, sinon null.
+Pour la maturité : estime selon le vin et le millésime.`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await resp.json();
+    const texte = data.content?.[0]?.text || '';
+
+    let vin;
+    try {
+      const clean = texte.replace(/```json|```/g, '').trim();
+      vin = JSON.parse(clean);
+    } catch(e) {
+      throw new Error('Réponse IA invalide');
+    }
+
+    const champMapping = {
+      'f-nom':            vin.nom,
+      'f-chateau':        vin.chateau,
+      'f-millesime':      vin.millesime,
+      'f-region':         vin.region,
+      'f-appellation':    vin.appellation,
+      'f-maturite-debut': vin.annee_maturite_debut,
+      'f-maturite-fin':   vin.annee_maturite_fin,
+      'f-plats':          vin.plats_accords,
+      'f-note':           vin.note_perso,
+    };
+
+    let nbRemplis = 0;
+    for (const [id, val] of Object.entries(champMapping)) {
+      const el = document.getElementById(id);
+      if (el && val !== null && val !== undefined && val !== '') {
+        el.value = val;
+        el.classList.add('rempli');
+        nbRemplis++;
+        setTimeout(() => el.classList.remove('rempli'), 3000);
+      }
+    }
+
+    if (vin.couleur) {
+      const sel = document.getElementById('f-couleur');
+      const opts = ['rouge','blanc','rosé','pétillant','autre'];
+      if (opts.includes(vin.couleur.toLowerCase())) {
+        sel.value = vin.couleur.toLowerCase();
+      }
+    }
+
+    status.textContent = `✅ ${nbRemplis} champs remplis — tu peux les modifier librement`;
+    status.className = 'ia-status ok';
+
+  } catch(err) {
+    status.textContent = "⚠️ L'IA n'a pas pu identifier ce vin. Remplis les champs manuellement.";
+    status.className = 'ia-status error';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '✨ Analyser';
 }
 
 function ouvrirModal(id)  { document.getElementById(id).classList.add('open'); }

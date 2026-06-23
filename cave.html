@@ -1494,11 +1494,16 @@ async function rechercherVin() {
     status.className = 'ia-status';
 
     try {
+      // Récupérer le vrai token JWT de l'utilisateur connecté
+      const { data: { session: currentSession } } = await sb.auth.getSession();
+      if (!currentSession) throw new Error('Non connecté');
+      const userToken = currentSession.access_token;
+
       const resp = await fetch(EDGE_URL, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Authorization': `Bearer ${userToken}`,
           'apikey': SUPABASE_ANON_KEY
         },
         body: JSON.stringify({ query })

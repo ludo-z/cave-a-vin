@@ -320,6 +320,7 @@
           <div class="lbl">Prix moyen</div>
         </div>
       </div>
+      <div id="val-prix-note" style="display:none;font-size:0.72rem;color:var(--orange);margin-top:0.75rem;padding:0.5rem 0.75rem;background:rgba(224,123,57,0.08);border-radius:1px;border-left:2px solid var(--orange)"></div>
     </div>
 
     <!-- ── RÉPARTITION COULEURS ── -->
@@ -498,14 +499,31 @@ async function seDeconnecter() {
 
 // ── VALEUR TOTALE ──
 function renderValeur(b) {
-  const totalQty   = b.reduce((s, x) => s + (x.quantite || 1), 0);
-  const totalPrix  = b.reduce((s, x) => s + ((x.prix_achat || 0) * (x.quantite || 1)), 0);
-  const prixMoyen  = totalQty > 0 ? totalPrix / totalQty : 0;
+  const totalQty = b.reduce((s, x) => s + (x.quantite || 1), 0);
+
+  // Séparer les bouteilles avec et sans prix
+  const avecPrix  = b.filter(x => x.prix_achat && x.prix_achat > 0);
+  const sansPrix  = b.filter(x => !x.prix_achat || x.prix_achat === 0);
+  const qtyAvecPrix  = avecPrix.reduce((s, x) => s + (x.quantite || 1), 0);
+  const qtySansPrix  = sansPrix.reduce((s, x) => s + (x.quantite || 1), 0);
+  const totalPrix    = avecPrix.reduce((s, x) => s + (x.prix_achat * (x.quantite || 1)), 0);
+  const prixMoyen    = qtyAvecPrix > 0 ? totalPrix / qtyAvecPrix : 0;
 
   document.getElementById('val-totale').textContent        = CHF(totalPrix);
   document.getElementById('val-nb-bouteilles').textContent = totalQty;
   document.getElementById('val-nb-vins').textContent       = b.length;
   document.getElementById('val-prix-moyen').textContent    = prixMoyen > 0 ? CHF(prixMoyen) : '—';
+
+  // Afficher la précision sur les bouteilles sans prix
+  const noteEl = document.getElementById('val-prix-note');
+  if (noteEl) {
+    if (qtySansPrix > 0) {
+      noteEl.textContent = `⚠️ ${qtySansPrix} bouteille${qtySansPrix > 1 ? 's' : ''} sans prix exclue${qtySansPrix > 1 ? 's' : ''} de la moyenne`;
+      noteEl.style.display = 'block';
+    } else {
+      noteEl.style.display = 'none';
+    }
+  }
 }
 
 // ── COULEURS ──

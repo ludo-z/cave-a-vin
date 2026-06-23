@@ -765,7 +765,7 @@
           <div class="ia-search-label">✨ Recherche intelligente par Claude IA</div>
           <div class="ia-search-row" style="position:relative">
             <input type="text" class="ia-search-input" id="ia-query"
-              placeholder="Ex : Château Margaux 2015, Gevrey-Chambertin, Barolo Gaja…"
+              placeholder="Ex : Château Margaux 2015, Barolo Gaja, Gevrey-Chambertin…"
               oninput="rechercherVin()"
               onkeydown="gererTouches(event)"
               autocomplete="off"/>
@@ -1468,6 +1468,7 @@ async function lancerImport() {
 // ── IA AUTO-REMPLISSAGE ──
 // ── RECHERCHE OPEN FOOD FACTS ──
 const EDGE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co/functions/v1/clever-responder';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
 
 let searchTimeout = null;
 let indexActif = -1;
@@ -1482,12 +1483,11 @@ async function rechercherVin() {
 
   if (query.length < 2) {
     cacherSuggestions();
-    status.textContent = 'Tapez le nom d\'un vin — Claude proposera des suggestions automatiquement';
+    status.textContent = "Tapez le nom d'un vin — Claude proposera des suggestions";
     status.className = 'ia-status';
     return;
   }
 
-  // Debounce : attendre 500ms après la dernière frappe
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(async () => {
     status.textContent = '✨ Claude recherche ce vin…';
@@ -1496,11 +1496,19 @@ async function rechercherVin() {
     try {
       const resp = await fetch(EDGE_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'apikey': SUPABASE_ANON_KEY
+        },
         body: JSON.stringify({ query })
       });
 
-      if (!resp.ok) throw new Error('Erreur serveur');
+      if (!resp.ok) {
+        const txt = await resp.text();
+        throw new Error('Erreur serveur (' + resp.status + '): ' + txt.slice(0,100));
+      }
+
       const data = await resp.json();
       if (data.error) throw new Error(data.error);
 
@@ -1519,24 +1527,23 @@ async function rechercherVin() {
       status.className = 'ia-status ok';
 
     } catch(err) {
-      status.textContent = '⚠️ Erreur : ' + err.message + ' — remplis les champs manuellement';
+      status.textContent = '⚠️ ' + err.message;
       status.className = 'ia-status error';
     }
-  }, 500);
+  }, 600);
 }
 
 function afficherSuggestions(vins) {
   const liste = document.getElementById('ia-suggestions-list');
   const wrap  = document.getElementById('ia-suggestions');
   indexActif  = -1;
-
-  const couleurColor = { rouge: '#8B2635', blanc: '#C8A84B', rosé: '#D4788A', pétillant: '#5B8FA8', autre: '#7A6E66', '': '#ccc' };
+  const couleurColor = { rouge:'#8B2635', blanc:'#C8A84B', rosé:'#D4788A', pétillant:'#5B8FA8', autre:'#7A6E66' };
 
   liste.innerHTML = vins.map((v, i) => `
     <div class="suggestion-item" data-index="${i}" onclick="selectionnerVin(${i})">
       <div class="suggestion-nom">
-        ${v.couleur ? `<span class="suggestion-couleur" style="background:${couleurColor[v.couleur] || '#ccc'}"></span>` : ''}
-        ${v.nom || ''}${v.millesime ? ` <span style="color:var(--bordeaux);font-weight:600">${v.millesime}</span>` : ''}
+        ${v.couleur ? `<span class="suggestion-couleur" style="background:${couleurColor[v.couleur]||'#ccc'}"></span>` : ''}
+        ${v.nom||''}${v.millesime ? ` <span style="color:var(--bordeaux);font-weight:600">${v.millesime}</span>` : ''}
         ${v.chateau ? `<span style="color:var(--muted);font-size:0.8rem"> — ${v.chateau}</span>` : ''}
       </div>
       <div class="suggestion-detail">
@@ -1577,12 +1584,10 @@ function selectionnerVin(index) {
   if (vin.couleur) {
     const sel = document.getElementById('f-couleur');
     const opts = ['rouge','blanc','rosé','pétillant','autre'];
-    if (opts.includes(vin.couleur.toLowerCase())) {
-      sel.value = vin.couleur.toLowerCase();
-    }
+    if (opts.includes(vin.couleur.toLowerCase())) sel.value = vin.couleur.toLowerCase();
   }
 
-  document.getElementById('ia-query').value = [vin.chateau || vin.nom, vin.millesime].filter(Boolean).join(' ');
+  document.getElementById('ia-query').value = [vin.chateau||vin.nom, vin.millesime].filter(Boolean).join(' ');
   cacherSuggestions();
 
   const status = document.getElementById('ia-status');
@@ -1600,31 +1605,18 @@ function cacherSuggestions() {
 function effacerRecherche() {
   document.getElementById('ia-query').value = '';
   document.getElementById('btn-ia-clear').style.display = 'none';
-  document.getElementById('ia-status').textContent = 'Tapez le nom d\'un vin pour voir les suggestions';
+  document.getElementById('ia-status').textContent = "Tapez le nom d'un vin pour voir les suggestions";
   document.getElementById('ia-status').className = 'ia-status';
   cacherSuggestions();
 }
 
 function gererTouches(event) {
   const items = document.querySelectorAll('.suggestion-item');
-  if (!items.length) {
-    if (event.key === 'Enter') rechercherVin();
-    return;
-  }
-  if (event.key === 'ArrowDown') {
-    event.preventDefault();
-    indexActif = Math.min(indexActif + 1, items.length - 1);
-  } else if (event.key === 'ArrowUp') {
-    event.preventDefault();
-    indexActif = Math.max(indexActif - 1, 0);
-  } else if (event.key === 'Enter' && indexActif >= 0) {
-    event.preventDefault();
-    selectionnerVin(indexActif);
-    return;
-  } else if (event.key === 'Escape') {
-    cacherSuggestions();
-    return;
-  }
+  if (!items.length) { if (event.key === 'Enter') rechercherVin(); return; }
+  if (event.key === 'ArrowDown')       { event.preventDefault(); indexActif = Math.min(indexActif+1, items.length-1); }
+  else if (event.key === 'ArrowUp')    { event.preventDefault(); indexActif = Math.max(indexActif-1, 0); }
+  else if (event.key === 'Enter' && indexActif >= 0) { event.preventDefault(); selectionnerVin(indexActif); return; }
+  else if (event.key === 'Escape')     { cacherSuggestions(); return; }
   items.forEach((el, i) => el.classList.toggle('actif', i === indexActif));
   if (indexActif >= 0) items[indexActif].scrollIntoView({ block: 'nearest' });
 }

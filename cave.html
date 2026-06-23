@@ -762,10 +762,10 @@
 
         <!-- IA AUTO-REMPLISSAGE -->
         <div class="ia-search-box full">
-          <div class="ia-search-label">🔍 Recherche automatique de vin</div>
+          <div class="ia-search-label">✨ Recherche intelligente par Claude IA</div>
           <div class="ia-search-row" style="position:relative">
             <input type="text" class="ia-search-input" id="ia-query"
-              placeholder="Ex : Château Margaux, Gevrey-Chambertin, Miraval rosé…"
+              placeholder="Ex : Château Margaux 2015, Gevrey-Chambertin, Barolo Gaja…"
               oninput="rechercherVin()"
               onkeydown="gererTouches(event)"
               autocomplete="off"/>
@@ -1467,6 +1467,8 @@ async function lancerImport() {
 
 // ── IA AUTO-REMPLISSAGE ──
 // ── RECHERCHE OPEN FOOD FACTS ──
+const EDGE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co/functions/v1/clever-responder';
+
 let searchTimeout = null;
 let indexActif = -1;
 let suggestionsData = [];
@@ -1480,63 +1482,29 @@ async function rechercherVin() {
 
   if (query.length < 2) {
     cacherSuggestions();
-    status.textContent = 'Tapez le nom d\'un vin pour voir les suggestions';
+    status.textContent = 'Tapez le nom d\'un vin — Claude proposera des suggestions automatiquement';
     status.className = 'ia-status';
     return;
   }
 
-  // Debounce : attendre 400ms après la dernière frappe
+  // Debounce : attendre 500ms après la dernière frappe
   clearTimeout(searchTimeout);
   searchTimeout = setTimeout(async () => {
-    status.textContent = '🔍 Recherche en cours…';
+    status.textContent = '✨ Claude recherche ce vin…';
     status.className = 'ia-status';
 
     try {
-      const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&search_simple=1&action=process&json=1&page_size=15&tagtype_0=categories&tag_contains_0=contains&tag_0=wines`;
-      const resp = await fetch(url);
+      const resp = await fetch(EDGE_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query })
+      });
+
+      if (!resp.ok) throw new Error('Erreur serveur');
       const data = await resp.json();
-      const produits = data.products || [];
+      if (data.error) throw new Error(data.error);
 
-      // Filtrer les résultats pertinents
-      const vins = produits.filter(p =>
-        p.product_name && p.product_name.trim() !== ''
-      ).map(p => {
-        // Extraire les infos disponibles
-        const nom       = p.product_name || '';
-        const marque    = p.brands || '';
-        const pays      = p.countries_tags?.[0]?.replace('en:','') || '';
-        const categories= p.categories || '';
-        const millesime = (p.product_name.match(/\b(19|20)\d{2}\b/) || [])[0] || '';
-
-        // Détecter la couleur
-        let couleur = '';
-        const texte = (categories + ' ' + nom + ' ' + (p.labels || '')).toLowerCase();
-        if (texte.includes('rouge') || texte.includes('red wine'))         couleur = 'rouge';
-        else if (texte.includes('blanc') || texte.includes('white wine'))  couleur = 'blanc';
-        else if (texte.includes('rosé') || texte.includes('rose wine'))    couleur = 'rosé';
-        else if (texte.includes('champagne') || texte.includes('crémant') || texte.includes('mousseux') || texte.includes('sparkling')) couleur = 'pétillant';
-
-        // Détecter la région
-        let region = '';
-        const regionsConnues = ['Bordeaux','Bourgogne','Rhône','Loire','Alsace','Champagne','Provence','Languedoc','Roussillon','Beaujolais','Jura','Savoie','Corse','Cahors','Bergerac','Madiran','Armagnac','Cognac','Toscane','Piémont','Rioja','Ribera'];
-        for (const r of regionsConnues) {
-          if (texte.includes(r.toLowerCase()) || nom.toLowerCase().includes(r.toLowerCase())) {
-            region = r; break;
-          }
-        }
-
-        // Pays → région approximative
-        if (!region && pays) {
-          const paysMap = { france: '', italy: 'Italie', spain: 'Espagne', portugal: 'Portugal', germany: 'Allemagne', 'united-states': 'États-Unis', argentina: 'Argentine', chile: 'Chili', australia: 'Australie', 'new-zealand': 'Nouvelle-Zélande', 'south-africa': 'Afrique du Sud' };
-          region = paysMap[pays] || '';
-        }
-
-        return { nom, marque, couleur, millesime: millesime ? parseInt(millesime) : null, region, categories };
-      }).filter((v, i, arr) =>
-        // Dédupliquer par nom
-        arr.findIndex(x => x.nom === v.nom) === i
-      ).slice(0, 8);
-
+      const vins = data.resultats || [];
       suggestionsData = vins;
 
       if (vins.length === 0) {
@@ -1547,14 +1515,14 @@ async function rechercherVin() {
       }
 
       afficherSuggestions(vins);
-      status.textContent = `${vins.length} vin${vins.length > 1 ? 's' : ''} trouvé${vins.length > 1 ? 's' : ''} — clique pour remplir les champs`;
+      status.textContent = `${vins.length} résultat${vins.length > 1 ? 's' : ''} — clique pour remplir les champs`;
       status.className = 'ia-status ok';
 
     } catch(err) {
-      status.textContent = '⚠️ Erreur réseau — remplis les champs manuellement';
+      status.textContent = '⚠️ Erreur : ' + err.message + ' — remplis les champs manuellement';
       status.className = 'ia-status error';
     }
-  }, 400);
+  }, 500);
 }
 
 function afficherSuggestions(vins) {
@@ -1562,16 +1530,17 @@ function afficherSuggestions(vins) {
   const wrap  = document.getElementById('ia-suggestions');
   indexActif  = -1;
 
-  const couleurColor = { rouge: '#8B2635', blanc: '#C8A84B', rosé: '#D4788A', pétillant: '#5B8FA8', '': '#ccc' };
+  const couleurColor = { rouge: '#8B2635', blanc: '#C8A84B', rosé: '#D4788A', pétillant: '#5B8FA8', autre: '#7A6E66', '': '#ccc' };
 
   liste.innerHTML = vins.map((v, i) => `
     <div class="suggestion-item" data-index="${i}" onclick="selectionnerVin(${i})">
       <div class="suggestion-nom">
-        ${v.couleur ? `<span class="suggestion-couleur" style="background:${couleurColor[v.couleur]}"></span>` : ''}
-        ${v.nom}${v.millesime ? ` <span style="color:var(--bordeaux);font-weight:600">${v.millesime}</span>` : ''}
+        ${v.couleur ? `<span class="suggestion-couleur" style="background:${couleurColor[v.couleur] || '#ccc'}"></span>` : ''}
+        ${v.nom || ''}${v.millesime ? ` <span style="color:var(--bordeaux);font-weight:600">${v.millesime}</span>` : ''}
+        ${v.chateau ? `<span style="color:var(--muted);font-size:0.8rem"> — ${v.chateau}</span>` : ''}
       </div>
       <div class="suggestion-detail">
-        ${[v.marque, v.region, v.couleur].filter(Boolean).join(' · ')}
+        ${[v.region, v.appellation, v.couleur].filter(Boolean).join(' · ')}
       </div>
     </div>`).join('');
 
@@ -1582,18 +1551,22 @@ function selectionnerVin(index) {
   const vin = suggestionsData[index];
   if (!vin) return;
 
-  // Remplir les champs disponibles
   const champs = {
-    'f-nom':       vin.nom,
-    'f-chateau':   vin.marque,
-    'f-millesime': vin.millesime,
-    'f-region':    vin.region,
+    'f-nom':            vin.nom,
+    'f-chateau':        vin.chateau,
+    'f-millesime':      vin.millesime,
+    'f-region':         vin.region,
+    'f-appellation':    vin.appellation,
+    'f-maturite-debut': vin.annee_maturite_debut,
+    'f-maturite-fin':   vin.annee_maturite_fin,
+    'f-plats':          vin.plats_accords,
+    'f-note':           vin.note_perso,
   };
 
   let nbRemplis = 0;
   for (const [id, val] of Object.entries(champs)) {
     const el = document.getElementById(id);
-    if (el && val) {
+    if (el && val !== null && val !== undefined && val !== '') {
       el.value = val;
       el.classList.add('rempli');
       nbRemplis++;
@@ -1602,15 +1575,18 @@ function selectionnerVin(index) {
   }
 
   if (vin.couleur) {
-    document.getElementById('f-couleur').value = vin.couleur;
+    const sel = document.getElementById('f-couleur');
+    const opts = ['rouge','blanc','rosé','pétillant','autre'];
+    if (opts.includes(vin.couleur.toLowerCase())) {
+      sel.value = vin.couleur.toLowerCase();
+    }
   }
 
-  // Mettre le nom sélectionné dans le champ de recherche
-  document.getElementById('ia-query').value = vin.nom + (vin.millesime ? ' ' + vin.millesime : '');
+  document.getElementById('ia-query').value = [vin.chateau || vin.nom, vin.millesime].filter(Boolean).join(' ');
   cacherSuggestions();
 
   const status = document.getElementById('ia-status');
-  status.textContent = `✅ ${nbRemplis} champs pré-remplis — complète les champs manquants librement`;
+  status.textContent = `✅ ${nbRemplis} champs remplis par Claude — tu peux les modifier librement`;
   status.className = 'ia-status ok';
 }
 
@@ -1631,8 +1607,10 @@ function effacerRecherche() {
 
 function gererTouches(event) {
   const items = document.querySelectorAll('.suggestion-item');
-  if (!items.length) return;
-
+  if (!items.length) {
+    if (event.key === 'Enter') rechercherVin();
+    return;
+  }
   if (event.key === 'ArrowDown') {
     event.preventDefault();
     indexActif = Math.min(indexActif + 1, items.length - 1);
@@ -1647,7 +1625,6 @@ function gererTouches(event) {
     cacherSuggestions();
     return;
   }
-
   items.forEach((el, i) => el.classList.toggle('actif', i === indexActif));
   if (indexActif >= 0) items[indexActif].scrollIntoView({ block: 'nearest' });
 }

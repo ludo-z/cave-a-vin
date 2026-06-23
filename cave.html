@@ -843,10 +843,15 @@
           <div class="photo-upload" onclick="document.getElementById('f-photo').click()">
             <div id="photo-preview-wrap">
               <div>📷 Cliquer pour ajouter une photo</div>
-              <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">JPG, PNG — max 2 Mo</div>
+              <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">JPG, PNG — max 10 Mo</div>
             </div>
             <input type="file" id="f-photo" accept="image/*" onchange="previewPhoto(event)"/>
           </div>
+          <button type="button" class="btn-ia" id="btn-photo-ia" onclick="analyserPhotoIA()"
+            style="margin-top:0.6rem;width:100%;justify-content:center;display:none">
+            🔍 Identifier ce vin avec Claude IA
+          </button>
+          <div id="photo-ia-status" style="font-size:0.75rem;color:var(--muted);margin-top:0.4rem;font-style:italic;display:none"></div>
         </div>
 
         <div id="msg-form" class="msg-modal"></div>
@@ -1173,7 +1178,9 @@ function ouvrirAjout() {
   document.getElementById('ia-status').className = 'ia-status';
   cacherSuggestions();
   document.querySelectorAll('.champ-ia').forEach(el => el.classList.remove('rempli'));
-  document.getElementById('photo-preview-wrap').innerHTML = `<div>📷 Cliquer pour ajouter une photo</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">JPG, PNG — max 2 Mo</div>`;
+  document.getElementById('photo-preview-wrap').innerHTML = `<div>📷 Cliquer pour ajouter une photo</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">JPG, PNG — max 10 Mo</div>`;
+  document.getElementById('btn-photo-ia').style.display = 'none';
+  document.getElementById('photo-ia-status').style.display = 'none';
   const msg = document.getElementById('msg-form');
   msg.className = 'msg-modal'; msg.textContent = '';
   ouvrirModal('modal-form');
@@ -1199,7 +1206,7 @@ function ouvrirEdition(id) {
   document.getElementById('f-note').value           = b.note_perso || '';
   document.getElementById('photo-preview-wrap').innerHTML = b.photo_url
     ? `<img class="photo-preview" src="${b.photo_url}" alt="photo"/><div style="font-size:0.75rem;color:var(--muted);margin-top:0.4rem">Cliquer pour changer</div>`
-    : `<div>📷 Cliquer pour ajouter une photo</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">JPG, PNG — max 2 Mo</div>`;
+    : `<div>📷 Cliquer pour ajouter une photo</div><div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">JPG, PNG — max 10 Mo</div>`;
   const msg = document.getElementById('msg-form');
   msg.className = 'msg-modal'; msg.textContent = '';
   ouvrirModal('modal-form');
@@ -1208,8 +1215,8 @@ function ouvrirEdition(id) {
 function previewPhoto(e) {
   const file = e.target.files[0];
   if (!file) return;
-  if (file.size > 2 * 1024 * 1024) {
-    alert('Image trop grande (max 2 Mo)');
+  if (file.size > 10 * 1024 * 1024) {
+    alert('Image trop grande (max 10 Mo)');
     return;
   }
   photoFile = file;
@@ -1217,8 +1224,113 @@ function previewPhoto(e) {
   reader.onload = ev => {
     document.getElementById('photo-preview-wrap').innerHTML =
       `<img class="photo-preview" src="${ev.target.result}" alt="aperçu"/><div style="font-size:0.75rem;color:var(--muted);margin-top:0.4rem">Cliquer pour changer</div>`;
+    // Afficher le bouton d'identification IA
+    document.getElementById('btn-photo-ia').style.display = 'flex';
+    document.getElementById('photo-ia-status').style.display = 'none';
   };
   reader.readAsDataURL(file);
+}
+
+// ── IDENTIFICATION DU VIN PAR PHOTO ──
+async function analyserPhotoIA() {
+  if (!photoFile) return;
+
+  const btn    = document.getElementById('btn-photo-ia');
+  const status = document.getElementById('photo-ia-status');
+  btn.disabled = true;
+  btn.textContent = '⏳ Claude analyse la photo…';
+  status.textContent = 'Analyse de l\'étiquette en cours…';
+  status.style.display = 'block';
+  status.style.color = 'var(--muted)';
+
+  try {
+    // Convertir l'image en base64
+    const base64 = await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result.split(',')[1]);
+      reader.onerror = reject;
+      reader.readAsDataURL(photoFile);
+    });
+
+    const mediaType = photoFile.type || 'image/jpeg';
+
+    // Récupérer le token de session
+    const { data: { session: currentSession } } = await sb.auth.getSession();
+    if (!currentSession) throw new Error('Non connecté');
+
+    // Appel à la Edge Function avec l'image
+    const resp = await fetch(EDGE_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${currentSession.access_token}`,
+        'apikey': SUPABASE_ANON_KEY
+      },
+      body: JSON.stringify({
+        image: base64,
+        mediaType: mediaType,
+        query: null
+      })
+    });
+
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error('Erreur serveur (' + resp.status + '): ' + txt.slice(0, 150));
+    }
+
+    const data = await resp.json();
+    if (data.error) throw new Error(data.error);
+
+    const vins = data.resultats || [];
+    if (vins.length === 0) throw new Error('Vin non identifié');
+
+    // Prendre le premier résultat (le plus probable)
+    const vin = vins[0];
+
+    const champs = {
+      'f-nom':            vin.nom,
+      'f-chateau':        vin.chateau,
+      'f-millesime':      vin.millesime,
+      'f-region':         vin.region,
+      'f-appellation':    vin.appellation,
+      'f-maturite-debut': vin.annee_maturite_debut,
+      'f-maturite-fin':   vin.annee_maturite_fin,
+      'f-plats':          vin.plats_accords,
+      'f-note':           vin.note_perso,
+    };
+
+    let nbRemplis = 0;
+    for (const [id, val] of Object.entries(champs)) {
+      const el = document.getElementById(id);
+      if (el && val !== null && val !== undefined && val !== '') {
+        el.value = val;
+        el.classList.add('rempli');
+        nbRemplis++;
+        setTimeout(() => el.classList.remove('rempli'), 3000);
+      }
+    }
+
+    if (vin.couleur) {
+      const sel = document.getElementById('f-couleur');
+      const opts = ['rouge','blanc','rosé','pétillant','autre'];
+      if (opts.includes(vin.couleur.toLowerCase())) sel.value = vin.couleur.toLowerCase();
+    }
+
+    status.textContent = `✅ ${nbRemplis} champs remplis depuis la photo — vérifie et complète si besoin`;
+    status.style.color = '#2d6a4f';
+
+    // Mettre à jour le champ de recherche texte aussi
+    if (vin.nom) {
+      document.getElementById('ia-query').value = [vin.chateau || vin.nom, vin.millesime].filter(Boolean).join(' ');
+    }
+
+  } catch(err) {
+    status.textContent = '⚠️ ' + err.message + ' — remplis les champs manuellement';
+    status.style.color = '#B94040';
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔍 Identifier ce vin avec Claude IA';
 }
 
 async function sauvegarder() {

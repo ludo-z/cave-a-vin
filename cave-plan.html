@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Plan de cave — Vinbase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux:   #6B1A2A;
+      --bordeaux-dk:#4A1020;
+      --gold:       #C9A84C;
+      --cream:      #F7F3ED;
+      --stone:      #E8E0D5;
+      --ink:        #1C1410;
+      --muted:      #7A6E66;
+      --bg:         #F2EDE6;
+      --white:      #FFFFFF;
+      --rouge:      #8B2635;
+      --blanc:      #C8A84B;
+      --rose:       #D4788A;
+      --petillant:  #5B8FA8;
+      --vide:       #EDE8E2;
+    }
+
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--bordeaux-dk);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .header-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300;
+      color: var(--cream); letter-spacing: 0.05em;
+    }
+    .header-logo span { color: var(--gold); font-style: italic; }
+    nav { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      background: none; border: none;
+      color: rgba(247,243,237,0.6);
+      font-family: 'Inter', sans-serif; font-size: 0.78rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 0.5rem 1rem; cursor: pointer; border-radius: 1px;
+      transition: all 0.2s; text-decoration: none;
+      display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .nav-btn:hover { color: var(--cream); background: rgba(255,255,255,0.08); }
+    .nav-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    #user-prenom { font-size: 0.8rem; color: rgba(247,243,237,0.7); }
+    .btn-deconnexion {
+      background: none; border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold); padding: 0.4rem 1rem;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; border-radius: 1px; transition: all 0.2s;
+    }
+    .btn-deconnexion:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── MAIN ── */
+    main { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+    .page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem;
+    }
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300; color: var(--ink);
+    }
+
+    /* ── BOUTONS ── */
+    .btn-primary {
+      padding: 0.65rem 1.5rem;
+      background: var(--bordeaux); color: white;
+      border: none; border-radius: 1px;
+      font-family: 'Inter', sans-serif; font-size: 0.8rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .btn-primary:hover { background: var(--bordeaux-dk); }
+    .btn-secondary {
+      padding: 0.65rem 1.25rem;
+      background: none; border: 1px solid var(--stone);
+      border-radius: 1px; font-family: 'Inter', sans-serif;
+      font-size: 0.8rem; color: var(--muted); cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-secondary:hover { border-color: var(--bordeaux); color: var(--bordeaux); }
+    .btn-danger {
+      padding: 0.5rem 1rem; background: none;
+      border: 1px solid #B94040; border-radius: 1px;
+      font-family: 'Inter', sans-serif; font-size: 0.75rem;
+      color: #B94040; cursor: pointer; transition: all 0.2s;
+    }
+    .btn-danger:hover { background: #fdf0f0; }
+
+    /* ── LÉGENDE ── */
+    .legende {
+      display: flex; flex-wrap: wrap; gap: 1rem;
+      background: var(--white); padding: 0.85rem 1.25rem;
+      border-radius: 2px; margin-bottom: 1.5rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      align-items: center;
+    }
+    .legende-titre { font-size: 0.7rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-right: 0.5rem; }
+    .legende-item { display: flex; align-items: center; gap: 0.4rem; font-size: 0.78rem; color: var(--ink); }
+    .legende-dot { width: 14px; height: 14px; border-radius: 2px; }
+
+    /* ── MEUBLES ── */
+    .meubles-grid {
+      display: flex; flex-direction: column; gap: 2rem;
+    }
+
+    .meuble-card {
+      background: var(--white);
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .meuble-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--stone);
+      background: linear-gradient(135deg, rgba(107,26,42,0.03), rgba(201,168,76,0.04));
+    }
+    .meuble-titre {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 400; color: var(--ink);
+    }
+    .meuble-info {
+      font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem;
+    }
+    .meuble-actions { display: flex; gap: 0.5rem; align-items: center; }
+
+    .meuble-body { padding: 1.5rem; overflow-x: auto; }
+
+    /* ── GRILLE CASIER ── */
+    .casier-wrap { display: inline-block; }
+    .casier-labels-top {
+      display: flex; margin-left: 32px; margin-bottom: 4px;
+    }
+    .casier-label-col {
+      width: 44px; text-align: center;
+      font-size: 0.62rem; color: var(--muted); letter-spacing: 0.05em;
+    }
+    .casier-row { display: flex; align-items: center; margin-bottom: 4px; }
+    .casier-label-row {
+      width: 28px; font-size: 0.62rem; color: var(--muted);
+      text-align: right; padding-right: 4px; flex-shrink: 0;
+    }
+    .case {
+      width: 44px; height: 44px;
+      border-radius: 3px;
+      margin: 2px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.6rem; font-weight: 600;
+      letter-spacing: 0.04em; text-transform: uppercase;
+      transition: transform 0.15s, box-shadow 0.15s;
+      position: relative;
+      border: 2px solid transparent;
+      user-select: none;
+    }
+    .case:hover { transform: scale(1.08); box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 2; }
+    .case.vide {
+      background: var(--vide);
+      border: 2px dashed #ccc8c0;
+      color: transparent;
+    }
+    .case.vide:hover { border-color: var(--bordeaux); background: rgba(107,26,42,0.06); }
+    .case.rouge     { background: var(--rouge); color: white; }
+    .case.blanc     { background: var(--blanc); color: white; }
+    .case.rose      { background: var(--rose);  color: white; }
+    .case.petillant { background: var(--petillant); color: white; }
+    .case.autre     { background: var(--muted); color: white; }
+
+    /* Drag & drop */
+    .case.drag-over { border: 2px solid var(--gold) !important; transform: scale(1.1); }
+    .case.dragging  { opacity: 0.4; }
+
+    /* Tooltip */
+    .case-tooltip {
+      position: absolute; bottom: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%);
+      background: var(--ink); color: white;
+      font-size: 0.65rem; white-space: nowrap;
+      padding: 0.3rem 0.6rem; border-radius: 2px;
+      pointer-events: none; opacity: 0;
+      transition: opacity 0.15s; z-index: 10;
+    }
+    .case:hover .case-tooltip { opacity: 1; }
+
+    /* Stats meuble */
+    .meuble-stats {
+      display: flex; gap: 1.5rem;
+      padding: 0.75rem 1.5rem;
+      border-top: 1px solid var(--stone);
+      background: var(--bg);
+    }
+    .meuble-stat { font-size: 0.75rem; color: var(--muted); }
+    .meuble-stat strong { color: var(--ink); }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center; padding: 5rem 2rem;
+      background: var(--white); border-radius: 2px;
+    }
+    .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+    .empty-state h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.8rem; font-weight: 300; color: var(--ink); margin-bottom: 0.5rem;
+    }
+    .empty-state p { color: var(--muted); margin-bottom: 1.5rem; }
+
+    /* ── MODALS ── */
+    .overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(28,20,16,0.6); z-index: 200;
+      align-items: center; justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .overlay.open { display: flex; }
+    .modal {
+      background: var(--cream); border-radius: 2px;
+      width: 100%; max-width: 480px;
+      box-shadow: 0 32px 80px rgba(0,0,0,0.4);
+      animation: slideUp 0.2s ease;
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .modal-header {
+      padding: 1.5rem 1.75rem 1rem;
+      border-bottom: 1px solid var(--stone);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .modal-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.4rem; font-weight: 400; color: var(--ink);
+    }
+    .btn-close {
+      background: none; border: none; font-size: 1.3rem;
+      cursor: pointer; color: var(--muted); padding: 0.2rem;
+    }
+    .btn-close:hover { color: var(--ink); }
+    .modal-body { padding: 1.25rem 1.75rem; }
+    .modal-footer {
+      padding: 1rem 1.75rem 1.5rem;
+      display: flex; gap: 0.75rem; justify-content: flex-end;
+    }
+
+    /* Formulaire modal */
+    .form-group { margin-bottom: 1rem; }
+    .form-group label {
+      display: block; font-size: 0.7rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.35rem;
+    }
+    .form-group input, .form-group select {
+      width: 100%; padding: 0.65rem 0.9rem;
+      border: 1px solid var(--stone); border-radius: 1px;
+      background: white; font-family: 'Inter', sans-serif;
+      font-size: 0.9rem; color: var(--ink); outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-group input:focus, .form-group select:focus { border-color: var(--bordeaux); }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+
+    /* Modal choisir vin */
+    .vin-search {
+      padding: 0.65rem 0.9rem; width: 100%;
+      border: 1px solid var(--stone); border-radius: 1px;
+      font-family: 'Inter', sans-serif; font-size: 0.88rem;
+      outline: none; margin-bottom: 0.75rem;
+    }
+    .vin-search:focus { border-color: var(--bordeaux); }
+    .vin-liste {
+      max-height: 320px; overflow-y: auto;
+      border: 1px solid var(--stone); border-radius: 1px;
+    }
+    .vin-item {
+      padding: 0.75rem 1rem; cursor: pointer;
+      border-bottom: 1px solid var(--stone);
+      display: flex; align-items: center; gap: 0.75rem;
+      transition: background 0.15s;
+    }
+    .vin-item:last-child { border-bottom: none; }
+    .vin-item:hover { background: var(--cream); }
+    .vin-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .vin-nom { font-size: 0.88rem; color: var(--ink); font-weight: 500; }
+    .vin-detail { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+    .vin-qty { margin-left: auto; font-size: 0.72rem; color: var(--muted); flex-shrink: 0; }
+    .vin-item.selected { background: rgba(107,26,42,0.06); }
+
+    /* Modal détail case */
+    .detail-case-info { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-top: 0.75rem; }
+    .detail-field { }
+    .detail-field-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.2rem; }
+    .detail-field-value { font-size: 0.9rem; color: var(--ink); }
+
+    .badge-couleur {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 20px;
+      font-weight: 500; text-transform: uppercase; letter-spacing: 0.06em;
+    }
+
+    /* Chargement */
+    #loading {
+      position: fixed; inset: 0; background: var(--cream);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; gap: 1rem;
+    }
+    .spinner {
+      width: 36px; height: 36px;
+      border: 3px solid var(--stone);
+      border-top-color: var(--bordeaux);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { font-family: 'Cormorant Garamond', serif; font-size: 1.1rem; color: var(--muted); }
+
+    @media (max-width: 600px) {
+      main { padding: 1rem; }
+      .case { width: 36px; height: 36px; font-size: 0.5rem; }
+      .casier-label-col { width: 36px; }
+    }
+  </style>
+</head>
+<body>
+
+<div id="loading"><div class="spinner"></div><p>Chargement de la cave…</p></div>
+
+<header>
+  <div class="header-logo"><span>Vinbase</span></div>
+  <nav>
+    <a class="nav-btn" href="cave.html">🍾 Mes vins</a>
+    <a class="nav-btn active" href="cave-plan.html">🗺️ Plan de cave</a>
+    <a class="nav-btn" href="dashboard.html">📊 Tableau de bord</a>
+  </nav>
+  <div class="header-right">
+    <span id="user-prenom"></span>
+    <button class="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
+  </div>
+</header>
+
+<main>
+  <div class="page-header">
+    <div>
+      <div class="page-title">Plan de cave</div>
+    </div>
+    <button class="btn-primary" onclick="ouvrirModalMeuble()">+ Ajouter un meuble</button>
+  </div>
+
+  <!-- Légende -->
+  <div class="legende">
+    <span class="legende-titre">Légende</span>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--vide);border:2px dashed #ccc8c0"></div> Vide</div>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--rouge)"></div> Rouge</div>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--blanc)"></div> Blanc</div>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--rose)"></div> Rosé</div>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--petillant)"></div> Pétillant</div>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--muted)"></div> Autre</div>
+    <div style="margin-left:auto;font-size:0.75rem;color:var(--muted)">💡 Clique sur une case pour placer ou déplacer une bouteille</div>
+  </div>
+
+  <!-- Meubles -->
+  <div class="meubles-grid" id="meubles-container">
+    <div class="empty-state">
+      <div class="icon">🗺️</div>
+      <h2>Aucun meuble créé</h2>
+      <p>Commencez par créer votre premier meuble ou casier.</p>
+      <button class="btn-primary" onclick="ouvrirModalMeuble()">+ Ajouter un meuble</button>
+    </div>
+  </div>
+</main>
+
+<!-- ═══ MODAL MEUBLE ═══ -->
+<div class="overlay" id="modal-meuble">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modal-meuble-titre">Nouveau meuble</div>
+      <button class="btn-close" onclick="fermerModal('modal-meuble')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label>Nom du meuble *</label>
+        <input type="text" id="m-nom" placeholder="ex : Casier principal, Armoire à vin, Cave nord…"/>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Colonnes *</label>
+          <input type="number" id="m-colonnes" value="6" min="1" max="30"/>
+        </div>
+        <div class="form-group">
+          <label>Rangées *</label>
+          <input type="number" id="m-rangees" value="8" min="1" max="30"/>
+        </div>
+      </div>
+      <div style="font-size:0.78rem;color:var(--muted);margin-top:-0.25rem">
+        Capacité : <strong id="capacite-preview">48</strong> bouteilles
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fermerModal('modal-meuble')">Annuler</button>
+      <button class="btn-primary" onclick="sauvegarderMeuble()">Créer le meuble</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL CHOISIR VIN ═══ -->
+<div class="overlay" id="modal-choisir-vin">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">Placer une bouteille</div>
+      <button class="btn-close" onclick="fermerModal('modal-choisir-vin')">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem" id="label-case-cible"></p>
+      <input type="text" class="vin-search" id="vin-search-input" placeholder="🔍 Rechercher un vin…" oninput="filtrerVins()"/>
+      <div class="vin-liste" id="vin-liste"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fermerModal('modal-choisir-vin')">Annuler</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL DÉTAIL CASE ═══ -->
+<div class="overlay" id="modal-detail-case">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="detail-case-titre">Bouteille</div>
+      <button class="btn-close" onclick="fermerModal('modal-detail-case')">✕</button>
+    </div>
+    <div class="modal-body" id="detail-case-body"></div>
+    <div class="modal-footer">
+      <button class="btn-danger" id="btn-retirer" onclick="retirerBouteille()">🗑 Retirer de la case</button>
+      <button class="btn-secondary" onclick="deplacerBouteille()">↔ Déplacer</button>
+      <button class="btn-primary" onclick="fermerModal('modal-detail-case')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const COULEURS = { rouge:'rouge', blanc:'blanc', rosé:'rose', pétillant:'petillant', autre:'autre' };
+const COULEURS_HEX = { rouge:'#8B2635', blanc:'#C8A84B', rosé:'#D4788A', pétillant:'#5B8FA8', autre:'#7A6E66' };
+
+let meubles      = [];
+let emplacements = [];
+let bouteilles   = [];
+let caseSelectionnee = null; // { meubleId, colonne, rangee }
+let emplacementEnCours = null; // pour détail / retirer
+let meubleEnEdition = null;
+let dragSource = null; // { meubleId, colonne, rangee }
+
+let appInitialise = false;
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (appInitialise) return;
+  if (event === 'INITIAL_SESSION') {
+    if (!session) { window.location.href = 'index.html'; return; }
+    appInitialise = true;
+    const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
+    document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+    await chargerTout();
+    document.getElementById('loading').style.display = 'none';
+  } else if (event === 'SIGNED_OUT') {
+    window.location.href = 'index.html';
+  }
+});
+
+async function seDeconnecter() { await sb.auth.signOut(); window.location.href = 'index.html'; }
+
+// ── CHARGEMENT ──
+async function chargerTout() {
+  const [resMeubles, resEmpl, resBouteilles] = await Promise.all([
+    sb.from('cave_meubles').select('*').order('ordre'),
+    sb.from('cave_emplacements').select('*, bouteilles(*)'),
+    sb.from('bouteilles').select('*').order('nom'),
+  ]);
+  meubles      = resMeubles.data  || [];
+  emplacements = resEmpl.data     || [];
+  bouteilles   = resBouteilles.data || [];
+  rendreInterface();
+}
+
+// ── RENDU PRINCIPAL ──
+function rendreInterface() {
+  const container = document.getElementById('meubles-container');
+  if (meubles.length === 0) {
+    container.innerHTML = `<div class="empty-state"><div class="icon">🗺️</div><h2>Aucun meuble créé</h2><p>Commencez par créer votre premier meuble ou casier.</p><button class="btn-primary" onclick="ouvrirModalMeuble()">+ Ajouter un meuble</button></div>`;
+    return;
+  }
+  container.innerHTML = '';
+  meubles.forEach(m => container.appendChild(rendreMeuble(m)));
+}
+
+function rendreMeuble(m) {
+  const empl = emplacements.filter(e => e.meuble_id === m.id);
+  const occupees = empl.filter(e => e.bouteilles).length;
+  const capacite = m.colonnes * m.rangees;
+
+  const card = document.createElement('div');
+  card.className = 'meuble-card';
+
+  // Header
+  card.innerHTML = `
+    <div class="meuble-header">
+      <div>
+        <div class="meuble-titre">${m.nom}</div>
+        <div class="meuble-info">${m.colonnes} col. × ${m.rangees} rng. — ${capacite} emplacements</div>
+      </div>
+      <div class="meuble-actions">
+        <button class="btn-secondary" style="font-size:0.72rem;padding:0.4rem 0.8rem" onclick="ouvrirModalMeuble('${m.id}')">✏️ Modifier</button>
+        <button class="btn-danger" onclick="supprimerMeuble('${m.id}', '${m.nom.replace(/'/g,"\\'")}')">🗑</button>
+      </div>
+    </div>
+    <div class="meuble-body" id="body-${m.id}"></div>
+    <div class="meuble-stats">
+      <div class="meuble-stat">Occupé : <strong>${occupees}</strong> / ${capacite}</div>
+      <div class="meuble-stat">Libre : <strong>${capacite - occupees}</strong></div>
+      <div class="meuble-stat">Taux : <strong>${Math.round((occupees/capacite)*100)}%</strong></div>
+    </div>`;
+
+  // Grille
+  const body = card.querySelector(`#body-${m.id}`);
+  const wrap = document.createElement('div');
+  wrap.className = 'casier-wrap';
+
+  // Labels colonnes
+  const labelsTop = document.createElement('div');
+  labelsTop.className = 'casier-labels-top';
+  for (let c = 1; c <= m.colonnes; c++) {
+    const l = document.createElement('div');
+    l.className = 'casier-label-col';
+    l.textContent = c;
+    labelsTop.appendChild(l);
+  }
+  wrap.appendChild(labelsTop);
+
+  // Rangées
+  for (let r = 1; r <= m.rangees; r++) {
+    const row = document.createElement('div');
+    row.className = 'casier-row';
+    const labelRow = document.createElement('div');
+    labelRow.className = 'casier-label-row';
+    labelRow.textContent = r;
+    row.appendChild(labelRow);
+
+    for (let c = 1; c <= m.colonnes; c++) {
+      const empl = trouverEmplacement(m.id, c, r);
+      const bouteille = empl?.bouteilles;
+      const div = document.createElement('div');
+      div.className = 'case';
+      div.dataset.meubleId = m.id;
+      div.dataset.col = c;
+      div.dataset.row = r;
+
+      if (bouteille) {
+        const cls = COULEURS[bouteille.couleur] || 'autre';
+        div.classList.add(cls);
+        div.setAttribute('draggable', 'true');
+        const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase();
+        div.innerHTML = `<span>${abbr}</span>
+          <div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}</div>`;
+        div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, empl));
+        div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r));
+        div.addEventListener('dragend',   e => finDrag(e));
+      } else {
+        div.classList.add('vide');
+        div.innerHTML = '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
+        div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r));
+        div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
+        div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+        div.addEventListener('drop',      e => deposeCase(e, m.id, c, r));
+      }
+
+      row.appendChild(div);
+    }
+    wrap.appendChild(row);
+  }
+  body.appendChild(wrap);
+  return card;
+}
+
+function trouverEmplacement(meubleId, col, row) {
+  return emplacements.find(e => e.meuble_id === meubleId && e.colonne === col && e.rangee === row) || null;
+}
+
+// ── DRAG & DROP ──
+function demarrerDrag(e, meubleId, col, row) {
+  dragSource = { meubleId, col, row };
+  e.target.classList.add('dragging');
+  e.dataTransfer.effectAllowed = 'move';
+}
+function finDrag(e) {
+  e.target.classList.remove('dragging');
+  document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
+}
+async function deposeCase(e, meubleId, col, row) {
+  e.preventDefault();
+  e.target.classList.remove('drag-over');
+  if (!dragSource) return;
+  if (dragSource.meubleId === meubleId && dragSource.col === col && dragSource.row === row) return;
+
+  const src = trouverEmplacement(dragSource.meubleId, dragSource.col, dragSource.row);
+  const dst = trouverEmplacement(meubleId, col, row);
+  if (!src) return;
+
+  if (dst && dst.bouteilles) {
+    // Échanger les deux bouteilles
+    await sb.from('cave_emplacements').update({ bouteille_id: dst.bouteille_id }).eq('id', src.id);
+    await sb.from('cave_emplacements').update({ bouteille_id: src.bouteille_id }).eq('id', dst.id);
+  } else {
+    // Déplacer vers case vide
+    if (dst) {
+      await sb.from('cave_emplacements').update({ bouteille_id: src.bouteille_id }).eq('id', dst.id);
+      await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', src.id);
+    } else {
+      const { data: { session } } = await sb.auth.getSession();
+      await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: src.bouteille_id, colonne: col, rangee: row });
+      await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', src.id);
+    }
+  }
+
+  dragSource = null;
+  await chargerTout();
+}
+
+// ── CHOISIR VIN ──
+function ouvrirChoisirVin(meubleId, col, row) {
+  caseSelectionnee = { meubleId, col, row };
+  document.getElementById('label-case-cible').textContent = `Emplacement : colonne ${col}, rangée ${row}`;
+  document.getElementById('vin-search-input').value = '';
+  filtrerVins();
+  ouvrirModal('modal-choisir-vin');
+}
+
+function filtrerVins() {
+  const q = document.getElementById('vin-search-input').value.toLowerCase();
+  const liste = document.getElementById('vin-liste');
+  const filtres = bouteilles.filter(b =>
+    (!q || (b.nom||'').toLowerCase().includes(q) || (b.chateau||'').toLowerCase().includes(q))
+  );
+
+  if (filtres.length === 0) {
+    liste.innerHTML = `<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:0.85rem">Aucun vin trouvé</div>`;
+    return;
+  }
+
+  liste.innerHTML = filtres.map(b => {
+    const hex = COULEURS_HEX[b.couleur] || '#999';
+    return `<div class="vin-item" onclick="placerBouteille('${b.id}')">
+      <div class="vin-dot" style="background:${hex}"></div>
+      <div>
+        <div class="vin-nom">${b.nom}${b.millesime ? ` <span style="color:var(--bordeaux)">${b.millesime}</span>` : ''}</div>
+        <div class="vin-detail">${[b.chateau, b.region, b.couleur].filter(Boolean).join(' · ')}</div>
+      </div>
+      <div class="vin-qty">${b.quantite ?? 1} btl</div>
+    </div>`;
+  }).join('');
+}
+
+async function placerBouteille(bouteilleId) {
+  if (!caseSelectionnee) return;
+  const { meubleId, col, row } = caseSelectionnee;
+  const { data: { session } } = await sb.auth.getSession();
+
+  const existant = trouverEmplacement(meubleId, col, row);
+  if (existant) {
+    await sb.from('cave_emplacements').update({ bouteille_id: bouteilleId }).eq('id', existant.id);
+  } else {
+    await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: bouteilleId, colonne: col, rangee: row });
+  }
+
+  fermerModal('modal-choisir-vin');
+  await chargerTout();
+}
+
+// ── DÉTAIL CASE ──
+function ouvrirDetailCase(meubleId, col, row, empl) {
+  emplacementEnCours = empl;
+  const b = empl?.bouteilles;
+  if (!b) return;
+
+  document.getElementById('detail-case-titre').textContent = b.nom || 'Bouteille';
+  const hex = COULEURS_HEX[b.couleur] || '#999';
+  const annee = new Date().getFullYear();
+  let etat = '—';
+  if (b.annee_maturite_debut && b.annee_maturite_fin) {
+    if (annee < b.annee_maturite_debut) etat = '⏳ Trop jeune';
+    else if (annee <= b.annee_maturite_fin) etat = '✅ En maturité';
+    else etat = '⚠️ En déclin';
+  }
+
+  document.getElementById('detail-case-body').innerHTML = `
+    ${b.photo_url ? `<img src="${b.photo_url}" style="width:100%;max-height:160px;object-fit:cover;border-radius:2px;margin-bottom:0.75rem"/>` : ''}
+    <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
+      <div style="width:12px;height:12px;border-radius:50%;background:${hex};flex-shrink:0"></div>
+      <strong style="font-family:'Cormorant Garamond',serif;font-size:1.15rem">${b.nom}</strong>
+    </div>
+    <div class="detail-case-info">
+      <div class="detail-field"><div class="detail-field-label">Château</div><div class="detail-field-value">${b.chateau || '—'}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Millésime</div><div class="detail-field-value">${b.millesime || '—'}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Région</div><div class="detail-field-value">${b.region || '—'}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Appellation</div><div class="detail-field-value">${b.appellation || '—'}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Quantité</div><div class="detail-field-value">${b.quantite ?? 1} btl</div></div>
+      <div class="detail-field"><div class="detail-field-label">Maturité</div><div class="detail-field-value">${etat}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Emplacement</div><div class="detail-field-value">Col. ${col} · Rng. ${row}</div></div>
+      <div class="detail-field"><div class="detail-field-label">Prix achat</div><div class="detail-field-value">${b.prix_achat ? b.prix_achat.toFixed(2) + ' CHF' : '—'}</div></div>
+    </div>
+    ${b.plats_accords ? `<div style="margin-top:0.75rem"><div class="detail-field-label">Accords</div><div class="detail-field-value" style="font-size:0.85rem;margin-top:0.2rem">${b.plats_accords}</div></div>` : ''}`;
+
+  ouvrirModal('modal-detail-case');
+}
+
+async function retirerBouteille() {
+  if (!emplacementEnCours) return;
+  await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', emplacementEnCours.id);
+  fermerModal('modal-detail-case');
+  await chargerTout();
+}
+
+function deplacerBouteille() {
+  if (!emplacementEnCours) return;
+  fermerModal('modal-detail-case');
+  // Marquer la source puis ouvrir le modal de choix de destination
+  dragSource = { meubleId: emplacementEnCours.meuble_id, col: emplacementEnCours.colonne, row: emplacementEnCours.rangee };
+  alert('Clique maintenant sur la case de destination pour y déplacer la bouteille.');
+  // Activer le mode déplacement via click
+  activerModeDeplacementClick();
+}
+
+function activerModeDeplacementClick() {
+  document.querySelectorAll('.case').forEach(el => {
+    el.style.outline = '2px solid var(--gold)';
+    const handler = async () => {
+      const mId = el.dataset.meubleId;
+      const col = parseInt(el.dataset.col);
+      const row = parseInt(el.dataset.row);
+      document.querySelectorAll('.case').forEach(e => { e.style.outline = ''; e.removeEventListener('click', handler); });
+      if (dragSource) await deposeCase({ preventDefault: ()=>{} }, mId, col, row);
+      dragSource = null;
+    };
+    el.addEventListener('click', handler, { once: true });
+  });
+}
+
+// ── MODAL MEUBLE ──
+function ouvrirModalMeuble(id = null) {
+  meubleEnEdition = id;
+  if (id) {
+    const m = meubles.find(x => x.id === id);
+    document.getElementById('modal-meuble-titre').textContent = 'Modifier le meuble';
+    document.getElementById('m-nom').value      = m.nom;
+    document.getElementById('m-colonnes').value = m.colonnes;
+    document.getElementById('m-rangees').value  = m.rangees;
+    mettreAJourCapacite();
+  } else {
+    document.getElementById('modal-meuble-titre').textContent = 'Nouveau meuble';
+    document.getElementById('m-nom').value      = '';
+    document.getElementById('m-colonnes').value = 6;
+    document.getElementById('m-rangees').value  = 8;
+    mettreAJourCapacite();
+  }
+  ouvrirModal('modal-meuble');
+}
+
+function mettreAJourCapacite() {
+  const c = parseInt(document.getElementById('m-colonnes').value) || 0;
+  const r = parseInt(document.getElementById('m-rangees').value)  || 0;
+  document.getElementById('capacite-preview').textContent = c * r;
+}
+
+document.getElementById('m-colonnes').addEventListener('input', mettreAJourCapacite);
+document.getElementById('m-rangees').addEventListener('input', mettreAJourCapacite);
+
+async function sauvegarderMeuble() {
+  const nom      = document.getElementById('m-nom').value.trim();
+  const colonnes = parseInt(document.getElementById('m-colonnes').value);
+  const rangees  = parseInt(document.getElementById('m-rangees').value);
+  if (!nom || !colonnes || !rangees) return alert('Merci de remplir tous les champs.');
+
+  if (meubleEnEdition) {
+    await sb.from('cave_meubles').update({ nom, colonnes, rangees }).eq('id', meubleEnEdition);
+  } else {
+    const { data: { session } } = await sb.auth.getSession();
+    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, ordre: meubles.length });
+  }
+
+  fermerModal('modal-meuble');
+  await chargerTout();
+}
+
+async function supprimerMeuble(id, nom) {
+  if (!confirm(`Supprimer le meuble "${nom}" et tous ses emplacements ?`)) return;
+  await sb.from('cave_emplacements').delete().eq('meuble_id', id);
+  await sb.from('cave_meubles').delete().eq('id', id);
+  await chargerTout();
+}
+
+// ── UTILS ──
+function ouvrirModal(id)  { document.getElementById(id).classList.add('open'); }
+function fermerModal(id)  { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) fermerModal(o.id); });
+});
+</script>
+</body>
+</html>

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wineventory</title>
+  <title>Vinbase</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
   <style>
@@ -217,7 +217,7 @@
   <div class="card">
     <div class="logo">
       <div class="logo-icon">🍷</div>
-      <h1><span>Wineventory</span></h1>
+      <h1><span>Vinbase</span></h1>
       <p>Ma cave à vin personnelle</p>
     </div>
 
@@ -236,7 +236,7 @@
         <label for="login-pwd">Mot de passe</label>
         <input type="password" id="login-pwd" placeholder="••••••••" />
       </div>
-      <button class="btn-primary" onclick="seConnecter()">Accéder à Wineventory</button>
+      <button class="btn-primary" onclick="seConnecter()">Accéder à Vinbase</button>
       <div id="msg-connexion" class="msg"></div>
     </div>
 
@@ -309,7 +309,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
       const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
       if (error) {
         showMsg('msg-connexion', 'Email ou mot de passe incorrect.', 'error');
-        btn.disabled = false; btn.textContent = 'Accéder à Wineventory';
+        btn.disabled = false; btn.textContent = 'Accéder à Vinbase';
       } else {
         window.location.href = 'cave.html';
       }

@@ -659,9 +659,130 @@
     @media (max-width: 600px) {
       .form-grid { grid-template-columns: 1fr; }
       .detail-grid { grid-template-columns: 1fr; }
-      main { padding: 1rem; }
-      .toolbar { gap: 0.5rem; }
+      main { padding: 0.75rem; }
+      .toolbar { gap: 0.5rem; flex-wrap: wrap; }
+
+      /* Stats en 2 colonnes sur mobile */
+      .stats-bar { grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+      .stat-card { padding: 0.85rem 1rem; }
+      .stat-number { font-size: 1.6rem; }
+
+      /* Vue cartes : 1 colonne */
+      #vue-cartes { grid-template-columns: 1fr; }
+
+      /* Toolbar : recherche pleine largeur */
+      .search-box { min-width: 100%; order: -1; }
+      .vue-toggle { margin-left: auto; }
+      .btn-importer, .btn-ajouter { flex: 1; text-align: center; justify-content: center; }
+
+      /* Modal pleine largeur */
+      .modal { max-width: 100% !important; margin: 0; border-radius: 0; min-height: 100dvh; }
+      .overlay { padding: 0; align-items: flex-end; }
+
+      /* Tableau scrollable */
+      #vue-tableau { overflow-x: auto; }
+      table { min-width: 600px; }
+
+      /* Formulaire */
+      .ia-search-row { flex-direction: column; }
+      .btn-ia { width: 100% !important; justify-content: center; }
     }
+
+    /* ── MENU HAMBURGER MOBILE ── */
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 24px;
+      height: 18px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      z-index: 201;
+    }
+    .hamburger span {
+      display: block;
+      height: 2px;
+      background: var(--cream);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    /* Menu mobile overlay */
+    .mobile-nav {
+      display: none;
+      position: fixed;
+      top: 64px;
+      left: 0; right: 0;
+      background: var(--bordeaux-dk);
+      z-index: 200;
+      padding: 0.5rem 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      border-top: 1px solid rgba(201,168,76,0.2);
+    }
+    .mobile-nav.open { display: block; }
+    .mobile-nav a, .mobile-nav .mobile-nav-deconnexion {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.9rem 1.5rem;
+      color: rgba(247,243,237,0.8);
+      text-decoration: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      transition: background 0.15s, color 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      cursor: pointer;
+    }
+    .mobile-nav a:hover, .mobile-nav .mobile-nav-deconnexion:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--cream);
+    }
+    .mobile-nav a.active { color: var(--gold); }
+    .mobile-nav .mobile-nav-separator {
+      height: 1px;
+      background: rgba(201,168,76,0.15);
+      margin: 0.25rem 1rem;
+    }
+    .mobile-nav .mobile-nav-prenom {
+      padding: 0.6rem 1.5rem;
+      font-size: 0.75rem;
+      color: rgba(247,243,237,0.4);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .mobile-nav-lang {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.6rem 1.5rem;
+    }
+    .mobile-nav-lang button {
+      background: none; border: none;
+      font-size: 1.2rem; cursor: pointer;
+      opacity: 0.4; transition: opacity 0.2s;
+    }
+    .mobile-nav-lang button.active-lang { opacity: 1; }
+
+    @media (max-width: 768px) {
+      nav { display: none !important; }
+      .header-right > #lang-selector { display: none !important; }
+      .header-right > span#user-prenom { display: none !important; }
+      .header-right > #btn-deconnexion { display: none !important; }
+      .hamburger { display: flex; }
+      header { padding: 0 1rem; }
+    }
+    @media (min-width: 769px) {
+      .hamburger { display: none !important; }
+      .mobile-nav { display: none !important; }
+    }
+
   </style>
   <script src="lang.js"></script>
 </head>
@@ -1021,6 +1142,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     appInitialise = true;
     const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
     document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+    if(window.updateMobileNav) updateMobileNav(prenom);
     // ── Langue ──
     document.getElementById('lang-selector').appendChild(injecterSelecteurLang());
     document.getElementById('btn-deconnexion').textContent = t('nav_deconnexion');
@@ -1028,7 +1150,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     if(document.getElementById('nav-plan'))        document.getElementById('nav-plan').textContent        = t('nav_plan_cave');
     if(document.getElementById('nav-dashboard'))   document.getElementById('nav-dashboard').textContent   = t('nav_dashboard');
     // Traduire tous les éléments data-t
-    appliquerTraductions();
+    appliquerTraductions(); if(window.updateMobileNavLang) updateMobileNavLang();
     // Toolbar
     if(document.getElementById('btn-importer')) document.getElementById('btn-importer').textContent = '⬆ ' + t('cave_btn_import').replace('⬆ ','');
     if(document.getElementById('btn-ajouter'))  document.getElementById('btn-ajouter').textContent  = '+ ' + t('cave_btn_add').replace('+ ','');
@@ -1875,6 +1997,84 @@ function fermerModal(id)  { document.getElementById(id).classList.remove('open')
 document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) fermerModal(o.id); });
 });
+
+// ── MENU HAMBURGER MOBILE ──
+(function() {
+  // Créer le bouton hamburger et l'injecter dans le header
+  const hamburger = document.createElement('button');
+  hamburger.className = 'hamburger';
+  hamburger.id = 'hamburger';
+  hamburger.setAttribute('aria-label', 'Menu');
+  hamburger.innerHTML = '<span></span><span></span><span></span>';
+  document.querySelector('header').appendChild(hamburger);
+
+  const mobileNav = document.getElementById('mobile-nav');
+
+  hamburger.addEventListener('click', () => {
+    hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open');
+  });
+
+  // Fermer le menu en cliquant ailleurs
+  document.addEventListener('click', (e) => {
+    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+    }
+  });
+
+  // Mettre à jour le prenom et la langue dans le menu mobile
+  window.updateMobileNav = function(prenom) {
+    const el = document.getElementById('mobile-prenom');
+    if (el && prenom) el.textContent = 'Bonjour, ' + prenom;
+
+    // Copier le sélecteur de langue
+    const mobileLang = document.getElementById('mobile-lang-selector');
+    if (mobileLang) {
+      const flags = { fr: '🇫🇷', en: '🇬🇧', de: '🇩🇪' };
+      const lang = getLang();
+      mobileLang.innerHTML = '';
+      ['fr','en','de'].forEach(l => {
+        const btn = document.createElement('button');
+        btn.textContent = flags[l];
+        btn.title = l.toUpperCase();
+        if (lang === l) btn.classList.add('active-lang');
+        btn.addEventListener('click', () => setLang(l));
+        mobileLang.appendChild(btn);
+      });
+    }
+  };
+
+  // Traduire les liens du menu mobile
+  window.updateMobileNavLang = function() {
+    const mesVins = document.getElementById('mobile-nav-mes-vins');
+    const plan    = document.getElementById('mobile-nav-plan');
+    const dash    = document.getElementById('mobile-nav-dashboard');
+    const deconn  = document.getElementById('mobile-btn-deconnexion');
+    if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
+    if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
+    if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
+    if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
+  };
+})();
+
 </script>
+
+  <!-- Bouton hamburger dans le header -->
+  <!-- (injecté via JS ci-dessous) -->
+
+  <!-- Menu mobile -->
+  <div class="mobile-nav" id="mobile-nav">
+    <div class="mobile-nav-prenom" id="mobile-prenom"></div>
+    <div class="mobile-nav-separator"></div>
+    <a href="cave.html" id="mobile-nav-mes-vins" class="active">🍾 Mes vins</a>
+    <a href="cave-plan.html" id="mobile-nav-plan">🗺️ Plan de cave</a>
+    <a href="dashboard.html" id="mobile-nav-dashboard">📊 Tableau de bord</a>
+    <div class="mobile-nav-separator"></div>
+    <div class="mobile-nav-lang" id="mobile-lang-selector"></div>
+    <div class="mobile-nav-separator"></div>
+    <button class="mobile-nav-deconnexion" id="mobile-btn-deconnexion" onclick="seDeconnecter()">🚪 Déconnexion</button>
+  </div>
+
 </body>
 </html>

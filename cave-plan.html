@@ -361,28 +361,28 @@
     <div>
       <div class="page-title">Plan de cave</div>
     </div>
-    <button class="btn-primary" onclick="ouvrirModalMeuble()">+ Ajouter un meuble</button>
+    <button class="btn-primary" id="btn-add-meuble" onclick="ouvrirModalMeuble()" data-t="plan_add_meuble">+ Ajouter un meuble</button>
   </div>
 
   <!-- Légende -->
   <div class="legende">
-    <span class="legende-titre">Légende</span>
-    <div class="legende-item"><div class="legende-dot" style="background:var(--vide);border:2px dashed #ccc8c0"></div> Vide</div>
+    <span class="legende-titre" data-t="plan_legende">Légende</span>
+    <div class="legende-item"><div class="legende-dot" style="background:var(--vide);border:2px dashed #ccc8c0"></div data-t="plan_vide"> Vide</div>
     <div class="legende-item"><div class="legende-dot" style="background:var(--rouge)"></div> Rouge</div>
     <div class="legende-item"><div class="legende-dot" style="background:var(--blanc)"></div> Blanc</div>
     <div class="legende-item"><div class="legende-dot" style="background:var(--rose)"></div> Rosé</div>
     <div class="legende-item"><div class="legende-dot" style="background:var(--petillant)"></div> Pétillant</div>
     <div class="legende-item"><div class="legende-dot" style="background:var(--muted)"></div> Autre</div>
-    <div style="margin-left:auto;font-size:0.75rem;color:var(--muted)">💡 Clique sur une case pour placer ou déplacer une bouteille</div>
+    <div style="margin-left:auto;font-size:0.75rem;color:var(--muted)"><span data-t="plan_hint">💡 Clique sur une case pour placer ou déplacer une bouteille</span></div>
   </div>
 
   <!-- Meubles -->
   <div class="meubles-grid" id="meubles-container">
     <div class="empty-state">
       <div class="icon">🗺️</div>
-      <h2>Aucun meuble créé</h2>
-      <p>Commencez par créer votre premier meuble ou casier.</p>
-      <button class="btn-primary" onclick="ouvrirModalMeuble()">+ Ajouter un meuble</button>
+      <h2 data-t="plan_empty_title">Aucun meuble créé</h2>
+      <p data-t="plan_empty_text">Commencez par créer votre premier meuble ou casier.</p>
+      <button class="btn-primary" id="btn-add-meuble" onclick="ouvrirModalMeuble()" data-t="plan_add_meuble">+ Ajouter un meuble</button>
     </div>
   </div>
 </main>
@@ -396,26 +396,26 @@
     </div>
     <div class="modal-body">
       <div class="form-group">
-        <label>Nom du meuble *</label>
+        <label data-t="plan_nom_label">Nom du meuble *</label>
         <input type="text" id="m-nom" placeholder="ex : Casier principal, Armoire à vin, Cave nord…"/>
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label>Colonnes *</label>
+          <label data-t="plan_colonnes">Colonnes *</label>
           <input type="number" id="m-colonnes" value="6" min="1" max="30"/>
         </div>
         <div class="form-group">
-          <label>Rangées *</label>
+          <label data-t="plan_rangees">Rangées *</label>
           <input type="number" id="m-rangees" value="8" min="1" max="30"/>
         </div>
       </div>
       <div style="font-size:0.78rem;color:var(--muted);margin-top:-0.25rem">
-        Capacité : <strong id="capacite-preview">48</strong> bouteilles
+        <span data-t="plan_capacite">Capacité :</span> <strong id="capacite-preview">48</strong> <span data-t="plan_capacite_unit">bouteilles</span>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="fermerModal('modal-meuble')">Annuler</button>
-      <button class="btn-primary" onclick="sauvegarderMeuble()">Créer le meuble</button>
+      <button class="btn-secondary" data-t="plan_btn_cancel" onclick="fermerModal('modal-meuble')">Annuler</button>
+      <button class="btn-primary" id="btn-creer-meuble" onclick="sauvegarderMeuble()" data-t="plan_btn_create">Créer le meuble</button>
     </div>
   </div>
 </div>
@@ -424,16 +424,16 @@
 <div class="overlay" id="modal-choisir-vin">
   <div class="modal" style="max-width:520px">
     <div class="modal-header">
-      <div class="modal-title">Placer une bouteille</div>
+      <div class="modal-title" data-t="plan_choisir_titre">Placer une bouteille</div>
       <button class="btn-close" onclick="fermerModal('modal-choisir-vin')">✕</button>
     </div>
     <div class="modal-body">
       <p style="font-size:0.82rem;color:var(--muted);margin-bottom:0.75rem" id="label-case-cible"></p>
-      <input type="text" class="vin-search" id="vin-search-input" placeholder="🔍 Rechercher un vin…" oninput="filtrerVins()"/>
+      <input type="text" class="vin-search" id="vin-search-input" placeholder="🔍 Rechercher un vin…" data-t-ph="plan_search_ph" oninput="filtrerVins()"/>
       <div class="vin-liste" id="vin-liste"></div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="fermerModal('modal-choisir-vin')">Annuler</button>
+      <button class="btn-secondary" data-t="plan_btn_close" onclick="fermerModal('modal-choisir-vin')">Annuler</button>
     </div>
   </div>
 </div>
@@ -447,9 +447,9 @@
     </div>
     <div class="modal-body" id="detail-case-body"></div>
     <div class="modal-footer">
-      <button class="btn-danger" id="btn-retirer" onclick="retirerBouteille()">🗑 Retirer de la case</button>
-      <button class="btn-secondary" onclick="deplacerBouteille()">↔ Déplacer</button>
-      <button class="btn-primary" onclick="fermerModal('modal-detail-case')">Fermer</button>
+      <button class="btn-danger" id="btn-retirer" data-t="plan_btn_retirer" onclick="retirerBouteille()">🗑 Retirer de la case</button>
+      <button class="btn-secondary" data-t="plan_btn_deplacer" onclick="deplacerBouteille()">↔ Déplacer</button>
+      <button class="btn-primary" data-t="plan_btn_fermer" onclick="fermerModal('modal-detail-case')">Fermer</button>
     </div>
   </div>
 </div>
@@ -488,9 +488,8 @@ sb.auth.onAuthStateChange(async (event, session) => {
     if(document.getElementById('nav-mes-vins'))  document.getElementById('nav-mes-vins').textContent  = t('nav_mes_vins');
     if(document.getElementById('nav-plan'))      document.getElementById('nav-plan').textContent      = t('nav_plan_cave');
     if(document.getElementById('nav-dashboard')) document.getElementById('nav-dashboard').textContent = t('nav_dashboard');
-    // Titres et boutons statiques
     document.querySelector('.page-title').textContent = t('plan_title');
-    document.querySelector('.btn-primary').textContent = t('plan_add_meuble');
+    appliquerTraductionsPlan();
     await chargerTout();
     document.getElementById('loading').style.display = 'none';
   } else if (event === 'SIGNED_OUT') {
@@ -517,7 +516,7 @@ async function chargerTout() {
 function rendreInterface() {
   const container = document.getElementById('meubles-container');
   if (meubles.length === 0) {
-    container.innerHTML = `<div class="empty-state"><div class="icon">🗺️</div><h2>Aucun meuble créé</h2><p>Commencez par créer votre premier meuble ou casier.</p><button class="btn-primary" onclick="ouvrirModalMeuble()">+ Ajouter un meuble</button></div>`;
+    container.innerHTML = `<div class="empty-state"><div class="icon">🗺️</div><h2>Aucun meuble créé</h2><p>Commencez par créer votre premier meuble ou casier.</p><button class="btn-primary" id="btn-add-meuble" onclick="ouvrirModalMeuble()" data-t="plan_add_meuble">+ Ajouter un meuble</button></div>`;
     return;
   }
   container.innerHTML = '';
@@ -547,8 +546,8 @@ function rendreMeuble(m) {
     <div class="meuble-body" id="body-${m.id}"></div>
     <div class="meuble-stats">
       <div class="meuble-stat">Occupé : <strong>${occupees}</strong> / ${capacite}</div>
-      <div class="meuble-stat">Libre : <strong>${capacite - occupees}</strong></div>
-      <div class="meuble-stat">Taux : <strong>${Math.round((occupees/capacite)*100)}%</strong></div>
+      <div class="meuble-stat">${t('plan_libre')} <strong>${capacite - occupees}</strong></div>
+      <div class="meuble-stat">${t('plan_taux')} <strong>${Math.round((occupees/capacite)*100)}%</strong></div>
     </div>`;
 
   // Grille
@@ -659,7 +658,7 @@ async function deposeCase(e, meubleId, col, row) {
 // ── CHOISIR VIN ──
 function ouvrirChoisirVin(meubleId, col, row) {
   caseSelectionnee = { meubleId, col, row };
-  document.getElementById('label-case-cible').textContent = `Emplacement : colonne ${col}, rangée ${row}`;
+  document.getElementById('label-case-cible').textContent = `${t('plan_emplacement_label')} ${col}, ${t('plan_rangee_label')} ${row}`;
   document.getElementById('vin-search-input').value = '';
   filtrerVins();
   ouvrirModal('modal-choisir-vin');
@@ -673,7 +672,7 @@ function filtrerVins() {
   );
 
   if (filtres.length === 0) {
-    liste.innerHTML = `<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:0.85rem">Aucun vin trouvé</div>`;
+    liste.innerHTML = `<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:0.85rem">${t('plan_aucun_vin')}</div>`;
     return;
   }
 
@@ -735,7 +734,7 @@ function ouvrirDetailCase(meubleId, col, row, empl) {
       <div class="detail-field"><div class="detail-field-label">Appellation</div><div class="detail-field-value">${b.appellation || '—'}</div></div>
       <div class="detail-field"><div class="detail-field-label">Quantité</div><div class="detail-field-value">${b.quantite ?? 1} btl</div></div>
       <div class="detail-field"><div class="detail-field-label">Maturité</div><div class="detail-field-value">${etat}</div></div>
-      <div class="detail-field"><div class="detail-field-label">Emplacement</div><div class="detail-field-value">Col. ${col} · Rng. ${row}</div></div>
+      <div class="detail-field"><div class="detail-field-label">${t('plan_emplacement')}</div><div class="detail-field-value">Col. ${col} · Rng. ${row}</div></div>
       <div class="detail-field"><div class="detail-field-label">Prix achat</div><div class="detail-field-value">${b.prix_achat ? b.prix_achat.toFixed(2) + ' CHF' : '—'}</div></div>
     </div>
     ${b.plats_accords ? `<div style="margin-top:0.75rem"><div class="detail-field-label">Accords</div><div class="detail-field-value" style="font-size:0.85rem;margin-top:0.2rem">${b.plats_accords}</div></div>` : ''}`;
@@ -755,7 +754,7 @@ function deplacerBouteille() {
   fermerModal('modal-detail-case');
   // Marquer la source puis ouvrir le modal de choix de destination
   dragSource = { meubleId: emplacementEnCours.meuble_id, col: emplacementEnCours.colonne, row: emplacementEnCours.rangee };
-  alert('Clique maintenant sur la case de destination pour y déplacer la bouteille.');
+  alert(t('plan_deplacer_msg'));
   // Activer le mode déplacement via click
   activerModeDeplacementClick();
 }
@@ -780,19 +779,19 @@ function ouvrirModalMeuble(id = null) {
   meubleEnEdition = id;
   if (id) {
     const m = meubles.find(x => x.id === id);
-    document.getElementById('modal-meuble-titre').textContent = 'Modifier le meuble';
+    document.getElementById('modal-meuble-titre').textContent = t('plan_modal_edit');
     document.getElementById('m-nom').value      = m.nom;
     document.getElementById('m-colonnes').value = m.colonnes;
     document.getElementById('m-rangees').value  = m.rangees;
     mettreAJourCapacite();
   } else {
-    document.getElementById('modal-meuble-titre').textContent = 'Nouveau meuble';
+    document.getElementById('modal-meuble-titre').textContent = t('plan_modal_new');
     document.getElementById('m-nom').value      = '';
     document.getElementById('m-colonnes').value = 6;
     document.getElementById('m-rangees').value  = 8;
     mettreAJourCapacite();
   }
-  ouvrirModal('modal-meuble');
+  appliquerTraductionsPlan(); ouvrirModal('modal-meuble');
 }
 
 function mettreAJourCapacite() {
@@ -822,13 +821,26 @@ async function sauvegarderMeuble() {
 }
 
 async function supprimerMeuble(id, nom) {
-  if (!confirm(`Supprimer le meuble "${nom}" et tous ses emplacements ?`)) return;
+  if (!confirm(t('plan_confirm_del').replace('{nom}', nom))) return;
   await sb.from('cave_emplacements').delete().eq('meuble_id', id);
   await sb.from('cave_meubles').delete().eq('id', id);
   await chargerTout();
 }
 
 // ── UTILS ──
+function appliquerTraductionsPlan() {
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.getAttribute('data-t');
+    const val = t(key);
+    if (val && val !== key) el.textContent = val;
+  });
+  document.querySelectorAll('[data-t-ph]').forEach(el => {
+    const key = el.getAttribute('data-t-ph');
+    const val = t(key);
+    if (val && val !== key) el.placeholder = val;
+  });
+}
+
 function ouvrirModal(id)  { document.getElementById(id).classList.add('open'); }
 function fermerModal(id)  { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o => {

@@ -304,23 +304,23 @@
 
     <!-- ── VALEUR TOTALE ── -->
     <div class="card col-4">
-      <div class="card-title">Valeur de ma cave</div>
+      <div class="card-title">data-t="dash_valeur">Valeur de ma cave</div>
       <div class="kpi-principale">
         <div class="montant" id="val-totale">—</div>
-        <div class="label">Prix d'achat total</div>
+        <div class="label" data-t="dash_prix_total">Prix d'achat total</div>
       </div>
       <div class="kpi-row">
         <div class="kpi-small">
           <div class="val" id="val-nb-bouteilles">—</div>
-          <div class="lbl">Bouteilles</div>
+          <div class="lbl" data-t="dash_bouteilles">Bouteilles</div>
         </div>
         <div class="kpi-small">
           <div class="val" id="val-nb-vins">—</div>
-          <div class="lbl">Références</div>
+          <div class="lbl" data-t="dash_references">Références</div>
         </div>
         <div class="kpi-small">
           <div class="val" id="val-prix-moyen">—</div>
-          <div class="lbl">Prix moyen</div>
+          <div class="lbl" data-t="dash_prix_moyen">Prix moyen</div>
         </div>
       </div>
       <div id="val-prix-note" style="display:none;font-size:0.72rem;color:var(--orange);margin-top:0.75rem;padding:0.5rem 0.75rem;background:rgba(224,123,57,0.08);border-radius:1px;border-left:2px solid var(--orange)"></div>
@@ -328,45 +328,45 @@
 
     <!-- ── RÉPARTITION COULEURS ── -->
     <div class="card col-4">
-      <div class="card-title">Par couleur</div>
+      <div class="card-title" data-t="dash_par_couleur">Par couleur</div>
       <div class="couleur-list" id="couleur-list"></div>
     </div>
 
     <!-- ── PHASES DE MATURITÉ ── -->
     <div class="card col-4">
-      <div class="card-title">Phases de maturité</div>
+      <div class="card-title" data-t="dash_phases">Phases de maturité</div>
       <div id="phases-wrap"></div>
     </div>
 
     <!-- ── VALEUR PAR COULEUR ── -->
     <div class="card col-6">
-      <div class="card-title">Valeur par couleur</div>
+      <div class="card-title" data-t="dash_valeur_couleur">Valeur par couleur</div>
       <div id="valeur-couleur-wrap"></div>
     </div>
 
     <!-- ── RÉGIONS ── -->
     <div class="card col-6">
-      <div class="card-title">Répartition par région</div>
+      <div class="card-title" data-t="dash_regions">Répartition par région</div>
       <div class="region-list" id="region-list"></div>
     </div>
 
     <!-- ── TIMELINE DÉGUSTATION ── -->
     <div class="card col-6">
-      <div class="card-title">Fenêtre de dégustation</div>
+      <div class="card-title" data-t="dash_timeline">Fenêtre de dégustation</div>
       <div class="timeline-years" id="timeline-wrap"></div>
     </div>
 
     <!-- ── MATURITÉ DÉTAIL ── -->
     <div class="card col-6">
-      <div class="card-title">État des bouteilles</div>
+      <div class="card-title" data-t="dash_etat">État des bouteilles</div>
       <table class="maturite-table">
         <thead>
           <tr>
-            <th>Vin</th>
-            <th>Millésime</th>
-            <th>Qté</th>
-            <th>État</th>
-            <th>Maturité</th>
+            <th data-t="dash_col_vin">Vin</th>
+            <th data-t="dash_col_millesime">Millésime</th>
+            <th data-t="dash_col_qte">Qté</th>
+            <th data-t="dash_col_etat">État</th>
+            <th data-t="dash_col_maturite">Maturité</th>
           </tr>
         </thead>
         <tbody id="maturite-tbody"></tbody>
@@ -375,15 +375,15 @@
 
     <!-- ── BOUTEILLES À BOIRE BIENTÔT ── -->
     <div class="card col-6">
-      <div class="card-title">À boire cette année et l'année prochaine</div>
+      <div class="card-title" data-t="dash_bientot">À boire cette année et l'année prochaine</div>
       <table class="maturite-table">
         <thead>
           <tr>
-            <th>Vin</th>
-            <th>Millésime</th>
-            <th>Qté</th>
-            <th>Jusqu'en</th>
-            <th>Accords</th>
+            <th data-t="dash_col_vin">Vin</th>
+            <th data-t="dash_col_millesime">Millésime</th>
+            <th data-t="dash_col_qte">Qté</th>
+            <th data-t="dash_col_fin">Jusqu'en</th>
+            <th data-t="dash_col_accords">Accords</th>
           </tr>
         </thead>
         <tbody id="bientot-tbody"></tbody>
@@ -392,14 +392,14 @@
 
     <!-- ── DÉPASSÉES ── -->
     <div class="card col-6">
-      <div class="card-title">⚠️ Bouteilles dépassées ou à consommer vite</div>
+      <div class="card-title" data-t="dash_depasse">⚠️ Bouteilles dépassées ou à consommer vite</div>
       <table class="maturite-table">
         <thead>
           <tr>
-            <th>Vin</th>
-            <th>Millésime</th>
-            <th>Qté</th>
-            <th>Fin maturité</th>
+            <th data-t="dash_col_vin">Vin</th>
+            <th data-t="dash_col_millesime">Millésime</th>
+            <th data-t="dash_col_qte">Qté</th>
+            <th data-t="dash_col_fin_mat">Fin maturité</th>
           </tr>
         </thead>
         <tbody id="depasse-tbody"></tbody>
@@ -408,18 +408,18 @@
 
     <!-- ── DERNIÈRES ENTRÉES ── -->
     <div class="card col-12">
-      <div class="card-title">Dernières bouteilles ajoutées</div>
+      <div class="card-title" data-t="dash_entrees">Dernières bouteilles ajoutées</div>
       <table class="maturite-table">
         <thead>
           <tr>
-            <th>Vin</th>
-            <th>Château / Domaine</th>
-            <th>Couleur</th>
-            <th>Millésime</th>
-            <th>Région</th>
+            <th data-t="dash_col_vin">Vin</th>
+            <th data-t="dash_col_chateau">Château / Domaine</th>
+            <th data-t="dash_col_couleur">Couleur</th>
+            <th data-t="dash_col_millesime">Millésime</th>
+            <th data-t="dash_col_region">Région</th>
             <th>Quantité</th>
-            <th>Prix unitaire</th>
-            <th>Ajouté le</th>
+            <th data-t="dash_col_prix">Prix unitaire</th>
+            <th data-t="dash_col_ajoute">Ajouté le</th>
           </tr>
         </thead>
         <tbody id="entrees-tbody"></tbody>
@@ -469,6 +469,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
   document.getElementById('date-maj').textContent = `${t('dash_updated')} ${fmt(new Date())}`;
   // ── Langue ──
   document.getElementById('lang-selector').appendChild(injecterSelecteurLang());
+  appliquerTraductionsDash();
   document.getElementById('btn-deconnexion').textContent = t('nav_deconnexion');
   if(document.getElementById('nav-mes-vins'))  document.getElementById('nav-mes-vins').textContent  = t('nav_mes_vins');
   if(document.getElementById('nav-plan'))      document.getElementById('nav-plan').textContent      = t('nav_plan_cave');
@@ -482,7 +483,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
   if (bouteilles.length === 0) {
     document.querySelector('.dashboard-grid').innerHTML =
-      `<div class="card col-12"><div class="empty"><div class="icon">🍾</div><p>Votre cave est vide. <a href="cave.html" style="color:var(--bordeaux)">Ajoutez vos premières bouteilles</a> pour voir les statistiques.</p></div></div>`;
+      `<div class="card col-12"><div class="empty"><div class="icon">🍾</div><p>${t('dash_cave_vide')} <a href="cave.html" style="color:var(--bordeaux)">${t('dash_ajouter_lien')}</a> !</p></div></div>`;
     return;
   }
 
@@ -586,10 +587,10 @@ function renderPhases(b) {
 
   const total = jeune + maturite + apogee + declin + sansInfo;
   const phases = [
-    { label: 'Trop jeune',   val: jeune,    color: '#C8A84B', emoji: '⏳' },
-    { label: 'En maturité',  val: maturite, color: '#52b788', emoji: '✅' },
-    { label: 'À l\'apogée',  val: apogee,   color: '#5B8FA8', emoji: '🌟' },
-    { label: 'En déclin',    val: declin,   color: '#B94040', emoji: '⚠️' },
+    { label: t('dash_trop_jeune'),  val: jeune,    color: '#C8A84B', emoji: '⏳' },
+    { label: t('dash_en_maturite'), val: maturite, color: '#52b788', emoji: '✅' },
+    { label: t('dash_apogee'),       val: apogee,   color: '#5B8FA8', emoji: '🌟' },
+    { label: t('dash_declin'),        val: declin,   color: '#B94040', emoji: '⚠️' },
   ];
 
   document.getElementById('phases-wrap').innerHTML = `
@@ -620,7 +621,7 @@ function renderValeurCouleur(b) {
   const rows = ordre.filter(c => groups[c] && groups[c].prix > 0);
 
   if (rows.length === 0) {
-    document.getElementById('valeur-couleur-wrap').innerHTML = `<div class="empty"><div class="icon">💰</div><p>Aucun prix renseigné</p></div>`;
+    document.getElementById('valeur-couleur-wrap').innerHTML = `<div class="empty"><div class="icon">💰</div><p data-t="dash_no_prix">Aucun prix renseigné</p></div>`;
     return;
   }
 
@@ -655,7 +656,7 @@ function renderRegions(b) {
   const el = document.getElementById('region-list');
 
   if (sorted.length === 0) {
-    el.innerHTML = `<div class="empty"><p>Aucune région renseignée</p></div>`;
+    el.innerHTML = `<div class="empty"><p data-t="dash_no_region">Aucune région renseignée</p></div>`;
     return;
   }
 
@@ -696,7 +697,7 @@ function renderTimeline(b) {
   const el = document.getElementById('timeline-wrap');
 
   if (Object.keys(annees).length === 0) {
-    el.innerHTML = `<div class="empty"><div class="icon">📅</div><p>Aucune information de maturité renseignée</p></div>`;
+    el.innerHTML = `<div class="empty"><div class="icon">📅</div><p>${t('dash_no_maturite')}</p></div>`;
     return;
   }
 
@@ -712,7 +713,7 @@ function renderTimeline(b) {
           <div class="timeline-bar-fill" style="width:${pct}%;opacity:${isPast?0.3:1}"></div>
         </div>
       </div>
-      <div class="timeline-count">${r.qty > 0 ? r.qty + ' btl' : '—'}</div>
+      <div class="timeline-count">${r.qty > 0 ? r.qty + ' ' + t('dash_btl') : '—'}</div>
     </div>`;
   }).join('');
 }
@@ -733,10 +734,10 @@ function renderMaturite(b) {
     const mid   = debut && fin ? debut + Math.floor((fin - debut) / 2) : null;
     let badge = '';
     if (!debut && !fin) badge = '';
-    else if (annee < debut) badge = `<span class="badge badge-jeune">⏳ Trop jeune</span>`;
-    else if (mid && annee <= mid) badge = `<span class="badge badge-maturite">✅ En maturité</span>`;
-    else if (fin && annee <= fin) badge = `<span class="badge badge-apogee">🌟 Apogée</span>`;
-    else badge = `<span class="badge badge-declin">⚠️ En déclin</span>`;
+    else if (annee < debut) badge = `<span class="badge badge-jeune">${t('dash_trop_jeune')}</span>`;
+    else if (mid && annee <= mid) badge = `<span class="badge badge-maturite">${t('dash_en_maturite')}</span>`;
+    else if (fin && annee <= fin) badge = `<span class="badge badge-apogee">${t('dash_apogee')}</span>`;
+    else badge = `<span class="badge badge-declin">${t('dash_declin')}</span>`;
 
     return `<tr>
       <td><strong>${x.nom}</strong>${x.chateau ? `<br><small style="color:var(--muted)">${x.chateau}</small>` : ''}</td>
@@ -758,7 +759,7 @@ function renderBientot(b) {
   ).sort((a,b) => (a.annee_maturite_fin||9999) - (b.annee_maturite_fin||9999));
 
   if (bientot.length === 0) {
-    document.getElementById('bientot-tbody').innerHTML = `<tr><td colspan="5" class="empty">Aucun vin à boire cette année ou l'année prochaine</td></tr>`;
+    document.getElementById('bientot-tbody').innerHTML = `<tr><td colspan="5" class="empty">${t('dash_no_bientot')}</td></tr>`;
     return;
   }
 
@@ -780,7 +781,7 @@ function renderDepasse(b) {
   ).sort((a,b) => (b.annee_maturite_fin||0) - (a.annee_maturite_fin||0));
 
   if (depasse.length === 0) {
-    document.getElementById('depasse-tbody').innerHTML = `<tr><td colspan="4"><div class="empty">✅ Aucune bouteille dépassée</div></td></tr>`;
+    document.getElementById('depasse-tbody').innerHTML = `<tr><td colspan="4"><div class="empty">${t('dash_no_depasse')}</div></td></tr>`;
     return;
   }
 

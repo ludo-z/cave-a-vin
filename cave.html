@@ -686,19 +686,19 @@
   <div class="stats-bar">
     <div class="stat-card total-stat">
       <div class="stat-number" id="stat-total">0</div>
-      <div class="stat-label">Bouteilles au total</div>
+      <div class="stat-label" data-t="stat_total">Bouteilles au total</div>
     </div>
     <div class="stat-card rouge-stat">
       <div class="stat-number" id="stat-rouge">0</div>
-      <div class="stat-label">Vins rouges</div>
+      <div class="stat-label" data-t="stat_rouge">Vins rouges</div>
     </div>
     <div class="stat-card blanc-stat">
       <div class="stat-number" id="stat-blanc">0</div>
-      <div class="stat-label">Vins blancs</div>
+      <div class="stat-label" data-t="stat_blanc">Vins blancs</div>
     </div>
     <div class="stat-card rose-stat">
       <div class="stat-number" id="stat-rose">0</div>
-      <div class="stat-label">Rosés & autres</div>
+      <div class="stat-label" data-t="stat_rose_autre">Rosés & autres</div>
     </div>
   </div>
 
@@ -706,10 +706,10 @@
   <div class="toolbar">
     <div class="search-box">
       <span class="search-icon">🔍</span>
-      <input type="text" id="recherche" placeholder="Rechercher un vin, château, région…" oninput="filtrer()"/>
+      <input type="text" id="recherche" placeholder="Rechercher un vin, château, région…" oninput="filtrer()" data-t-ph="cave_search_placeholder"/>
     </div>
     <select id="filtre-couleur" onchange="filtrer()">
-      <option value="">Toutes les couleurs</option>
+      <option value="" data-t="cave_filter_all_colors">Toutes les couleurs</option>
       <option value="rouge">Rouge</option>
       <option value="blanc">Blanc</option>
       <option value="rosé">Rosé</option>
@@ -717,17 +717,17 @@
       <option value="autre">Autre</option>
     </select>
     <select id="filtre-tri" onchange="filtrer()">
-      <option value="nom">Trier par nom</option>
-      <option value="millesime">Trier par millésime</option>
-      <option value="quantite">Trier par quantité</option>
-      <option value="prix">Trier par prix</option>
+      <option value="nom" data-t="cave_sort_nom">Trier par nom</option>
+      <option value="millesime" data-t="cave_sort_millesime">Trier par millésime</option>
+      <option value="quantite" data-t="cave_sort_quantite">Trier par quantité</option>
+      <option value="prix" data-t="cave_sort_prix">Trier par prix</option>
     </select>
     <div class="vue-toggle">
       <button class="vue-btn active" id="btn-cartes" onclick="setVue('cartes')" title="Vue cartes">⊞</button>
       <button class="vue-btn" id="btn-tableau" onclick="setVue('tableau')" title="Vue tableau">☰</button>
     </div>
-    <button class="btn-importer" onclick="ouvrirImport()">⬆ Importer</button>
-    <button class="btn-ajouter" onclick="ouvrirAjout()">+ Ajouter</button>
+    <button class="btn-importer" id="btn-importer" onclick="ouvrirImport()">⬆ Importer</button>
+    <button class="btn-ajouter" id="btn-ajouter" onclick="ouvrirAjout()">+ Ajouter</button>
   </div>
 
   <!-- Vue Cartes -->
@@ -738,14 +738,14 @@
     <table>
       <thead>
         <tr>
-          <th>Couleur</th>
-          <th>Nom / Château</th>
-          <th>Millésime</th>
-          <th>Région</th>
-          <th>Cont.</th>
+          <th data-t="col_couleur">Couleur</th>
+          <th data-t="col_nom">Nom / Château</th>
+          <th data-t="col_millesime">Millésime</th>
+          <th data-t="col_region">Région</th>
+          <th data-t="col_contenance">Cont.</th>
           <th>Qté</th>
-          <th>Prix</th>
-          <th>Maturité</th>
+          <th data-t="col_prix">Prix</th>
+          <th data-t="col_maturite">Maturité</th>
           <th>Actions</th>
         </tr>
       </thead>
@@ -758,7 +758,7 @@
 <div class="overlay" id="modal-form">
   <div class="modal">
     <div class="modal-header">
-      <div class="modal-title" id="modal-titre">Ajouter une bouteille</div>
+      <div class="modal-title" id="modal-titre" data-t="form_add_title">Ajouter une bouteille</div>
       <button class="btn-close" onclick="fermerModal('modal-form')">✕</button>
     </div>
     <div class="modal-body">
@@ -766,7 +766,7 @@
 
         <!-- IA AUTO-REMPLISSAGE -->
         <div class="ia-search-box full">
-          <div class="ia-search-label">✨ Recherche intelligente par Claude IA</div>
+          <div class="ia-search-label" data-t="form_ia_label">✨ Recherche intelligente par Claude IA</div>
           <div class="ia-search-row" style="position:relative">
             <input type="text" class="ia-search-input" id="ia-query"
               placeholder="Ex : Château Margaux 2015, Barolo Gaja, Gevrey-Chambertin…"
@@ -783,7 +783,7 @@
 
         <!-- PHOTO ÉTIQUETTE -->
         <div class="ia-search-box full" style="margin-top:0.75rem;padding:0.85rem 1.25rem">
-          <div class="ia-search-label">📷 Photo de l'étiquette</div>
+          <div class="ia-search-label" data-t="form_photo_label">📷 Photo de l'étiquette</div>
           <div style="display:flex;gap:0.75rem;align-items:flex-start">
             <!-- Zone de prévisualisation -->
             <div id="photo-preview-wrap"
@@ -791,7 +791,7 @@
               onclick="document.getElementById('f-photo').click()">
               <div>
                 <div style="font-size:1.4rem;margin-bottom:0.2rem">📷</div>
-                <div style="font-size:0.8rem;color:var(--muted)">Cliquer pour choisir</div>
+                <div style="font-size:0.8rem;color:var(--muted)" data-t="form_photo_choose">Cliquer pour choisir</div>
                 <div style="font-size:0.68rem;color:var(--stone);margin-top:0.2rem">JPG, PNG — max 10 Mo</div>
               </div>
             </div>
@@ -812,85 +812,85 @@
           <input type="file" id="f-photo-camera" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(event)"/>
           <!-- Bouton identification IA (apparaît après photo) -->
           <button type="button" class="btn-ia" id="btn-photo-ia" onclick="analyserPhotoIA()"
-            style="margin-top:0.6rem;width:100%;justify-content:center;display:none">
+            style="margin-top:0.6rem;width:100%;justify-content:center;display:none" data-t="form_photo_ia_btn">
             🔍 Identifier ce vin avec Claude IA
           </button>
           <div id="photo-ia-status" style="font-size:0.75rem;color:var(--muted);margin-top:0.4rem;font-style:italic;display:none"></div>
         </div>
 
-        <div class="section-sep">Identification</div>
+        <div class="section-sep" data-t="form_sep_ident">Identification</div>
         <div class="form-group full">
-          <label>Nom du vin *</label>
+          <label data-t="form_nom">Nom du vin *</label>
           <input type="text" id="f-nom" class="champ-ia" placeholder="ex : Gevrey-Chambertin"/>
         </div>
         <div class="form-group full">
-          <label>Château / Domaine</label>
+          <label data-t="form_chateau">Château / Domaine</label>
           <input type="text" id="f-chateau" class="champ-ia" placeholder="ex : Domaine Rossignol-Trapet"/>
         </div>
         <div class="form-group">
-          <label>Couleur *</label>
+          <label data-t="form_couleur">Couleur *</label>
           <select id="f-couleur">
-            <option value="">— choisir —</option>
-            <option value="rouge">🔴 Rouge</option>
-            <option value="blanc">🟡 Blanc</option>
-            <option value="rosé">🌸 Rosé</option>
-            <option value="pétillant">💧 Pétillant</option>
-            <option value="autre">⬜ Autre</option>
+            <option value="" data-t="form_couleur_choose">— choisir —</option>
+            <option value="rouge" data-t="couleur_rouge_em">🔴 Rouge</option>
+            <option value="blanc" data-t="couleur_blanc_em">🟡 Blanc</option>
+            <option value="rosé" data-t="couleur_rose_em">🌸 Rosé</option>
+            <option value="pétillant" data-t="couleur_petillant_em">💧 Pétillant</option>
+            <option value="autre" data-t="couleur_autre_em">⬜ Autre</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Millésime</label>
+          <label data-t="form_millesime">Millésime</label>
           <input type="number" id="f-millesime" class="champ-ia" placeholder="2019" min="1900" max="2099"/>
         </div>
         <div class="form-group">
-          <label>Région</label>
+          <label data-t="form_region">Région</label>
           <input type="text" id="f-region" class="champ-ia" placeholder="ex : Bourgogne"/>
         </div>
         <div class="form-group">
-          <label>Appellation</label>
+          <label data-t="form_appellation">Appellation</label>
           <input type="text" id="f-appellation" class="champ-ia" placeholder="ex : AOC Gevrey-Chambertin"/>
         </div>
 
-        <div class="section-sep">Cave & Valeur</div>
+        <div class="section-sep" data-t="form_sep_cave">Cave & Valeur</div>
         <div class="form-group">
-          <label>Quantité en cave</label>
+          <label data-t="form_quantite">Quantité en cave</label>
           <input type="number" id="f-quantite" placeholder="6" min="0"/>
         </div>
         <div class="form-group">
-          <label>Contenance</label>
+          <label data-t="form_contenance">Contenance</label>
           <select id="f-contenance">
-            <option value="20">20 cl (Piccolo)</option>
-            <option value="37.5">37,5 cl (Demi-bouteille)</option>
+            <option value="20" data-t="cont_piccolo">20 cl (Piccolo)</option>
+            <option value="37.5" data-t="cont_demi">37,5 cl (Demi-bouteille)</option>
             <option value="50">50 cl</option>
-            <option value="75" selected>75 cl (Bouteille)</option>
-            <option value="100">100 cl (Litre)</option>
-            <option value="150">150 cl (Magnum)</option>
-            <option value="200">200 cl (Double Magnum)</option>
-            <option value="300">300 cl (Jéroboam)</option>
-            <option value="450">450 cl (Réhoboam)</option>
-            <option value="600">600 cl (Mathusalem)</option>
+            <option value="75" selected data-t="cont_std">75 cl (Bouteille)</option>
+            <option value="100" data-t="cont_litre">100 cl (Litre)</option>
+            <option value="150" data-t="cont_magnum">150 cl (Magnum)</option>
+            <option value="200" data-t="cont_double">200 cl (Double Magnum)</option>
+            <option value="300" data-t="cont_jero">300 cl (Jéroboam)</option>
+            <option value="450" data-t="cont_reho">450 cl (Réhoboam)</option>
+            <option value="600" data-t="cont_math">600 cl (Mathusalem)</option>
           </select>
         </div>
         <div class="form-group">
-          <label>Prix d'achat (CHF / €)</label>
+          <label data-t="form_prix">Prix d'achat (CHF / €)</label>
           <input type="number" id="f-prix" placeholder="35.00" step="0.01" min="0"/>
         </div>
 
-        <div class="section-sep">Maturité & Accords</div>
+        <div class="section-sep" data-t="form_sep_maturite">Maturité & Accords</div>
         <div class="form-group">
-          <label>À boire à partir de</label>
+          <label data-t="form_maturite_debut">À boire à partir de</label>
           <input type="number" id="f-maturite-debut" class="champ-ia" placeholder="2025" min="2000" max="2100"/>
         </div>
         <div class="form-group">
-          <label>À boire jusqu'en</label>
+          <label data-t="form_maturite_fin">À boire jusqu'en</label>
           <input type="number" id="f-maturite-fin" class="champ-ia" placeholder="2035" min="2000" max="2100"/>
         </div>
         <div class="form-group full">
-          <label>Accords mets & plats</label>
+          <label data-t="form_plats">Accords mets & plats</label>
           <input type="text" id="f-plats" class="champ-ia" placeholder="ex : Agneau, gibier, fromages affinés"/>
         </div>
         <div class="form-group full">
-          <label>Notes personnelles</label>
+          <label data-t="form_note">Notes personnelles</label>
           <textarea id="f-note" class="champ-ia" placeholder="Robe, nez, bouche, impressions…"></textarea>
         </div>
 
@@ -900,8 +900,8 @@
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="fermerModal('modal-form')">Annuler</button>
-      <button class="btn-save" id="btn-sauvegarder" onclick="sauvegarder()">Enregistrer</button>
+      <button class="btn-secondary" data-t="form_btn_cancel" onclick="fermerModal('modal-form')">Annuler</button>
+      <button class="btn-save" id="btn-sauvegarder" onclick="sauvegarder()" data-t="form_btn_save">Enregistrer</button>
     </div>
   </div>
 </div>
@@ -915,8 +915,8 @@
     </div>
     <div class="modal-body" id="detail-body"></div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="fermerModal('modal-detail')">Fermer</button>
-      <button class="btn-save" id="btn-edit-detail" onclick="editerDepuisDetail()">Modifier</button>
+      <button class="btn-secondary" data-t="detail_btn_close" onclick="fermerModal('modal-detail')">Fermer</button>
+      <button class="btn-save" id="btn-edit-detail" data-t="detail_btn_edit" onclick="editerDepuisDetail()">Modifier</button>
     </div>
   </div>
 </div>
@@ -925,21 +925,21 @@
 <div class="overlay" id="modal-import">
   <div class="modal" style="max-width:560px">
     <div class="modal-header">
-      <div class="modal-title">Importer des bouteilles</div>
+      <div class="modal-title" data-t="import_title">Importer des bouteilles</div>
       <button class="btn-close" onclick="fermerModal('modal-import')">✕</button>
     </div>
     <div class="modal-body">
 
       <!-- Télécharger le modèle -->
       <div style="background:var(--stone);border-radius:2px;padding:1rem 1.25rem;margin-bottom:1.5rem">
-        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem">Étape 1 — Télécharger le modèle</div>
-        <div style="font-size:0.88rem;color:var(--ink);margin-bottom:0.75rem">Remplis ce fichier CSV avec tes vins, puis importe-le ci-dessous.</div>
+        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.4rem" data-t="import_step1">Étape 1 — Télécharger le modèle</div>
+        <div style="font-size:0.88rem;color:var(--ink);margin-bottom:0.75rem" data-t="import_step1_text">Remplis ce fichier CSV avec tes vins, puis importe-le ci-dessous.</div>
         <button class="btn-secondary" onclick="telechargerModele()" style="font-size:0.78rem">⬇ Télécharger le modèle CSV</button>
       </div>
 
       <!-- Colonnes acceptées -->
       <div style="margin-bottom:1.5rem">
-        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem">Colonnes reconnues</div>
+        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem" data-t="import_cols">Colonnes reconnues</div>
         <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
           ${['nom','chateau','couleur','millesime','region','appellation','quantite','prix_achat','annee_maturite_debut','annee_maturite_fin','plats_accords','note_perso'].map(c =>
             `<span style="font-size:0.72rem;padding:0.2rem 0.5rem;background:rgba(107,26,42,0.08);color:var(--bordeaux);border-radius:1px;font-family:monospace">${c}</span>`
@@ -949,21 +949,21 @@
       </div>
 
       <!-- Zone de dépôt -->
-      <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Étape 2 — Importer ton fichier</div>
+      <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem" data-t="import_step2">Étape 2 — Importer ton fichier</div>
       <div id="drop-zone" style="border:2px dashed var(--stone);border-radius:2px;padding:2rem;text-align:center;cursor:pointer;transition:border-color 0.2s"
            onclick="document.getElementById('f-import').click()"
            ondragover="event.preventDefault();this.style.borderColor='var(--bordeaux)'"
            ondragleave="this.style.borderColor='var(--stone)'"
            ondrop="gererDrop(event)">
         <div style="font-size:2rem;margin-bottom:0.5rem">📂</div>
-        <div style="font-size:0.9rem;color:var(--ink)">Glisse ton fichier ici ou clique pour choisir</div>
-        <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem">CSV ou Excel (.csv, .xlsx, .xls)</div>
+        <div style="font-size:0.9rem;color:var(--ink)" data-t="import_drop_text">Glisse ton fichier ici ou clique pour choisir</div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:0.3rem" data-t="import_formats_text">CSV ou Excel (.csv, .xlsx, .xls)</div>
         <input type="file" id="f-import" accept=".csv,.xlsx,.xls" style="display:none" onchange="lireFichier(event)"/>
       </div>
 
       <!-- Aperçu -->
       <div id="import-apercu" style="display:none;margin-top:1.25rem">
-        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem">Aperçu — <span id="import-count"></span></div>
+        <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem" data-t-prefix="import_preview">Aperçu — <span id="import-count"></span></div>
         <div style="max-height:200px;overflow-y:auto;border:1px solid var(--stone);border-radius:2px">
           <table style="width:100%;border-collapse:collapse;font-size:0.78rem">
             <thead style="background:var(--stone);position:sticky;top:0">
@@ -980,8 +980,8 @@
 
     </div>
     <div class="modal-footer">
-      <button class="btn-secondary" onclick="fermerModal('modal-import')">Annuler</button>
-      <button class="btn-save" id="btn-lancer-import" onclick="lancerImport()" disabled style="opacity:0.5">Importer les bouteilles</button>
+      <button class="btn-secondary" data-t="import_btn_cancel" onclick="fermerModal('modal-import')">Annuler</button>
+      <button class="btn-save" id="btn-lancer-import" data-t="import_btn" onclick="lancerImport()" disabled style="opacity:0.5">Importer les bouteilles</button>
     </div>
   </div>
 </div>
@@ -1027,6 +1027,11 @@ sb.auth.onAuthStateChange(async (event, session) => {
     if(document.getElementById('nav-mes-vins'))   document.getElementById('nav-mes-vins').textContent   = t('nav_mes_vins');
     if(document.getElementById('nav-plan'))        document.getElementById('nav-plan').textContent        = t('nav_plan_cave');
     if(document.getElementById('nav-dashboard'))   document.getElementById('nav-dashboard').textContent   = t('nav_dashboard');
+    // Traduire tous les éléments data-t
+    appliquerTraductions();
+    // Toolbar
+    if(document.getElementById('btn-importer')) document.getElementById('btn-importer').textContent = '⬆ ' + t('cave_btn_import').replace('⬆ ','');
+    if(document.getElementById('btn-ajouter'))  document.getElementById('btn-ajouter').textContent  = '+ ' + t('cave_btn_add').replace('+ ','');
     // Stats labels
     const statLabels = document.querySelectorAll('.stat-label');
     if(statLabels[0]) statLabels[0].textContent = t('stat_total');
@@ -1106,10 +1111,10 @@ function filtrer() {
 function rendreBouteilles() {
   if (bouteillesFiltrees.length === 0) {
     const msg = toutesLesBouteilles.length === 0
-      ? `<div class="empty-state"><div class="icon">🍾</div><h2>Votre cave est vide</h2><p>Commencez par ajouter votre première bouteille.</p><button class="btn-ajouter" onclick="ouvrirAjout()">+ Ajouter une bouteille</button></div>`
-      : `<div class="empty-state"><div class="icon">🔍</div><h2>Aucun résultat</h2><p>Essayez d'autres mots-clés ou filtres.</p></div>`;
+      ? `<div class="empty-state"><div class="icon">🍾</div><h2>${t('cave_empty_title')}</h2><p>${t('cave_empty_text')}</p><button class="btn-ajouter" onclick="ouvrirAjout()">+ ${t('cave_btn_add')}</button></div>`
+      : `<div class="empty-state"><div class="icon">🔍</div><h2>${t('cave_no_result')}</h2><p>${t('cave_no_result_text')}</p></div>`;
     document.getElementById('vue-cartes').innerHTML = msg;
-    document.getElementById('tableau-body').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">Aucun résultat</td></tr>`;
+    document.getElementById('tableau-body').innerHTML = `<tr><td colspan="8" style="text-align:center;padding:2rem;color:var(--muted)">${t('cave_no_result')}</td></tr>`;
     return;
   }
   rendreCartes();
@@ -1141,8 +1146,8 @@ function rendreCartes() {
         <div class="carte-footer">
           <div class="carte-quantite"><strong>${b.quantite ?? 1}</strong> btl${(b.quantite ?? 1) > 1 ? 's' : ''}</div>
           <div class="carte-actions">
-            <button class="btn-icon" onclick="event.stopPropagation();ouvrirEdition('${b.id}')" title="Modifier">✏️</button>
-            <button class="btn-icon suppr" onclick="event.stopPropagation();confirmerSuppression('${b.id}', '${(b.nom||'').replace(/'/g,"&#39;")}')" title="Supprimer">🗑️</button>
+            <button class="btn-icon" onclick="event.stopPropagation();ouvrirEdition('${b.id}')" title="✏️">✏️</button>
+            <button class="btn-icon suppr" onclick="event.stopPropagation();confirmerSuppression('${b.id}', '${(b.nom||'').replace(/'/g,"&#39;")}')" title="🗑️">🗑️</button>
           </div>
         </div>
       </div>
@@ -1165,8 +1170,8 @@ function rendreTableau() {
       <td>${b.annee_maturite_debut && b.annee_maturite_fin ? `${b.annee_maturite_debut}–${b.annee_maturite_fin}` : '—'}</td>
       <td>
         <div class="td-actions">
-          <button class="btn-icon" onclick="event.stopPropagation();ouvrirEdition('${b.id}')" title="Modifier">✏️</button>
-          <button class="btn-icon suppr" onclick="event.stopPropagation();confirmerSuppression('${b.id}', '${(b.nom||'').replace(/'/g,"&#39;")}')" title="Supprimer">🗑️</button>
+          <button class="btn-icon" onclick="event.stopPropagation();ouvrirEdition('${b.id}')" title="✏️">✏️</button>
+          <button class="btn-icon suppr" onclick="event.stopPropagation();confirmerSuppression('${b.id}', '${(b.nom||'').replace(/'/g,"&#39;")}')" title="🗑️">🗑️</button>
         </div>
       </td>
     </tr>`;
@@ -1179,9 +1184,9 @@ function maturiteBar(b) {
   const total = b.annee_maturite_fin - b.annee_maturite_debut;
   const ecoule = Math.max(0, Math.min(annee - b.annee_maturite_debut, total));
   const pct = total > 0 ? Math.round((ecoule / total) * 100) : 0;
-  let label = annee < b.annee_maturite_debut ? '⏳ Trop jeune' :
-              annee > b.annee_maturite_fin    ? '⚠️ Dépassé' :
-              `✅ À boire (${b.annee_maturite_debut}–${b.annee_maturite_fin})`;
+  let label = annee < b.annee_maturite_debut ? t('mat_trop_jeune') :
+              annee > b.annee_maturite_fin    ? t('mat_declin') :
+              `✅ ${t('form_maturite_debut').replace('À boire à partir de','À boire')} (${b.annee_maturite_debut}–${b.annee_maturite_fin})`;
   return `<div class="maturite-bar"><div class="maturite-label">${label}</div><div class="maturite-track"><div class="maturite-fill" style="width:${pct}%"></div></div></div>`;
 }
 
@@ -1235,7 +1240,7 @@ function editerDepuisDetail() {
 function ouvrirAjout() {
   modeEdition = null;
   photoFile = null;
-  document.getElementById('modal-titre').textContent = 'Ajouter une bouteille';
+  document.getElementById('modal-titre').textContent = t('form_add_title'); appliquerTraductions();
   ['nom','chateau','millesime','region','appellation','quantite','prix','maturite-debut','maturite-fin','plats','note'].forEach(id => {
     const el = document.getElementById('f-' + id);
     if (el) el.value = '';
@@ -1251,7 +1256,7 @@ function ouvrirAjout() {
   const wrap = document.getElementById('photo-preview-wrap');
   wrap.style.padding = '0.85rem';
   wrap.style.border = '2px dashed var(--stone)';
-  wrap.innerHTML = '<div><div style="font-size:1.4rem;margin-bottom:0.2rem">📷</div><div style="font-size:0.8rem;color:var(--muted)">Cliquer pour choisir</div><div style="font-size:0.68rem;color:var(--stone);margin-top:0.2rem">JPG, PNG — max 10 Mo</div></div>';
+  wrap.innerHTML = '<div><div style="font-size:1.4rem;margin-bottom:0.2rem">📷</div><div style="font-size:0.8rem;color:var(--muted)" data-t="form_photo_choose">Cliquer pour choisir</div><div style="font-size:0.68rem;color:var(--stone);margin-top:0.2rem">JPG, PNG — max 10 Mo</div></div>';
   document.getElementById('btn-photo-ia').style.display = 'none';
   document.getElementById('photo-ia-status').style.display = 'none';
   document.getElementById('f-photo').value = '';
@@ -1266,7 +1271,7 @@ function ouvrirEdition(id) {
   if (!b) return;
   modeEdition = id;
   photoFile = null;
-  document.getElementById('modal-titre').textContent = 'Modifier la bouteille';
+  document.getElementById('modal-titre').textContent = t('form_edit_title'); appliquerTraductions();
   document.getElementById('f-nom').value            = b.nom || '';
   document.getElementById('f-chateau').value        = b.chateau || '';
   document.getElementById('f-couleur').value        = b.couleur || '';
@@ -1288,7 +1293,7 @@ function ouvrirEdition(id) {
   } else {
     wrapEdit.style.padding = '0.85rem';
     wrapEdit.style.border = '2px dashed var(--stone)';
-    wrapEdit.innerHTML = '<div><div style="font-size:1.4rem;margin-bottom:0.2rem">📷</div><div style="font-size:0.8rem;color:var(--muted)">Cliquer pour choisir</div><div style="font-size:0.68rem;color:var(--stone);margin-top:0.2rem">JPG, PNG — max 10 Mo</div></div>';
+    wrapEdit.innerHTML = '<div><div style="font-size:1.4rem;margin-bottom:0.2rem">📷</div><div style="font-size:0.8rem;color:var(--muted)" data-t="form_photo_choose">Cliquer pour choisir</div><div style="font-size:0.68rem;color:var(--stone);margin-top:0.2rem">JPG, PNG — max 10 Mo</div></div>';
   }
   const msg = document.getElementById('msg-form');
   msg.className = 'msg-modal'; msg.textContent = '';
@@ -1427,11 +1432,11 @@ async function analyserPhotoIA() {
 async function sauvegarder() {
   const nom     = document.getElementById('f-nom').value.trim();
   const couleur = document.getElementById('f-couleur').value;
-  if (!nom)    return showMsgForm('Le nom du vin est obligatoire.', 'error');
-  if (!couleur) return showMsgForm('Veuillez choisir une couleur.', 'error');
+  if (!nom)    return showMsgForm(t('form_err_nom'), 'error');
+  if (!couleur) return showMsgForm(t('form_err_couleur'), 'error');
 
   const btn = document.getElementById('btn-sauvegarder');
-  btn.disabled = true; btn.textContent = 'Enregistrement…';
+  btn.disabled = true; btn.textContent = t('form_btn_saving');
 
   // Upload photo si nécessaire
   let photo_url = modeEdition
@@ -1445,7 +1450,7 @@ async function sauvegarder() {
     const { error: upErr } = await sb.storage.from('photos-etiquettes').upload(path, photoFile, { upsert: true });
     if (upErr) {
       showMsgForm('Erreur lors de l\'upload de la photo.', 'error');
-      btn.disabled = false; btn.textContent = 'Enregistrer';
+      btn.disabled = false; btn.textContent = t('form_btn_save');
       return;
     }
     const { data: urlData } = sb.storage.from('photos-etiquettes').getPublicUrl(path);
@@ -1477,7 +1482,7 @@ async function sauvegarder() {
     ({ error } = await sb.from('bouteilles').insert({ ...payload, user_id: session.user.id }));
   }
 
-  btn.disabled = false; btn.textContent = 'Enregistrer';
+  btn.disabled = false; btn.textContent = t('form_btn_save');
 
   if (error) {
     showMsgForm('Erreur : ' + error.message, 'error');
@@ -1495,7 +1500,7 @@ function showMsgForm(texte, type) {
 
 // ── SUPPRESSION ──
 async function confirmerSuppression(id, nom) {
-  if (!confirm(`Supprimer "${nom}" de votre cave ?`)) return;
+  if (!confirm(t('confirm_delete').replace('{nom}', nom))) return;
   const { error } = await sb.from('bouteilles').delete().eq('id', id);
   if (!error) await chargerBouteilles();
 }
@@ -1732,7 +1737,7 @@ async function rechercherVin() {
       }
 
       afficherSuggestions(vins);
-      status.textContent = `${vins.length} résultat${vins.length > 1 ? 's' : ''} — clique pour remplir les champs`;
+      status.textContent = `${vins.length} résultat${vins.length > 1 ? 's' : ''} — ${t('form_ia_hint').split('—')[1] || 'clique pour remplir'}`.trim();
       status.className = 'ia-status ok';
 
     } catch(err) {
@@ -1800,7 +1805,7 @@ function selectionnerVin(index) {
   cacherSuggestions();
 
   const status = document.getElementById('ia-status');
-  status.textContent = `✅ ${nbRemplis} champs remplis par Claude — tu peux les modifier librement`;
+  status.textContent = `✅ ${nbRemplis} ${t('form_ia_hint').split('—')[0] || 'champs remplis'}`.trim();
   status.className = 'ia-status ok';
 }
 
@@ -1836,6 +1841,32 @@ document.addEventListener('click', e => {
     cacherSuggestions();
   }
 });
+
+// ── APPLIQUER TRADUCTIONS ──
+function appliquerTraductions() {
+  // data-t → textContent
+  document.querySelectorAll('[data-t]').forEach(el => {
+    const key = el.getAttribute('data-t');
+    const val = t(key);
+    if (val && val !== key) el.textContent = val;
+  });
+  // data-t-ph → placeholder
+  document.querySelectorAll('[data-t-ph]').forEach(el => {
+    const key = el.getAttribute('data-t-ph');
+    const val = t(key);
+    if (val && val !== key) el.placeholder = val;
+  });
+  // Boutons toolbar
+  if(document.getElementById('btn-importer')) document.getElementById('btn-importer').textContent = t('cave_btn_import');
+  if(document.getElementById('btn-ajouter'))  document.getElementById('btn-ajouter').textContent  = t('cave_btn_add');
+  // Couleurs avec emojis
+  const emojiMap = { couleur_rouge_em:'🔴', couleur_blanc_em:'🟡', couleur_rose_em:'🌸', couleur_petillant_em:'💧', couleur_autre_em:'⬜' };
+  const keyMap = { couleur_rouge_em:'couleur_rouge', couleur_blanc_em:'couleur_blanc', couleur_rose_em:'couleur_rose', couleur_petillant_em:'couleur_petillant', couleur_autre_em:'couleur_autre' };
+  document.querySelectorAll('[data-t^="couleur_"]').forEach(el => {
+    const k = el.getAttribute('data-t');
+    if(emojiMap[k]) el.textContent = emojiMap[k] + ' ' + t(keyMap[k]);
+  });
+}
 
 function ouvrirModal(id)  { document.getElementById(id).classList.add('open'); }
 function fermerModal(id)  { document.getElementById(id).classList.remove('open'); }

@@ -739,6 +739,7 @@
           <th>Nom / Château</th>
           <th>Millésime</th>
           <th>Région</th>
+          <th>Cont.</th>
           <th>Qté</th>
           <th>Prix</th>
           <th>Maturité</th>
@@ -814,6 +815,21 @@
         <div class="form-group">
           <label>Quantité en cave</label>
           <input type="number" id="f-quantite" placeholder="6" min="0"/>
+        </div>
+        <div class="form-group">
+          <label>Contenance</label>
+          <select id="f-contenance">
+            <option value="20">20 cl (Piccolo)</option>
+            <option value="37.5">37,5 cl (Demi-bouteille)</option>
+            <option value="50">50 cl</option>
+            <option value="75" selected>75 cl (Bouteille)</option>
+            <option value="100">100 cl (Litre)</option>
+            <option value="150">150 cl (Magnum)</option>
+            <option value="200">200 cl (Double Magnum)</option>
+            <option value="300">300 cl (Jéroboam)</option>
+            <option value="450">450 cl (Réhoboam)</option>
+            <option value="600">600 cl (Mathusalem)</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Prix d'achat (CHF / €)</label>
@@ -1069,6 +1085,7 @@ function rendreCartes() {
           ${b.millesime ? `<span class="tag tag-millesime">${b.millesime}</span>` : ''}
           ${b.region    ? `<span class="tag">${b.region}</span>` : ''}
           ${b.couleur   ? `<span class="tag">${b.couleur}</span>` : ''}
+          ${b.contenance && b.contenance != 75 ? `<span class="tag">${b.contenance} cl</span>` : ''}
         </div>
         ${maturiteHTML}
         <div class="carte-footer">
@@ -1092,6 +1109,7 @@ function rendreTableau() {
       <td><strong>${b.nom || '—'}</strong>${b.chateau ? `<br><small style="color:var(--muted)">${b.chateau}</small>` : ''}</td>
       <td>${b.millesime || '—'}</td>
       <td>${b.region || '—'}</td>
+      <td>${b.contenance ? b.contenance + ' cl' : '75 cl'}</td>
       <td><strong>${b.quantite ?? 1}</strong></td>
       <td>${b.prix_achat ? b.prix_achat.toFixed(2) + ' €' : '—'}</td>
       <td>${b.annee_maturite_debut && b.annee_maturite_fin ? `${b.annee_maturite_debut}–${b.annee_maturite_fin}` : '—'}</td>
@@ -1146,6 +1164,7 @@ function voirDetail(id) {
       <div class="detail-section"><div class="detail-label">Région</div><div class="detail-value">${b.region || '—'}</div></div>
       <div class="detail-section"><div class="detail-label">Appellation</div><div class="detail-value">${b.appellation || '—'}</div></div>
       <div class="detail-section"><div class="detail-label">Quantité</div><div class="detail-value">${b.quantite ?? 1} bouteille(s)</div></div>
+      <div class="detail-section"><div class="detail-label">Contenance</div><div class="detail-value">${b.contenance ? b.contenance + ' cl' : '75 cl'}</div></div>
       <div class="detail-section"><div class="detail-label">Prix d'achat</div><div class="detail-value">${prix}</div></div>
       <div class="detail-section"><div class="detail-label">Fenêtre de maturité</div><div class="detail-value">${maturite}</div></div>
       <div class="detail-section"><div class="detail-label">Accords mets</div><div class="detail-value">${b.plats_accords || '—'}</div></div>
@@ -1172,6 +1191,7 @@ function ouvrirAjout() {
     if (el) el.value = '';
   });
   document.getElementById('f-couleur').value = '';
+  document.getElementById('f-contenance').value = '75';
   document.getElementById('ia-query').value = '';
   document.getElementById('btn-ia-clear').style.display = 'none';
   document.getElementById('ia-status').textContent = 'Tapez le nom d\'un vin pour voir les suggestions';
@@ -1200,6 +1220,7 @@ function ouvrirEdition(id) {
   document.getElementById('f-appellation').value    = b.appellation || '';
   document.getElementById('f-quantite').value       = b.quantite ?? 1;
   document.getElementById('f-prix').value           = b.prix_achat || '';
+  document.getElementById('f-contenance').value     = b.contenance || '75';
   document.getElementById('f-maturite-debut').value = b.annee_maturite_debut || '';
   document.getElementById('f-maturite-fin').value   = b.annee_maturite_fin || '';
   document.getElementById('f-plats').value          = b.plats_accords || '';
@@ -1370,6 +1391,7 @@ async function sauvegarder() {
     appellation:          document.getElementById('f-appellation').value.trim() || null,
     quantite:             parseInt(document.getElementById('f-quantite').value) || 1,
     prix_achat:           parseFloat(document.getElementById('f-prix').value) || null,
+    contenance:           parseFloat(document.getElementById('f-contenance').value) || 75,
     annee_maturite_debut: parseInt(document.getElementById('f-maturite-debut').value) || null,
     annee_maturite_fin:   parseInt(document.getElementById('f-maturite-fin').value) || null,
     plats_accords:        document.getElementById('f-plats').value.trim() || null,

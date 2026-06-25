@@ -212,13 +212,15 @@
     .panel { display: none; }
     .panel.active { display: block; }
   </style>
+  <script src="lang.js"></script>
 </head>
 <body>
+  <div style="position:fixed;top:1rem;right:1rem;z-index:100" id="lang-selector-index"></div>
   <div class="card">
     <div class="logo">
       <div class="logo-icon">🍷</div>
       <h1><span>Vinbase</span></h1>
-      <p>Ma cave à vin personnelle</p>
+      <p id="index-subtitle">Ma cave à vin personnelle</p>
     </div>
 
     <div class="tabs">
@@ -272,6 +274,35 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     const { createClient } = supabase;
     const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+    // ── LANGUE ──
+    (function() {
+      const flags = { fr: '🇫🇷', en: '🇬🇧', de: '🇩🇪' };
+      const lang = getLang();
+      const wrap = document.getElementById('lang-selector-index');
+      wrap.style.cssText = 'display:flex;gap:0.25rem';
+      ['fr','en','de'].forEach(l => {
+        const btn = document.createElement('button');
+        btn.textContent = flags[l];
+        btn.style.cssText = `background:none;border:none;cursor:pointer;font-size:1.2rem;opacity:${lang===l?1:0.4}`;
+        btn.addEventListener('click', () => setLang(l));
+        wrap.appendChild(btn);
+      });
+      // Appliquer les traductions
+      document.getElementById('index-subtitle').textContent = t('index_subtitle');
+      document.querySelectorAll('.tab-btn')[0].textContent = t('index_connexion');
+      document.querySelectorAll('.tab-btn')[1].textContent = t('index_inscription');
+      document.querySelector('label[for="login-email"]').textContent = t('index_email');
+      document.querySelector('label[for="login-pwd"]').textContent   = t('index_pwd');
+      document.querySelector('label[for="reg-nom"]').textContent     = t('index_prenom');
+      document.querySelector('label[for="reg-email"]').textContent   = t('index_email');
+      document.querySelector('label[for="reg-pwd"]').textContent     = t('index_pwd');
+      document.getElementById('login-email').placeholder = 'vous@exemple.com';
+      document.getElementById('login-pwd').placeholder   = '••••••••';
+      document.getElementById('reg-pwd').placeholder     = t('index_pwd_min');
+      document.querySelector('#panel-connexion .btn-primary').textContent  = t('index_btn_login');
+      document.querySelector('#panel-inscription .btn-primary').textContent = t('index_btn_register');
+    })();
+
     // Redirect si déjà connecté uniquement sur les vrais événements de connexion
     let dejaRedirige = false;
     sb.auth.onAuthStateChange((event, session) => {
@@ -301,15 +332,15 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     async function seConnecter() {
       const email = document.getElementById('login-email').value.trim();
       const pwd   = document.getElementById('login-pwd').value;
-      if (!email || !pwd) return showMsg('msg-connexion', 'Merci de remplir tous les champs.', 'error');
+      if (!email || !pwd) return showMsg('msg-connexion', t('index_err_fields'), 'error');
 
       const btn = document.querySelector('#panel-connexion .btn-primary');
-      btn.disabled = true; btn.textContent = 'Connexion…';
+      btn.disabled = true; btn.textContent = t('index_connexion_loading');
 
       const { error } = await sb.auth.signInWithPassword({ email, password: pwd });
       if (error) {
-        showMsg('msg-connexion', 'Email ou mot de passe incorrect.', 'error');
-        btn.disabled = false; btn.textContent = 'Accéder à Vinbase';
+        showMsg('msg-connexion', t('index_err_login'), 'error');
+        btn.disabled = false; btn.textContent = t('index_btn_login');
       } else {
         window.location.href = 'cave.html';
       }
@@ -319,11 +350,11 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
       const nom   = document.getElementById('reg-nom').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const pwd   = document.getElementById('reg-pwd').value;
-      if (!nom || !email || !pwd) return showMsg('msg-inscription', 'Merci de remplir tous les champs.', 'error');
-      if (pwd.length < 8) return showMsg('msg-inscription', 'Le mot de passe doit faire au moins 8 caractères.', 'error');
+      if (!nom || !email || !pwd) return showMsg('msg-inscription', t('index_err_fields'), 'error');
+      if (pwd.length < 8) return showMsg('msg-inscription', t('index_err_pwd'), 'error');
 
       const btn = document.querySelector('#panel-inscription .btn-primary');
-      btn.disabled = true; btn.textContent = 'Création…';
+      btn.disabled = true; btn.textContent = t('index_creation');
 
       const { error } = await sb.auth.signUp({
         email, password: pwd,
@@ -332,10 +363,10 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
 
       if (error) {
         showMsg('msg-inscription', error.message, 'error');
-        btn.disabled = false; btn.textContent = 'Créer mon compte';
+        btn.disabled = false; btn.textContent = t('index_btn_register');
       } else {
-        showMsg('msg-inscription', '✅ Compte créé ! Vérifiez votre e-mail pour confirmer votre inscription.', 'success');
-        btn.disabled = false; btn.textContent = 'Créer mon compte';
+        showMsg('msg-inscription', t('index_ok_register'), 'success');
+        btn.disabled = false; btn.textContent = t('index_btn_register');
       }
     }
 

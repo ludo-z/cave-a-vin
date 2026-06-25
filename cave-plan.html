@@ -336,6 +336,7 @@
       .casier-label-col { width: 36px; }
     }
   </style>
+  <script src="lang.js"></script>
 </head>
 <body>
 
@@ -344,13 +345,14 @@
 <header>
   <div class="header-logo"><span>Vinbase</span></div>
   <nav>
-    <a class="nav-btn" href="cave.html">🍾 Mes vins</a>
-    <a class="nav-btn active" href="cave-plan.html">🗺️ Plan de cave</a>
-    <a class="nav-btn" href="dashboard.html">📊 Tableau de bord</a>
+    <a class="nav-btn" href="cave.html" id="nav-mes-vins">🍾 Mes vins</a>
+    <a class="nav-btn active" href="cave-plan.html" id="nav-plan">🗺️ Plan de cave</a>
+    <a class="nav-btn" href="dashboard.html" id="nav-dashboard">📊 Tableau de bord</a>
   </nav>
   <div class="header-right">
+    <div id="lang-selector"></div>
     <span id="user-prenom"></span>
-    <button class="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
+    <button class="btn-deconnexion" id="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
   </div>
 </header>
 
@@ -480,6 +482,15 @@ sb.auth.onAuthStateChange(async (event, session) => {
     appInitialise = true;
     const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
     document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+    // ── Langue ──
+    document.getElementById('lang-selector').appendChild(injecterSelecteurLang());
+    document.getElementById('btn-deconnexion').textContent = t('nav_deconnexion');
+    if(document.getElementById('nav-mes-vins'))  document.getElementById('nav-mes-vins').textContent  = t('nav_mes_vins');
+    if(document.getElementById('nav-plan'))      document.getElementById('nav-plan').textContent      = t('nav_plan_cave');
+    if(document.getElementById('nav-dashboard')) document.getElementById('nav-dashboard').textContent = t('nav_dashboard');
+    // Titres et boutons statiques
+    document.querySelector('.page-title').textContent = t('plan_title');
+    document.querySelector('.btn-primary').textContent = t('plan_add_meuble');
     await chargerTout();
     document.getElementById('loading').style.display = 'none';
   } else if (event === 'SIGNED_OUT') {

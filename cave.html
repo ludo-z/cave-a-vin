@@ -670,9 +670,9 @@
 <header>
   <div class="header-logo"><span>Vinbase</span></div>
   <nav>
-    <a class="nav-btn active" href="cave.html"></a>
-    <a class="nav-btn" href="cave-plan.html">🗺️ Plan de cave</a>
-    <a class="nav-btn" href="dashboard.html">📊 Tableau de bord</a>
+    <a class="nav-btn active" href="cave.html" id="nav-mes-vins">🍾 Mes vins</a>
+    <a class="nav-btn" href="cave-plan.html" id="nav-plan">🗺️ Plan de cave</a>
+    <a class="nav-btn" href="dashboard.html" id="nav-dashboard">📊 Tableau de bord</a>
   </nav>
   <div class="header-right">
     <div id="lang-selector"></div>
@@ -799,11 +799,11 @@
             <div style="display:flex;flex-direction:column;gap:0.5rem">
               <button type="button" class="btn-ia" style="padding:0.6rem 0.9rem;font-size:0.75rem;white-space:nowrap"
                 onclick="document.getElementById('f-photo-camera').click()" title="Prendre une photo">
-                📸 Appareil photo
+                <span data-t="form_photo_camera">📸 Appareil photo</span>
               </button>
               <button type="button" class="btn-ia" style="padding:0.6rem 0.9rem;font-size:0.75rem;white-space:nowrap;background:var(--muted)"
                 onclick="document.getElementById('f-photo').click()" title="Choisir depuis la galerie">
-                🖼️ Galerie
+                <span data-t="form_photo_gallery">🖼️ Galerie</span>
               </button>
             </div>
           </div>

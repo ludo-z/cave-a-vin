@@ -521,6 +521,7 @@ function rendreInterface() {
   }
   container.innerHTML = '';
   meubles.forEach(m => container.appendChild(rendreMeuble(m)));
+  appliquerTraductionsPlan();
 }
 
 function rendreMeuble(m) {
@@ -536,16 +537,16 @@ function rendreMeuble(m) {
     <div class="meuble-header">
       <div>
         <div class="meuble-titre">${m.nom}</div>
-        <div class="meuble-info">${m.colonnes} col. × ${m.rangees} rng. — ${capacite} emplacements</div>
+        <div class="meuble-info">${m.colonnes} ${t('plan_col')} × ${m.rangees} ${t('plan_rng')} — ${capacite} ${t('plan_emplacements')}</div>
       </div>
       <div class="meuble-actions">
-        <button class="btn-secondary" style="font-size:0.72rem;padding:0.4rem 0.8rem" onclick="ouvrirModalMeuble('${m.id}')">✏️ Modifier</button>
+        <button class="btn-secondary" style="font-size:0.72rem;padding:0.4rem 0.8rem" onclick="ouvrirModalMeuble('${m.id}')">${t('plan_btn_modify').replace('✏️ ','✏️ ')}</button>
         <button class="btn-danger" onclick="supprimerMeuble('${m.id}', '${m.nom.replace(/'/g,"\\'")}')">🗑</button>
       </div>
     </div>
     <div class="meuble-body" id="body-${m.id}"></div>
     <div class="meuble-stats">
-      <div class="meuble-stat">Occupé : <strong>${occupees}</strong> / ${capacite}</div>
+      <div class="meuble-stat">${t('plan_occupe')} <strong>${occupees}</strong> / ${capacite}</div>
       <div class="meuble-stat">${t('plan_libre')} <strong>${capacite - occupees}</strong></div>
       <div class="meuble-stat">${t('plan_taux')} <strong>${Math.round((occupees/capacite)*100)}%</strong></div>
     </div>`;

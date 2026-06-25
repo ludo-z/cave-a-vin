@@ -464,39 +464,39 @@ sb.auth.onAuthStateChange(async (event, session) => {
       return;
     }
     appInitialise = true;
-  const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
-  document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
-  document.getElementById('date-maj').textContent = `${t('dash_updated')} ${fmt(new Date())}`;
-  // ── Langue ──
-  document.getElementById('lang-selector').appendChild(injecterSelecteurLang());
-  appliquerTraductionsDash();
-  document.getElementById('btn-deconnexion').textContent = t('nav_deconnexion');
-  if(document.getElementById('nav-mes-vins'))  document.getElementById('nav-mes-vins').textContent  = t('nav_mes_vins');
-  if(document.getElementById('nav-plan'))      document.getElementById('nav-plan').textContent      = t('nav_plan_cave');
-  if(document.getElementById('nav-dashboard')) document.getElementById('nav-dashboard').textContent = t('nav_dashboard');
+    const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
+    document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+    document.getElementById('date-maj').textContent = `${t('dash_updated')} ${fmt(new Date())}`;
+    // ── Langue ──
+    document.getElementById('lang-selector').appendChild(injecterSelecteurLang());
+    appliquerTraductionsDash();
+    document.getElementById('btn-deconnexion').textContent = t('nav_deconnexion');
+    if(document.getElementById('nav-mes-vins'))  document.getElementById('nav-mes-vins').textContent  = t('nav_mes_vins');
+    if(document.getElementById('nav-plan'))      document.getElementById('nav-plan').textContent      = t('nav_plan_cave');
+    if(document.getElementById('nav-dashboard')) document.getElementById('nav-dashboard').textContent = t('nav_dashboard');
 
-  const { data, error } = await sb.from('bouteilles').select('*').order('created_at', { ascending: false });
-  if (error) { console.error(error); return; }
+    const { data, error } = await sb.from('bouteilles').select('*').order('created_at', { ascending: false });
+    if (error) { console.error(error); return; }
 
-  const bouteilles = data || [];
-  document.getElementById('loading').style.display = 'none';
+    const bouteilles = data || [];
+    document.getElementById('loading').style.display = 'none';
 
-  if (bouteilles.length === 0) {
-    document.querySelector('.dashboard-grid').innerHTML =
-      `<div class="card col-12"><div class="empty"><div class="icon">🍾</div><p>${t('dash_cave_vide')} <a href="cave.html" style="color:var(--bordeaux)">${t('dash_ajouter_lien')}</a> !</p></div></div>`;
-    return;
-  }
+    if (bouteilles.length === 0) {
+      document.querySelector('.dashboard-grid').innerHTML =
+        `<div class="card col-12"><div class="empty"><div class="icon">🍾</div><p>${t('dash_cave_vide')} <a href="cave.html" style="color:var(--bordeaux)">${t('dash_ajouter_lien')}</a> !</p></div></div>`;
+      return;
+    }
 
-  renderValeur(bouteilles);
-  renderCouleurs(bouteilles);
-  renderPhases(bouteilles);
-  renderValeurCouleur(bouteilles);
-  renderRegions(bouteilles);
-  renderTimeline(bouteilles);
-  renderMaturite(bouteilles);
-  renderBientot(bouteilles);
-  renderDepasse(bouteilles);
-  renderEntrees(bouteilles);
+    renderValeur(bouteilles);
+    renderCouleurs(bouteilles);
+    renderPhases(bouteilles);
+    renderValeurCouleur(bouteilles);
+    renderRegions(bouteilles);
+    renderTimeline(bouteilles);
+    renderMaturite(bouteilles);
+    renderBientot(bouteilles);
+    renderDepasse(bouteilles);
+    renderEntrees(bouteilles);
   } else if (event === 'SIGNED_OUT') {
     window.location.href = 'index.html';
   }

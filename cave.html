@@ -714,7 +714,6 @@
 
     /* Menu mobile overlay */
     .mobile-nav {
-      display: none;
       position: fixed;
       top: 64px;
       left: 0; right: 0;
@@ -723,8 +722,9 @@
       padding: 0.5rem 0;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       border-top: 1px solid rgba(201,168,76,0.2);
+      display: none;
     }
-    .mobile-nav.open { display: block; }
+    .mobile-nav.open { display: block !important; }
     .mobile-nav a, .mobile-nav .mobile-nav-deconnexion {
       display: flex;
       align-items: center;
@@ -781,6 +781,7 @@
     @media (min-width: 769px) {
       .hamburger { display: none !important; }
       .mobile-nav { display: none !important; }
+      .mobile-nav.open { display: none !important; }
     }
 
   </style>

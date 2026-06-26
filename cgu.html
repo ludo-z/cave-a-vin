@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Conditions générales — Vinbase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux:   #6B1A2A;
+      --bordeaux-dk:#4A1020;
+      --gold:       #C9A84C;
+      --cream:      #F7F3ED;
+      --stone:      #E8E0D5;
+      --ink:        #1C1410;
+      --muted:      #7A6E66;
+      --bg:         #F2EDE6;
+      --white:      #FFFFFF;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--bordeaux-dk);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .header-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300;
+      color: var(--cream); letter-spacing: 0.05em; text-decoration: none;
+    }
+    .header-logo span { color: var(--gold); font-style: italic; }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .btn-back {
+      background: none; border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold); padding: 0.4rem 1rem;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; border-radius: 1px; transition: all 0.2s;
+      text-decoration: none; display: inline-flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-back:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── CONTENU ── */
+    main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+
+    .page-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--bordeaux); margin-bottom: 1rem;
+    }
+    .page-badge::before { content: ''; display: block; width: 24px; height: 1px; background: var(--bordeaux); }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 300; color: var(--ink);
+      line-height: 1.15; margin-bottom: 0.5rem;
+    }
+    .date-maj {
+      font-size: 0.78rem; color: var(--muted); margin-bottom: 3rem;
+    }
+
+    .cgu-card {
+      background: var(--white); border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden; margin-bottom: 1.5rem;
+    }
+    .cgu-section-header {
+      padding: 1.25rem 1.75rem;
+      background: linear-gradient(135deg, rgba(107,26,42,0.03), rgba(201,168,76,0.04));
+      border-bottom: 1px solid var(--stone);
+      display: flex; align-items: center; gap: 0.75rem;
+      cursor: pointer; user-select: none;
+    }
+    .cgu-section-header:hover { background: rgba(107,26,42,0.04); }
+    .cgu-num {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 600; color: var(--bordeaux);
+      min-width: 2rem;
+    }
+    .cgu-section-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.15rem; font-weight: 400; color: var(--ink); flex: 1;
+    }
+    .cgu-toggle {
+      color: var(--muted); font-size: 0.8rem; transition: transform 0.2s;
+    }
+    .cgu-toggle.open { transform: rotate(180deg); }
+    .cgu-body {
+      padding: 1.5rem 1.75rem;
+      font-size: 0.88rem; line-height: 1.75; color: #3a3228;
+      display: none;
+    }
+    .cgu-body.open { display: block; }
+    .cgu-body p { margin-bottom: 0.85rem; }
+    .cgu-body p:last-child { margin-bottom: 0; }
+    .cgu-body ul { margin: 0.5rem 0 0.85rem 1.25rem; }
+    .cgu-body li { margin-bottom: 0.35rem; }
+    .cgu-body strong { color: var(--ink); font-weight: 600; }
+    .cgu-body a { color: var(--bordeaux); }
+    .placeholder {
+      display: inline-block;
+      background: rgba(201,168,76,0.15);
+      color: var(--bordeaux);
+      border: 1px dashed var(--gold);
+      border-radius: 2px;
+      padding: 0 0.4rem;
+      font-size: 0.82rem;
+      font-style: italic;
+    }
+
+    .cgu-footer {
+      background: var(--white); border-radius: 2px;
+      padding: 1.5rem 1.75rem;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      text-align: center;
+      font-size: 0.82rem; color: var(--muted); line-height: 1.6;
+    }
+    .cgu-footer a { color: var(--bordeaux); }
+
+    @media (max-width: 600px) {
+      main { padding: 1.5rem 1rem; }
+      h1 { font-size: 1.8rem; }
+      .cgu-section-header { padding: 1rem 1.25rem; }
+      .cgu-body { padding: 1.25rem; }
+    }
+  </style>
+  <script src="lang.js"></script>
+</head>
+<body>
+
+<header>
+  <a href="cave.html" class="header-logo"><span>Vinbase</span></a>
+  <div class="header-right">
+    <a href="cave.html" class="btn-back">← Retour</a>
+  </div>
+</header>
+
+<main>
+  <div class="page-badge">Légal</div>
+  <h1>Conditions générales d'utilisation</h1>
+  <div class="date-maj">Dernière mise à jour : juin 2026</div>
+
+  <!-- Section 1 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">1</div>
+      <div class="cgu-section-title">Présentation du service</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body open">
+      <p><strong>Vinbase</strong> est une application web de gestion de cave à vin personnelle, accessible à l'adresse <a href="#">vinbase.app</a>. Elle permet à ses utilisateurs de gérer leur inventaire de vins, d'organiser leur cave et de suivre la maturité de leurs bouteilles.</p>
+      <p>Responsable du traitement : <strong>Vinbase</strong>, exploité depuis la Suisse.</p>
+      <p>Contact : <a href="mailto:contact@vinbase.ch">contact@vinbase.ch</a></p>
+    </div>
+  </div>
+
+  <!-- Section 2 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">2</div>
+      <div class="cgu-section-title">Acceptation des conditions</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body">
+      <p>L'utilisation de Vinbase implique l'acceptation pleine et entière des présentes conditions générales d'utilisation (CGU). Si vous n'acceptez pas ces conditions, vous devez cesser d'utiliser le service.</p>
+      <p>Ces CGU peuvent être modifiées à tout moment. Les utilisateurs seront informés de toute modification importante. L'utilisation continue du service après notification vaut acceptation des nouvelles conditions.</p>
+    </div>
+  </div>
+
+  <!-- Section 3 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">3</div>
+      <div class="cgu-section-title">Inscription et compte utilisateur</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body">
+      <p>L'accès à Vinbase nécessite la création d'un compte personnel. L'utilisateur s'engage à :</p>
+      <ul>
+        <li>Fournir des informations exactes et à les maintenir à jour</li>
+        <li>Conserver la confidentialité de son mot de passe</li>
+        <li>Ne pas partager ses identifiants avec des tiers</li>
+        <li>Informer immédiatement l'éditeur en cas d'utilisation non autorisée de son compte</li>
+      </ul>
+      <p>L'éditeur se réserve le droit de suspendre ou supprimer tout compte en cas de violation des présentes CGU.</p>
+    </div>
+  </div>
+
+  <!-- Section 4 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">4</div>
+      <div class="cgu-section-title">Protection des données personnelles (LPD)</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body">
+      <p>Conformément à la <strong>Loi fédérale suisse sur la protection des données (LPD, RS 235.1)</strong> et au <strong>Règlement général européen sur la protection des données (RGPD)</strong>, l'éditeur s'engage à protéger vos données personnelles.</p>
+      <p><strong>Données collectées :</strong></p>
+      <ul>
+        <li>Adresse e-mail et prénom (inscription)</li>
+        <li>Données de votre cave (vins, bouteilles, notes)</li>
+        <li>Photos d'étiquettes uploadées</li>
+        <li>Données de navigation anonymisées</li>
+      </ul>
+      <p><strong>Finalités du traitement :</strong> gestion de votre compte, fourniture du service, amélioration de l'application.</p>
+      <p><strong>Conservation :</strong> les données sont conservées aussi longtemps que votre compte est actif. Elles sont supprimées dans les 30 jours suivant la clôture du compte.</p>
+      <p><strong>Vos droits :</strong> vous disposez d'un droit d'accès, de rectification, de suppression et de portabilité de vos données. Pour exercer ces droits, contactez-nous à <a href="mailto:contact@vinbase.ch">contact@vinbase.ch</a>.</p>
+      <p>Les données sont hébergées par <strong>Supabase Inc.</strong> (USA) avec des garanties de sécurité conformes aux standards internationaux (chiffrement AES-256, transferts sécurisés).</p>
+    </div>
+  </div>
+
+  <!-- Section 5 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">5</div>
+      <div class="cgu-section-title">Utilisation de l'intelligence artificielle</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body">
+      <p>Vinbase intègre des fonctionnalités d'intelligence artificielle (Claude, Anthropic) pour la recherche et l'identification de vins. Lorsque vous utilisez ces fonctionnalités :</p>
+      <ul>
+        <li>Les requêtes de recherche (texte ou photos d'étiquettes) sont transmises à Anthropic</li>
+        <li>Anthropic traite ces données selon sa propre politique de confidentialité</li>
+        <li>Aucune donnée personnelle identifiable n'est transmise sans votre action explicite</li>
+        <li>Les photos d'étiquettes sont utilisées uniquement pour l'identification du vin</li>
+      </ul>
+      <p>Ces fonctionnalités sont optionnelles. Vous pouvez saisir les informations manuellement sans y recourir.</p>
+    </div>
+  </div>
+
+  <!-- Section 6 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">6</div>
+      <div class="cgu-section-title">Propriété intellectuelle</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body">
+      <p>L'ensemble des éléments constituant Vinbase (logo, interface, code, design) est protégé par les lois sur la propriété intellectuelle. Toute reproduction, modification ou distribution sans autorisation préalable est interdite.</p>
+      <p>Les données saisies par l'utilisateur (vins, notes, photos) restent sa propriété exclusive. L'éditeur ne revendique aucun droit sur ces contenus.</p>
+    </div>
+  </div>
+
+  <!-- Section 7 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">7</div>
+      <div class="cgu-section-title">Disponibilité et responsabilité</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body">
+      <p>L'éditeur s'efforce de maintenir le service disponible 24h/24, 7j/7, mais ne peut garantir une disponibilité sans interruption. Des maintenances peuvent être effectuées sans préavis.</p>
+      <p>L'éditeur ne saurait être tenu responsable :</p>
+      <ul>
+        <li>Des pertes de données liées à une défaillance technique</li>
+        <li>Des dommages indirects liés à l'utilisation du service</li>
+        <li>De l'exactitude des informations fournies par l'IA</li>
+      </ul>
+      <p>Il est recommandé à l'utilisateur d'effectuer régulièrement des sauvegardes de ses données via la fonction d'export.</p>
+    </div>
+  </div>
+
+  <!-- Section 8 -->
+  <div class="cgu-card">
+    <div class="cgu-section-header" onclick="toggleSection(this)">
+      <div class="cgu-num">8</div>
+      <div class="cgu-section-title">Droit applicable et for juridique</div>
+      <div class="cgu-toggle">▼</div>
+    </div>
+    <div class="cgu-body">
+      <p>Les présentes CGU sont soumises au <strong>droit suisse</strong>. Tout litige relatif à l'interprétation ou à l'exécution des présentes sera soumis aux tribunaux compétents du canton de Fribourg, sous réserve de dispositions légales contraires.</p>
+      <p>Pour tout différend, une solution amiable sera recherchée en priorité via notre formulaire de contact.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="cgu-footer">
+    Des questions sur ces conditions ? <a href="contact.html">Contactez-nous</a>.<br>
+    <span style="color:var(--stone)">—</span><br>
+    <span style="font-size:0.75rem">© 2026 Vinbase · Tous droits réservés</span>
+  </div>
+</main>
+
+<script>
+function toggleSection(header) {
+  const body   = header.nextElementSibling;
+  const toggle = header.querySelector('.cgu-toggle');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  toggle.classList.toggle('open', !isOpen);
+}
+</script>
+</body>
+</html>

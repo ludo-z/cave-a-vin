@@ -490,6 +490,7 @@
     <a class="nav-btn" href="cave.html" id="nav-mes-vins">🍾 Mes vins</a>
     <a class="nav-btn active" href="cave-plan.html" id="nav-plan">🗺️ Plan de cave</a>
     <a class="nav-btn" href="dashboard.html" id="nav-dashboard">📊 Tableau de bord</a>
+    <a class="nav-btn" href="contact.html" id="nav-contact">✉️ Contact</a>
   </nav>
   <div class="header-right">
     <div id="lang-selector"></div>
@@ -1000,6 +1001,7 @@ document.querySelectorAll('.overlay').forEach(o => {
     <a href="cave.html" id="mobile-nav-mes-vins">🍾 Mes vins</a>
     <a href="cave-plan.html" id="mobile-nav-plan" class="active">🗺️ Plan de cave</a>
     <a href="dashboard.html" id="mobile-nav-dashboard">📊 Tableau de bord</a>
+    <a href="contact.html" id="mobile-nav-contact">✉️ Contact</a>
     <div class="mobile-nav-separator"></div>
     <div class="mobile-nav-lang" id="mobile-lang-selector"></div>
     <div class="mobile-nav-separator"></div>
@@ -1054,10 +1056,12 @@ document.addEventListener('DOMContentLoaded', function() {
     var mesVins = document.getElementById('mobile-nav-mes-vins');
     var plan    = document.getElementById('mobile-nav-plan');
     var dash    = document.getElementById('mobile-nav-dashboard');
+    var contact = document.getElementById('mobile-nav-contact');
     var deconn  = document.getElementById('mobile-btn-deconnexion');
     if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
     if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
     if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
+    if (contact) contact.textContent = '✉️ Contact';
     if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
   };
 });

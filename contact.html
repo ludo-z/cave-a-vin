@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact — Vinbase</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux:   #6B1A2A;
+      --bordeaux-dk:#4A1020;
+      --gold:       #C9A84C;
+      --cream:      #F7F3ED;
+      --stone:      #E8E0D5;
+      --ink:        #1C1410;
+      --muted:      #7A6E66;
+      --bg:         #F2EDE6;
+      --white:      #FFFFFF;
+      --vert:       #52b788;
+      --error:      #B94040;
+    }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--bordeaux-dk);
+      padding: 0 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 64px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .header-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300;
+      color: var(--cream); letter-spacing: 0.05em; text-decoration: none;
+    }
+    .header-logo span { color: var(--gold); font-style: italic; }
+    .btn-back {
+      background: none; border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold); padding: 0.4rem 1rem;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; border-radius: 1px; transition: all 0.2s;
+      text-decoration: none;
+    }
+    .btn-back:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── CONTENU ── */
+    main { max-width: 860px; margin: 0 auto; padding: 3rem 2rem; }
+
+    .page-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--bordeaux); margin-bottom: 1rem;
+    }
+    .page-badge::before { content: ''; display: block; width: 24px; height: 1px; background: var(--bordeaux); }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2.5rem; font-weight: 300; color: var(--ink);
+      line-height: 1.15; margin-bottom: 0.5rem;
+    }
+    .subtitle { font-size: 0.88rem; color: var(--muted); margin-bottom: 3rem; line-height: 1.6; }
+
+    /* ── LAYOUT ── */
+    .contact-grid {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 2rem;
+      align-items: start;
+    }
+
+    /* ── FORMULAIRE ── */
+    .form-card {
+      background: var(--white);
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      padding: 2rem;
+    }
+    .form-card h2 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem; font-weight: 400; color: var(--ink);
+      margin-bottom: 1.5rem;
+      padding-bottom: 0.75rem;
+      border-bottom: 1px solid var(--stone);
+    }
+
+    .form-group { margin-bottom: 1.25rem; }
+    .form-group label {
+      display: block; font-size: 0.7rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 0.4rem;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%; padding: 0.75rem 1rem;
+      border: 1px solid var(--stone); border-radius: 1px;
+      background: white; font-family: 'Inter', sans-serif;
+      font-size: 0.9rem; color: var(--ink); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--bordeaux);
+      box-shadow: 0 0 0 3px rgba(107,26,42,0.06);
+    }
+    .form-group textarea { resize: vertical; min-height: 140px; line-height: 1.6; }
+
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .btn-submit {
+      width: 100%; padding: 0.9rem;
+      background: var(--bordeaux); color: white;
+      border: none; border-radius: 1px;
+      font-family: 'Inter', sans-serif; font-size: 0.8rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s;
+      margin-top: 0.5rem;
+    }
+    .btn-submit:hover { background: var(--bordeaux-dk); }
+    .btn-submit:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .msg {
+      padding: 0.85rem 1rem; border-radius: 1px;
+      font-size: 0.85rem; margin-top: 1rem; display: none;
+      line-height: 1.5;
+    }
+    .msg.error   { background: #fdf0f0; color: var(--error); border-left: 3px solid var(--error); display: block; }
+    .msg.success { background: #f0fdf4; color: #2d6a4f;    border-left: 3px solid var(--vert);  display: block; }
+
+    /* ── INFOS CONTACT ── */
+    .info-card {
+      background: var(--white);
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      overflow: hidden;
+    }
+    .info-card-header {
+      background: var(--bordeaux-dk);
+      padding: 1.5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .info-card-header::before {
+      content: '🍷';
+      position: absolute; right: 1.5rem; top: 50%;
+      transform: translateY(-50%);
+      font-size: 3rem; opacity: 0.15;
+    }
+    .info-card-header h3 {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.2rem; font-weight: 300;
+      color: var(--cream); margin-bottom: 0.25rem;
+    }
+    .info-card-header p { font-size: 0.75rem; color: rgba(247,243,237,0.5); }
+
+    .info-item {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--stone);
+      display: flex; align-items: flex-start; gap: 0.85rem;
+    }
+    .info-item:last-child { border-bottom: none; }
+    .info-icon {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(107,26,42,0.06);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; flex-shrink: 0; margin-top: 0.1rem;
+    }
+    .info-label {
+      font-size: 0.68rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted);
+      margin-bottom: 0.2rem;
+    }
+    .info-value { font-size: 0.88rem; color: var(--ink); }
+    .info-value a { color: var(--bordeaux); text-decoration: none; }
+    .info-value a:hover { text-decoration: underline; }
+
+    /* Sujet boutons radio stylisés */
+    .sujet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .sujet-btn {
+      display: flex; align-items: center; gap: 0.5rem;
+      padding: 0.6rem 0.85rem;
+      border: 1px solid var(--stone); border-radius: 1px;
+      cursor: pointer; transition: all 0.15s;
+      font-size: 0.82rem; color: var(--muted);
+      background: white;
+    }
+    .sujet-btn:hover { border-color: var(--bordeaux); color: var(--ink); }
+    .sujet-btn.selected {
+      border-color: var(--bordeaux);
+      background: rgba(107,26,42,0.05);
+      color: var(--bordeaux);
+      font-weight: 500;
+    }
+    .sujet-btn input[type="radio"] { display: none; }
+
+    /* Note RGPD */
+    .rgpd-note {
+      font-size: 0.72rem; color: var(--muted);
+      margin-top: 0.75rem; line-height: 1.5;
+    }
+    .rgpd-note a { color: var(--bordeaux); }
+
+    @media (max-width: 768px) {
+      .contact-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      main { padding: 1.5rem 1rem; }
+      h1 { font-size: 1.8rem; }
+    }
+  </style>
+  <script src="lang.js"></script>
+</head>
+<body>
+
+<header>
+  <a href="cave.html" class="header-logo"><span>Vinbase</span></a>
+  <div>
+    <a href="cave.html" class="btn-back">← Retour</a>
+  </div>
+</header>
+
+<main>
+  <div class="page-badge">Support</div>
+  <h1>Nous contacter</h1>
+  <p class="subtitle">Une question, une suggestion ou un problème ? Nous vous répondrons dans les plus brefs délais.</p>
+
+  <div class="contact-grid">
+
+    <!-- Formulaire -->
+    <div class="form-card">
+      <h2>Envoyer un message</h2>
+
+      <!-- Sujet -->
+      <div class="form-group">
+        <label>Sujet</label>
+        <div class="sujet-grid">
+          <label class="sujet-btn" id="sujet-question">
+            <input type="radio" name="sujet" value="question" onchange="selectSujet(this)"/>
+            💬 Question
+          </label>
+          <label class="sujet-btn" id="sujet-bug">
+            <input type="radio" name="sujet" value="bug" onchange="selectSujet(this)"/>
+            🐛 Signaler un bug
+          </label>
+          <label class="sujet-btn" id="sujet-suggestion">
+            <input type="radio" name="sujet" value="suggestion" onchange="selectSujet(this)"/>
+            💡 Suggestion
+          </label>
+          <label class="sujet-btn" id="sujet-autre">
+            <input type="radio" name="sujet" value="autre" onchange="selectSujet(this)"/>
+            📌 Autre
+          </label>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label for="c-prenom">Prénom *</label>
+          <input type="text" id="c-prenom" placeholder="Jean-Pierre"/>
+        </div>
+        <div class="form-group">
+          <label for="c-nom">Nom *</label>
+          <input type="text" id="c-nom" placeholder="Dupont"/>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="c-email">Adresse e-mail *</label>
+        <input type="email" id="c-email" placeholder="vous@exemple.com"/>
+      </div>
+
+      <div class="form-group">
+        <label for="c-message">Message *</label>
+        <textarea id="c-message" placeholder="Décrivez votre demande en détail…"></textarea>
+      </div>
+
+      <button class="btn-submit" id="btn-envoyer" onclick="envoyerMessage()">
+        Envoyer le message
+      </button>
+
+      <div class="rgpd-note">
+        En soumettant ce formulaire, vous acceptez que vos données soient utilisées pour traiter votre demande, conformément à notre <a href="cgu.html">politique de confidentialité</a>.
+      </div>
+
+      <div id="contact-msg" class="msg"></div>
+    </div>
+
+    <!-- Infos contact -->
+    <div>
+      <div class="info-card">
+        <div class="info-card-header">
+          <h3>Vinbase</h3>
+          <p>Gestion de cave à vin</p>
+        </div>
+
+        <div class="info-item">
+          <div class="info-icon">📧</div>
+          <div>
+            <div class="info-label">Email</div>
+            <div class="info-value">
+              <a href="mailto:contact@vinbase.app">contact@vinbase.app</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-icon">⏱️</div>
+          <div>
+            <div class="info-label">Délai de réponse</div>
+            <div class="info-value">Sous 48 heures ouvrables</div>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-icon">🌍</div>
+          <div>
+            <div class="info-label">Langues</div>
+            <div class="info-value">Français · English · Deutsch</div>
+          </div>
+        </div>
+
+        <div class="info-item">
+          <div class="info-icon">📋</div>
+          <div>
+            <div class="info-label">Légal</div>
+            <div class="info-value"><a href="cgu.html">Conditions générales d'utilisation</a></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note aide rapide -->
+      <div style="background:rgba(201,168,76,0.08);border:1px solid rgba(201,168,76,0.3);border-radius:2px;padding:1.25rem;margin-top:1rem">
+        <div style="font-size:0.72rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--bordeaux);margin-bottom:0.5rem">💡 Aide rapide</div>
+        <div style="font-size:0.82rem;color:var(--muted);line-height:1.6">
+          Avant de nous contacter, consultez nos ressources :<br>
+          — Vérifiez que vous êtes bien connecté(e)<br>
+          — Essayez de recharger la page<br>
+          — Videz le cache de votre navigateur
+        </div>
+      </div>
+    </div>
+
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let sujetSelectionne = '';
+
+function selectSujet(input) {
+  sujetSelectionne = input.value;
+  document.querySelectorAll('.sujet-btn').forEach(btn => btn.classList.remove('selected'));
+  input.closest('.sujet-btn').classList.add('selected');
+}
+
+async function envoyerMessage() {
+  const prenom  = document.getElementById('c-prenom').value.trim();
+  const nom     = document.getElementById('c-nom').value.trim();
+  const email   = document.getElementById('c-email').value.trim();
+  const message = document.getElementById('c-message').value.trim();
+  const msgEl   = document.getElementById('contact-msg');
+
+  msgEl.className = 'msg';
+  msgEl.style.display = 'none';
+
+  if (!prenom || !nom || !email || !message) {
+    msgEl.textContent = 'Merci de remplir tous les champs obligatoires (*).';
+    msgEl.className = 'msg error';
+    return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    msgEl.textContent = 'Adresse e-mail invalide.';
+    msgEl.className = 'msg error';
+    return;
+  }
+
+  const btn = document.getElementById('btn-envoyer');
+  btn.disabled = true;
+  btn.textContent = 'Envoi en cours…';
+
+  try {
+    // Envoi via Supabase Edge Function ou table contact
+    // Option simple : insérer dans une table Supabase "contacts"
+    const { error } = await sb.from('contacts').insert({
+      prenom,
+      nom,
+      email,
+      sujet: sujetSelectionne || 'non précisé',
+      message,
+      created_at: new Date().toISOString()
+    });
+
+    if (error) throw error;
+
+    msgEl.textContent = '✅ Message envoyé avec succès ! Nous vous répondrons dans les 48 heures.';
+    msgEl.className = 'msg success';
+
+    // Réinitialiser le formulaire
+    ['c-prenom','c-nom','c-email','c-message'].forEach(id => document.getElementById(id).value = '');
+    document.querySelectorAll('.sujet-btn').forEach(b => b.classList.remove('selected'));
+    sujetSelectionne = '';
+
+  } catch(err) {
+    // Fallback : ouvrir le client mail
+    const mailtoLink = `mailto:contact@vinbase.app?subject=${encodeURIComponent('[Vinbase] ' + (sujetSelectionne || 'Contact'))}&body=${encodeURIComponent(`Prénom : ${prenom}\nNom : ${nom}\nEmail : ${email}\n\n${message}`)}`;
+    window.location.href = mailtoLink;
+    msgEl.textContent = 'Votre client mail va s\'ouvrir. Si cela ne fonctionne pas, écrivez-nous directement à contact@vinbase.app';
+    msgEl.className = 'msg success';
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Envoyer le message';
+}
+</script>
+</body>
+</html>

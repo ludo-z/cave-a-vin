@@ -1066,5 +1066,62 @@ document.addEventListener('DOMContentLoaded', function() {
   };
 });
 </script>
+
+<!-- ☕ Buy Me a Coffee -->
+<div id="bmc-btn" style="
+  position: fixed;
+  bottom: 1.5rem;
+  right: 1.5rem;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+">
+  <div id="bmc-tooltip" style="
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  ">Soutenir le projet ☕</div>
+  <a href="https://buymeacoffee.com/ludoz" target="_blank" rel="noopener"
+    style="
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #FFDD00;
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.6rem 1.1rem;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+    "
+    onmouseenter="
+      this.style.transform='scale(1.05)';
+      this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';
+      document.getElementById('bmc-tooltip').style.opacity='1';
+      document.getElementById('bmc-tooltip').style.transform='translateY(0)';
+    "
+    onmouseleave="
+      this.style.transform='scale(1)';
+      this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)';
+      document.getElementById('bmc-tooltip').style.opacity='0';
+      document.getElementById('bmc-tooltip').style.transform='translateY(4px)';
+    "
+  >
+    ☕ <span>Buy me a coffee</span>
+  </a>
+</div>
 </body>
 </html>

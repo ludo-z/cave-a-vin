@@ -287,10 +287,7 @@ const TRANSLATIONS = {
     contact_info_legal_label: 'Légal',
     contact_info_legal_val:   "Conditions générales d'utilisation",
     contact_help_title: '💡 Aide rapide',
-    contact_help_text:  "Avant de nous contacter, consultez nos ressources :
-— Vérifiez que vous êtes bien connecté(e)
-— Essayez de recharger la page
-— Videz le cache de votre navigateur",
+    contact_help_text:  'Avant de nous contacter, consultez nos ressources :\n— Vérifiez que vous êtes bien connecté(e)\n— Essayez de recharger la page\n— Videz le cache de votre navigateur',
     contact_back:     '← Retour',
 
     // Page CGU

@@ -676,8 +676,32 @@
       .btn-importer, .btn-ajouter { flex: 1; text-align: center; justify-content: center; }
 
       /* Modal pleine largeur */
-      .modal { max-width: 100% !important; margin: 0; border-radius: 0; min-height: 100dvh; }
-      .overlay { padding: 0; align-items: flex-end; }
+      .overlay {
+        padding: 0 !important;
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+      }
+      .modal {
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      .modal-body {
+        padding: 1rem !important;
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .modal-footer {
+        padding: 0.75rem 1rem 1.5rem !important;
+        position: sticky;
+        bottom: 0;
+        background: var(--cream);
+        border-top: 1px solid var(--stone);
+      }
 
       /* Tableau scrollable */
       #vue-tableau { overflow-x: auto; }
@@ -718,13 +742,20 @@
       top: 64px;
       left: 0; right: 0;
       background: var(--bordeaux-dk);
-      z-index: 200;
+      z-index: 9999;
       padding: 0.5rem 0;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       border-top: 1px solid rgba(201,168,76,0.2);
-      display: none;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, visibility 0.2s;
     }
-    .mobile-nav.open { display: block !important; }
+    .mobile-nav.open {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
     .mobile-nav a, .mobile-nav .mobile-nav-deconnexion {
       display: flex;
       align-items: center;
@@ -780,8 +811,11 @@
     }
     @media (min-width: 769px) {
       .hamburger { display: none !important; }
-      .mobile-nav { display: none !important; }
-      .mobile-nav.open { display: none !important; }
+      .mobile-nav {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
     }
 
   </style>

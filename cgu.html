@@ -137,20 +137,21 @@
 <header>
   <a href="cave.html" class="header-logo"><span>Vinbase</span></a>
   <div class="header-right">
-    <a href="cave.html" class="btn-back">← Retour</a>
+    <div id="lang-selector-cgu" style="display:flex;gap:0.25rem;align-items:center"></div>
+    <a href="cave.html" class="btn-back" id="btn-back-cgu">← Retour</a>
   </div>
 </header>
 
 <main>
-  <div class="page-badge">Légal</div>
-  <h1>Conditions générales d'utilisation</h1>
-  <div class="date-maj">Dernière mise à jour : juin 2026</div>
+  <div class="page-badge" id="cgu-badge">Légal</div>
+  <h1 id="cgu-title">Conditions générales d'utilisation</h1>
+  <div class="date-maj" id="cgu-updated">Dernière mise à jour : juin 2026</div>
 
   <!-- Section 1 -->
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">1</div>
-      <div class="cgu-section-title">Présentation du service</div>
+      <div class="cgu-section-title" id="cgu-s1-title">Présentation du service</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body open">
@@ -164,7 +165,7 @@
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">2</div>
-      <div class="cgu-section-title">Acceptation des conditions</div>
+      <div class="cgu-section-title" id="cgu-s2-title">Acceptation des conditions</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body">
@@ -177,7 +178,7 @@
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">3</div>
-      <div class="cgu-section-title">Inscription et compte utilisateur</div>
+      <div class="cgu-section-title" id="cgu-s3-title">Inscription et compte utilisateur</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body">
@@ -196,7 +197,7 @@
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">4</div>
-      <div class="cgu-section-title">Protection des données personnelles (LPD)</div>
+      <div class="cgu-section-title" id="cgu-s4-title">Protection des données personnelles (LPD)</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body">
@@ -219,7 +220,7 @@
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">5</div>
-      <div class="cgu-section-title">Utilisation de l'intelligence artificielle</div>
+      <div class="cgu-section-title" id="cgu-s5-title">Utilisation de l'intelligence artificielle</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body">
@@ -238,7 +239,7 @@
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">6</div>
-      <div class="cgu-section-title">Propriété intellectuelle</div>
+      <div class="cgu-section-title" id="cgu-s6-title">Propriété intellectuelle</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body">
@@ -251,7 +252,7 @@
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">7</div>
-      <div class="cgu-section-title">Disponibilité et responsabilité</div>
+      <div class="cgu-section-title" id="cgu-s7-title">Disponibilité et responsabilité</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body">
@@ -270,7 +271,7 @@
   <div class="cgu-card">
     <div class="cgu-section-header" onclick="toggleSection(this)">
       <div class="cgu-num">8</div>
-      <div class="cgu-section-title">Droit applicable et for juridique</div>
+      <div class="cgu-section-title" id="cgu-s8-title">Droit applicable et for juridique</div>
       <div class="cgu-toggle">▼</div>
     </div>
     <div class="cgu-body">
@@ -281,12 +282,13 @@
 
   <!-- Footer -->
   <div class="cgu-footer">
-    Des questions sur ces conditions ? <a href="contact.html">Contactez-nous</a>.<br>
+    <span id="cgu-footer-text">Des questions sur ces conditions ?</span> <a href="contact.html" id="cgu-footer-link">Contactez-nous</a>.<br>
     <span style="color:var(--stone)">—</span><br>
-    <span style="font-size:0.75rem">© 2026 Vinbase · Tous droits réservés</span>
+    <span style="font-size:0.75rem" id="cgu-footer-copy">© 2026 Vinbase · Tous droits réservés</span>
   </div>
 </main>
 
+<script src="lang.js"></script>
 <script>
 function toggleSection(header) {
   const body   = header.nextElementSibling;
@@ -295,6 +297,39 @@ function toggleSection(header) {
   body.classList.toggle('open', !isOpen);
   toggle.classList.toggle('open', !isOpen);
 }
+
+// ── LANGUE ──
+(function() {
+  const flags = { fr:'🇫🇷', en:'🇬🇧', de:'🇩🇪' };
+  const lang = getLang();
+  const wrap = document.getElementById('lang-selector-cgu');
+  if (wrap) {
+    ['fr','en','de'].forEach(l => {
+      const btn = document.createElement('button');
+      btn.textContent = flags[l];
+      btn.style.cssText = `background:none;border:none;cursor:pointer;font-size:1.1rem;opacity:${lang===l?1:0.4};transition:opacity 0.2s;padding:0.2rem`;
+      btn.addEventListener('click', () => setLang(l));
+      wrap.appendChild(btn);
+    });
+  }
+
+  function tf(id, key) { const el = document.getElementById(id); if(el) el.textContent = t(key); }
+  tf('cgu-badge',        'cgu_badge');
+  tf('cgu-title',        'cgu_title');
+  tf('cgu-updated',      'cgu_updated');
+  tf('btn-back-cgu',     'cgu_back');
+  tf('cgu-s1-title',     'cgu_s1_title');
+  tf('cgu-s2-title',     'cgu_s2_title');
+  tf('cgu-s3-title',     'cgu_s3_title');
+  tf('cgu-s4-title',     'cgu_s4_title');
+  tf('cgu-s5-title',     'cgu_s5_title');
+  tf('cgu-s6-title',     'cgu_s6_title');
+  tf('cgu-s7-title',     'cgu_s7_title');
+  tf('cgu-s8-title',     'cgu_s8_title');
+  tf('cgu-footer-text',  'cgu_footer');
+  tf('cgu-footer-link',  'cgu_footer_link');
+  tf('cgu-footer-copy',  'cgu_footer_copy');
+})();
 </script>
 </body>
 </html>

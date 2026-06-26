@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Contact — Vinbase</title>
+  <title>Contact — Vinup</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
@@ -74,7 +74,7 @@
 </head>
 <body>
 <header>
-  <a href="cave.html" class="header-logo"><span>Vinbase</span></a>
+  <a href="cave.html" class="header-logo"><span>Vinup</span></a>
   <div class="header-right">
     <div id="lang-selector-contact"></div>
     <a href="cave.html" class="btn-back" id="btn-back">← Retour</a>
@@ -112,10 +112,10 @@
     <div>
       <div class="info-card">
         <div class="info-card-header">
-          <h3 id="info-title">Vinbase</h3>
+          <h3 id="info-title">Vinup</h3>
           <p id="info-subtitle">Gestion de cave à vin</p>
         </div>
-        <div class="info-item"><div class="info-icon">📧</div><div><div class="info-label" id="info-email-label">Email</div><div class="info-value"><a href="mailto:contact@vinbase.ch">contact@vinbase.ch</a></div></div></div>
+        <div class="info-item"><div class="info-icon">📧</div><div><div class="info-label" id="info-email-label">Email</div><div class="info-value"><a href="mailto:contact@vinup.ch">contact@vinup.ch</a></div></div></div>
         <div class="info-item"><div class="info-icon">⏱️</div><div><div class="info-label" id="info-delay-label">Délai de réponse</div><div class="info-value" id="info-delay-val">Sous 48 heures ouvrables</div></div></div>
         <div class="info-item"><div class="info-icon">🌍</div><div><div class="info-label" id="info-lang-label">Langues</div><div class="info-value" id="info-lang-val">Français · English · Deutsch</div></div></div>
         <div class="info-item"><div class="info-icon">📋</div><div><div class="info-label" id="info-legal-label">Légal</div><div class="info-value"><a href="cgu.html" id="info-legal-val">Conditions générales d'utilisation</a></div></div></div>
@@ -214,7 +214,7 @@ async function envoyerMessage() {
     document.querySelectorAll('.sujet-btn').forEach(b => b.classList.remove('selected'));
     sujetSelectionne = '';
   } catch(err) {
-    const mailtoLink = `mailto:contact@vinbase.ch?subject=${encodeURIComponent('[Vinbase] ' + (sujetSelectionne || 'Contact'))}&body=${encodeURIComponent(`${t('contact_prenom').replace(' *','')} : ${prenom}\n${t('contact_nom').replace(' *','')} : ${nom}\nEmail : ${email}\n\n${message}`)}`;
+    const mailtoLink = `mailto:contact@vinup.ch?subject=${encodeURIComponent('[Vinup] ' + (sujetSelectionne || 'Contact'))}&body=${encodeURIComponent(`${t('contact_prenom').replace(' *','')} : ${prenom}\n${t('contact_nom').replace(' *','')} : ${nom}\nEmail : ${email}\n\n${message}`)}`;
     window.location.href = mailtoLink;
     msgEl.textContent = t('contact_fallback'); msgEl.className = 'msg success';
   }

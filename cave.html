@@ -2033,66 +2033,6 @@ document.querySelectorAll('.overlay').forEach(o => {
   o.addEventListener('click', e => { if (e.target === o) fermerModal(o.id); });
 });
 
-// ── MENU HAMBURGER MOBILE ──
-(function() {
-  // Créer le bouton hamburger et l'injecter dans le header
-  const hamburger = document.createElement('button');
-  hamburger.className = 'hamburger';
-  hamburger.id = 'hamburger';
-  hamburger.setAttribute('aria-label', 'Menu');
-  hamburger.innerHTML = '<span></span><span></span><span></span>';
-  document.querySelector('header').appendChild(hamburger);
-
-  const mobileNav = document.getElementById('mobile-nav');
-
-  hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('open');
-    mobileNav.classList.toggle('open');
-  });
-
-  // Fermer le menu en cliquant ailleurs
-  document.addEventListener('click', (e) => {
-    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
-      hamburger.classList.remove('open');
-      mobileNav.classList.remove('open');
-    }
-  });
-
-  // Mettre à jour le prenom et la langue dans le menu mobile
-  window.updateMobileNav = function(prenom) {
-    const el = document.getElementById('mobile-prenom');
-    if (el && prenom) el.textContent = 'Bonjour, ' + prenom;
-
-    // Copier le sélecteur de langue
-    const mobileLang = document.getElementById('mobile-lang-selector');
-    if (mobileLang) {
-      const flags = { fr: '🇫🇷', en: '🇬🇧', de: '🇩🇪' };
-      const lang = getLang();
-      mobileLang.innerHTML = '';
-      ['fr','en','de'].forEach(l => {
-        const btn = document.createElement('button');
-        btn.textContent = flags[l];
-        btn.title = l.toUpperCase();
-        if (lang === l) btn.classList.add('active-lang');
-        btn.addEventListener('click', () => setLang(l));
-        mobileLang.appendChild(btn);
-      });
-    }
-  };
-
-  // Traduire les liens du menu mobile
-  window.updateMobileNavLang = function() {
-    const mesVins = document.getElementById('mobile-nav-mes-vins');
-    const plan    = document.getElementById('mobile-nav-plan');
-    const dash    = document.getElementById('mobile-nav-dashboard');
-    const deconn  = document.getElementById('mobile-btn-deconnexion');
-    if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
-    if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
-    if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
-    if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
-  };
-})();
-
 </script>
 
   <!-- Bouton hamburger dans le header -->
@@ -2111,5 +2051,65 @@ document.querySelectorAll('.overlay').forEach(o => {
     <button class="mobile-nav-deconnexion" id="mobile-btn-deconnexion" onclick="seDeconnecter()">🚪 Déconnexion</button>
   </div>
 
+
+<script>
+// ── MENU HAMBURGER MOBILE ──
+// Exécuté après le DOM pour que #mobile-nav existe
+document.addEventListener('DOMContentLoaded', function() {
+  const hamburger = document.createElement('button');
+  hamburger.className = 'hamburger';
+  hamburger.id = 'hamburger';
+  hamburger.setAttribute('aria-label', 'Menu');
+  hamburger.innerHTML = '<span></span><span></span><span></span>';
+  document.querySelector('header').appendChild(hamburger);
+
+  const mobileNav = document.getElementById('mobile-nav');
+
+  hamburger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open');
+  });
+
+  // Fermer en cliquant ailleurs
+  document.addEventListener('click', function(e) {
+    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+    }
+  });
+
+  // Exposer les fonctions globales
+  window.updateMobileNav = function(prenom) {
+    const el = document.getElementById('mobile-prenom');
+    if (el && prenom) el.textContent = 'Bonjour, ' + prenom;
+    const mobileLang = document.getElementById('mobile-lang-selector');
+    if (mobileLang) {
+      const flags = { fr: '🇫🇷', en: '🇬🇧', de: '🇩🇪' };
+      const lang = getLang();
+      mobileLang.innerHTML = '';
+      ['fr','en','de'].forEach(function(l) {
+        const btn = document.createElement('button');
+        btn.textContent = flags[l];
+        btn.title = l.toUpperCase();
+        if (lang === l) btn.classList.add('active-lang');
+        btn.addEventListener('click', function() { setLang(l); });
+        mobileLang.appendChild(btn);
+      });
+    }
+  };
+
+  window.updateMobileNavLang = function() {
+    const mesVins = document.getElementById('mobile-nav-mes-vins');
+    const plan    = document.getElementById('mobile-nav-plan');
+    const dash    = document.getElementById('mobile-nav-dashboard');
+    const deconn  = document.getElementById('mobile-btn-deconnexion');
+    if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
+    if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
+    if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
+    if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
+  };
+});
+</script>
 </body>
 </html>

@@ -132,6 +132,32 @@
       .card { padding: 1rem; }
       table { font-size: 0.78rem; }
       th, td { padding: 0.5rem 0.4rem; }
+      .overlay {
+        padding: 0 !important;
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+      }
+      .modal {
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      .modal-body {
+        padding: 1rem !important;
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .modal-footer {
+        padding: 0.75rem 1rem 1.5rem !important;
+        position: sticky;
+        bottom: 0;
+        background: var(--cream);
+        border-top: 1px solid var(--stone);
+      }
     }
     @media (min-width: 901px) and (max-width: 1100px) {
       .col-4 { grid-column: span 6; }
@@ -284,7 +310,8 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--muted); }
 
-    /* ── MENU HAMBURGER MOBILE ── */
+
+
     .hamburger {
       display: none;
       flex-direction: column;
@@ -314,13 +341,20 @@
       top: 64px;
       left: 0; right: 0;
       background: var(--bordeaux-dk);
-      z-index: 200;
+      z-index: 9999;
       padding: 0.5rem 0;
       box-shadow: 0 8px 24px rgba(0,0,0,0.4);
       border-top: 1px solid rgba(201,168,76,0.2);
-      display: none;
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, visibility 0.2s;
     }
-    .mobile-nav.open { display: block !important; }
+    .mobile-nav.open {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
     .mobile-nav a, .mobile-nav .mobile-nav-deconnexion {
       display: flex;
       align-items: center;
@@ -376,8 +410,11 @@
     }
     @media (min-width: 769px) {
       .hamburger { display: none !important; }
-      .mobile-nav { display: none !important; }
-      .mobile-nav.open { display: none !important; }
+      .mobile-nav {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
     }
 
   </style>
@@ -934,70 +971,7 @@ function renderEntrees(b) {
   }).join('');
 }
 
-// ── MENU HAMBURGER MOBILE ──
-(function() {
-  // Créer le bouton hamburger et l'injecter dans le header
-  const hamburger = document.createElement('button');
-  hamburger.className = 'hamburger';
-  hamburger.id = 'hamburger';
-  hamburger.setAttribute('aria-label', 'Menu');
-  hamburger.innerHTML = '<span></span><span></span><span></span>';
-  document.querySelector('header').appendChild(hamburger);
-
-  const mobileNav = document.getElementById('mobile-nav');
-
-  hamburger.addEventListener('click', () => {
-    hamburger.classList.toggle('open');
-    mobileNav.classList.toggle('open');
-  });
-
-  // Fermer le menu en cliquant ailleurs
-  document.addEventListener('click', (e) => {
-    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
-      hamburger.classList.remove('open');
-      mobileNav.classList.remove('open');
-    }
-  });
-
-  // Mettre à jour le prenom et la langue dans le menu mobile
-  window.updateMobileNav = function(prenom) {
-    const el = document.getElementById('mobile-prenom');
-    if (el && prenom) el.textContent = 'Bonjour, ' + prenom;
-
-    // Copier le sélecteur de langue
-    const mobileLang = document.getElementById('mobile-lang-selector');
-    if (mobileLang) {
-      const flags = { fr: '🇫🇷', en: '🇬🇧', de: '🇩🇪' };
-      const lang = getLang();
-      mobileLang.innerHTML = '';
-      ['fr','en','de'].forEach(l => {
-        const btn = document.createElement('button');
-        btn.textContent = flags[l];
-        btn.title = l.toUpperCase();
-        if (lang === l) btn.classList.add('active-lang');
-        btn.addEventListener('click', () => setLang(l));
-        mobileLang.appendChild(btn);
-      });
-    }
-  };
-
-  // Traduire les liens du menu mobile
-  window.updateMobileNavLang = function() {
-    const mesVins = document.getElementById('mobile-nav-mes-vins');
-    const plan    = document.getElementById('mobile-nav-plan');
-    const dash    = document.getElementById('mobile-nav-dashboard');
-    const deconn  = document.getElementById('mobile-btn-deconnexion');
-    if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
-    if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
-    if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
-    if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
-  };
-})();
-
 </script>
-
-  <!-- Bouton hamburger dans le header -->
-  <!-- (injecté via JS ci-dessous) -->
 
   <!-- Menu mobile -->
   <div class="mobile-nav" id="mobile-nav">
@@ -1012,5 +986,61 @@ function renderEntrees(b) {
     <button class="mobile-nav-deconnexion" id="mobile-btn-deconnexion" onclick="seDeconnecter()">🚪 Déconnexion</button>
   </div>
 
+<script>
+// ── MENU HAMBURGER MOBILE ──
+document.addEventListener('DOMContentLoaded', function() {
+  var hamburger = document.createElement('button');
+  hamburger.className = 'hamburger';
+  hamburger.id = 'hamburger';
+  hamburger.setAttribute('aria-label', 'Menu');
+  hamburger.innerHTML = '<span></span><span></span><span></span>';
+  document.querySelector('header').appendChild(hamburger);
+
+  var mobileNav = document.getElementById('mobile-nav');
+
+  hamburger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open');
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+    }
+  });
+
+  window.updateMobileNav = function(prenom) {
+    var el = document.getElementById('mobile-prenom');
+    if (el && prenom) el.textContent = 'Bonjour, ' + prenom;
+    var mobileLang = document.getElementById('mobile-lang-selector');
+    if (mobileLang) {
+      var flags = { fr: '🇫🇷', en: '🇬🇧', de: '🇩🇪' };
+      var lang = getLang();
+      mobileLang.innerHTML = '';
+      ['fr','en','de'].forEach(function(l) {
+        var btn = document.createElement('button');
+        btn.textContent = flags[l];
+        btn.title = l.toUpperCase();
+        if (lang === l) btn.classList.add('active-lang');
+        btn.addEventListener('click', function() { setLang(l); });
+        mobileLang.appendChild(btn);
+      });
+    }
+  };
+
+  window.updateMobileNavLang = function() {
+    var mesVins = document.getElementById('mobile-nav-mes-vins');
+    var plan    = document.getElementById('mobile-nav-plan');
+    var dash    = document.getElementById('mobile-nav-dashboard');
+    var deconn  = document.getElementById('mobile-btn-deconnexion');
+    if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
+    if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
+    if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
+    if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
+  };
+});
+</script>
 </body>
 </html>

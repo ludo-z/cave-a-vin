@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mon profil — VINUP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux:#6B1A2A; --bordeaux-dk:#4A1020; --gold:#C9A84C;
+      --cream:#F7F3ED; --stone:#E8E0D5; --ink:#1C1410;
+      --muted:#7A6E66; --bg:#F2EDE6; --white:#FFFFFF;
+      --vert:#52b788; --error:#B94040;
+    }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background:var(--bordeaux-dk); padding:0 2rem;
+      display:flex; align-items:center; justify-content:space-between;
+      height:64px; position:sticky; top:0; z-index:100;
+      box-shadow:0 2px 20px rgba(0,0,0,0.3);
+    }
+    .header-logo { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:300; color:var(--cream); letter-spacing:0.05em; text-decoration:none; }
+    .header-logo span { color:var(--gold); font-style:italic; }
+    .header-right { display:flex; align-items:center; gap:1rem; }
+    .btn-back { background:none; border:1px solid rgba(201,168,76,0.4); color:var(--gold); padding:0.4rem 1rem; font-family:'Inter',sans-serif; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; border-radius:1px; transition:all 0.2s; text-decoration:none; }
+    .btn-back:hover { background:rgba(201,168,76,0.1); }
+    #lang-selector-profil { display:flex; gap:0.25rem; align-items:center; }
+
+    /* ── LAYOUT ── */
+    main { max-width:720px; margin:0 auto; padding:3rem 2rem; }
+    .page-badge { display:inline-flex; align-items:center; gap:0.5rem; font-size:0.7rem; letter-spacing:0.15em; text-transform:uppercase; color:var(--bordeaux); margin-bottom:1rem; }
+    .page-badge::before { content:''; display:block; width:24px; height:1px; background:var(--bordeaux); }
+    h1 { font-family:'Cormorant Garamond',serif; font-size:2.5rem; font-weight:300; color:var(--ink); margin-bottom:2rem; }
+
+    /* ── AVATAR ── */
+    .profil-header {
+      display:flex; align-items:center; gap:1.5rem;
+      background:var(--white); border-radius:2px; padding:1.75rem;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06); margin-bottom:1.5rem;
+    }
+    .avatar {
+      width:72px; height:72px; border-radius:50%;
+      background:linear-gradient(135deg, var(--bordeaux), var(--bordeaux-dk));
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.8rem; color:var(--gold); flex-shrink:0;
+      border:2px solid rgba(201,168,76,0.3);
+    }
+    .profil-info h2 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:400; margin-bottom:0.2rem; }
+    .profil-info p { font-size:0.82rem; color:var(--muted); }
+    .profil-badge {
+      margin-left:auto; display:inline-flex; align-items:center; gap:0.4rem;
+      background:rgba(201,168,76,0.1); border:1px solid rgba(201,168,76,0.3);
+      color:var(--gold); font-size:0.7rem; letter-spacing:0.1em;
+      text-transform:uppercase; padding:0.3rem 0.75rem; border-radius:20px;
+    }
+
+    /* ── CARDS ── */
+    .card { background:var(--white); border-radius:2px; box-shadow:0 1px 4px rgba(0,0,0,0.06); overflow:hidden; margin-bottom:1.25rem; }
+    .card-header { padding:1.25rem 1.75rem; border-bottom:1px solid var(--stone); display:flex; align-items:center; gap:0.75rem; }
+    .card-icon { font-size:1.1rem; }
+    .card-title { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:400; color:var(--ink); }
+    .card-body { padding:1.5rem 1.75rem; }
+
+    .form-group { margin-bottom:1.25rem; }
+    .form-group:last-child { margin-bottom:0; }
+    .form-group label { display:block; font-size:0.7rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:0.4rem; }
+    .form-group input { width:100%; padding:0.75rem 1rem; border:1px solid var(--stone); border-radius:1px; background:white; font-family:'Inter',sans-serif; font-size:0.9rem; color:var(--ink); outline:none; transition:border-color 0.2s, box-shadow 0.2s; }
+    .form-group input:focus { border-color:var(--bordeaux); box-shadow:0 0 0 3px rgba(107,26,42,0.06); }
+    .form-group input:disabled { background:var(--bg); color:var(--muted); cursor:not-allowed; }
+
+    .btn-save { padding:0.75rem 1.5rem; background:var(--bordeaux); color:white; border:none; border-radius:1px; font-family:'Inter',sans-serif; font-size:0.78rem; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:background 0.2s; }
+    .btn-save:hover { background:var(--bordeaux-dk); }
+    .btn-save:disabled { opacity:0.6; cursor:not-allowed; }
+
+    .msg { padding:0.65rem 1rem; border-radius:1px; font-size:0.82rem; margin-top:0.75rem; display:none; }
+    .msg.ok  { background:#f0fdf4; color:#2d6a4f; border-left:3px solid var(--vert); display:block; }
+    .msg.err { background:#fdf0f0; color:var(--error); border-left:3px solid var(--error); display:block; }
+
+    /* ── ABONNEMENT ── */
+    .abonnement-placeholder {
+      background:linear-gradient(135deg, rgba(201,168,76,0.06), rgba(107,26,42,0.04));
+      border:1px dashed rgba(201,168,76,0.4);
+      border-radius:2px; padding:1.5rem; text-align:center;
+    }
+    .abonnement-placeholder .icon { font-size:2rem; margin-bottom:0.5rem; }
+    .abonnement-placeholder h3 { font-family:'Cormorant Garamond',serif; font-size:1.2rem; font-weight:400; color:var(--ink); margin-bottom:0.4rem; }
+    .abonnement-placeholder p { font-size:0.82rem; color:var(--muted); line-height:1.6; }
+    .plan-gratuit { display:inline-flex; align-items:center; gap:0.4rem; background:rgba(82,183,136,0.1); border:1px solid rgba(82,183,136,0.3); color:var(--vert); font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; padding:0.3rem 0.75rem; border-radius:20px; margin-top:0.75rem; }
+
+    /* ── DANGER ZONE ── */
+    .danger-card { border:1px solid rgba(185,64,64,0.2); }
+    .danger-card .card-header { background:rgba(185,64,64,0.03); }
+    .danger-card .card-title { color:var(--error); }
+    .btn-danger { padding:0.75rem 1.5rem; background:none; color:var(--error); border:1px solid var(--error); border-radius:1px; font-family:'Inter',sans-serif; font-size:0.78rem; letter-spacing:0.12em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+    .btn-danger:hover { background:var(--error); color:white; }
+
+    /* ── STATS RAPIDES ── */
+    .stats-mini { display:grid; grid-template-columns:repeat(3,1fr); gap:0.75rem; margin-bottom:1.5rem; }
+    .stat-mini { background:var(--white); border-radius:2px; padding:1rem; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+    .stat-mini-num { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300; color:var(--bordeaux); }
+    .stat-mini-label { font-size:0.68rem; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-top:0.1rem; }
+
+    /* ── MEMBRE DEPUIS ── */
+    .membre-depuis { font-size:0.75rem; color:var(--muted); margin-top:0.25rem; }
+
+    @media (max-width:600px) {
+      main { padding:1.5rem 1rem; }
+      h1 { font-size:1.8rem; }
+      .profil-header { flex-wrap:wrap; }
+      .profil-badge { margin-left:0; }
+      .stats-mini { grid-template-columns:repeat(3,1fr); }
+      .card-body { padding:1.25rem; }
+      .card-header { padding:1rem 1.25rem; }
+    }
+
+    /* ── BMC ── */
+    #bmc-btn { position:fixed; bottom:1.5rem; left:1.5rem; z-index:999; display:flex; flex-direction:column; align-items:flex-start; gap:0.4rem; }
+  </style>
+  <script src="lang.js"></script>
+</head>
+<body>
+
+<header>
+  <a href="cave.html" class="header-logo"><span>VINUP</span></a>
+  <div class="header-right">
+    <div id="lang-selector-profil"></div>
+    <a href="cave.html" class="btn-back">← Retour</a>
+  </div>
+</header>
+
+<main>
+  <div class="page-badge">Mon compte</div>
+  <h1>Mon profil</h1>
+
+  <!-- Avatar + infos -->
+  <div class="profil-header">
+    <div class="avatar" id="profil-avatar">🍷</div>
+    <div class="profil-info">
+      <h2 id="profil-nom-affichage">—</h2>
+      <p id="profil-email-affichage">—</p>
+      <p class="membre-depuis" id="profil-depuis">—</p>
+    </div>
+    <div class="profil-badge">✓ Compte actif</div>
+  </div>
+
+  <!-- Stats rapides -->
+  <div class="stats-mini">
+    <div class="stat-mini">
+      <div class="stat-mini-num" id="stat-bouteilles">—</div>
+      <div class="stat-mini-label">Bouteilles</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-num" id="stat-references">—</div>
+      <div class="stat-mini-label">Références</div>
+    </div>
+    <div class="stat-mini">
+      <div class="stat-mini-num" id="stat-degustations">—</div>
+      <div class="stat-mini-label">Dégustations</div>
+    </div>
+  </div>
+
+  <!-- Modifier prénom / email -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">✏️</div>
+      <div class="card-title">Informations personnelles</div>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label for="edit-prenom">Prénom</label>
+        <input type="text" id="edit-prenom" placeholder="Votre prénom"/>
+      </div>
+      <div class="form-group">
+        <label for="edit-email">Adresse e-mail</label>
+        <input type="email" id="edit-email" placeholder="vous@exemple.com"/>
+      </div>
+      <button class="btn-save" onclick="sauvegarderInfos()">Enregistrer</button>
+      <div id="msg-infos" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- Changer mot de passe -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">🔒</div>
+      <div class="card-title">Changer le mot de passe</div>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label for="pwd-nouveau">Nouveau mot de passe</label>
+        <input type="password" id="pwd-nouveau" placeholder="8 caractères minimum"/>
+      </div>
+      <div class="form-group">
+        <label for="pwd-confirmer">Confirmer le mot de passe</label>
+        <input type="password" id="pwd-confirmer" placeholder="Répétez le mot de passe"/>
+      </div>
+      <button class="btn-save" onclick="changerMotDePasse()">Mettre à jour</button>
+      <div id="msg-pwd" class="msg"></div>
+    </div>
+  </div>
+
+  <!-- Abonnement -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-icon">⭐</div>
+      <div class="card-title">Abonnement</div>
+    </div>
+    <div class="card-body">
+      <div class="abonnement-placeholder">
+        <div class="icon">🍾</div>
+        <h3>Plan Gratuit</h3>
+        <p>Vous bénéficiez actuellement de l'accès gratuit à VINUP.<br>Des formules premium avec des fonctionnalités avancées seront disponibles prochainement.</p>
+        <div class="plan-gratuit">✓ Accès complet gratuit</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Danger zone -->
+  <div class="card danger-card">
+    <div class="card-header">
+      <div class="card-icon">⚠️</div>
+      <div class="card-title">Zone de danger</div>
+    </div>
+    <div class="card-body">
+      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
+        La suppression de votre compte est <strong>irréversible</strong>. Toutes vos données (vins, dégustations, plan de cave) seront définitivement supprimées.
+      </p>
+      <button class="btn-danger" onclick="demanderSuppression()">Supprimer mon compte</button>
+      <div id="msg-suppr" class="msg"></div>
+    </div>
+  </div>
+</main>
+
+<!-- BMC -->
+<div id="bmc-btn">
+  <div id="bmc-tooltip" style="background:var(--ink);color:var(--cream);font-family:'Inter',sans-serif;font-size:0.72rem;padding:0.4rem 0.75rem;border-radius:20px;white-space:nowrap;opacity:0;transform:translateY(4px);transition:opacity 0.2s,transform 0.2s;pointer-events:none">Soutenir le projet ☕</div>
+  <a href="https://buymeacoffee.com/ludoz" target="_blank" rel="noopener"
+    style="display:flex;align-items:center;gap:0.5rem;background:#FFDD00;color:#000;font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:600;padding:0.6rem 1.1rem;border-radius:30px;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,0.15);transition:transform 0.2s,box-shadow 0.2s"
+    onmouseenter="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';document.getElementById('bmc-tooltip').style.opacity='1';document.getElementById('bmc-tooltip').style.transform='translateY(0)'"
+    onmouseleave="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)';document.getElementById('bmc-tooltip').style.opacity='0';document.getElementById('bmc-tooltip').style.transform='translateY(4px)'"
+  >☕ <span>Buy me a coffee</span></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// ── LANGUE ──
+(function() {
+  const flags = { fr:'🇫🇷', en:'🇬🇧', de:'🇩🇪' };
+  const lang = getLang();
+  const wrap = document.getElementById('lang-selector-profil');
+  ['fr','en','de'].forEach(l => {
+    const btn = document.createElement('button');
+    btn.textContent = flags[l];
+    btn.style.cssText = `background:none;border:none;cursor:pointer;font-size:1.1rem;opacity:${lang===l?1:0.4};transition:opacity 0.2s;padding:0.2rem`;
+    btn.addEventListener('click', () => setLang(l));
+    wrap.appendChild(btn);
+  });
+})();
+
+// ── INIT ──
+let userActuel = null;
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'INITIAL_SESSION') {
+    if (!session) { window.location.href = 'index.html'; return; }
+    userActuel = session.user;
+    await initialiserProfil(session.user);
+  } else if (event === 'SIGNED_OUT') {
+    window.location.href = 'index.html';
+  }
+});
+
+async function initialiserProfil(user) {
+  const prenom = user.user_metadata?.prenom || '';
+  const email  = user.email || '';
+  const depuis = new Date(user.created_at).toLocaleDateString('fr-CH', { month: 'long', year: 'numeric' });
+
+  // Avatar initiale
+  const initiale = prenom ? prenom[0].toUpperCase() : email[0].toUpperCase();
+  document.getElementById('profil-avatar').textContent = initiale || '🍷';
+
+  // Infos affichées
+  document.getElementById('profil-nom-affichage').textContent = prenom || 'Utilisateur';
+  document.getElementById('profil-email-affichage').textContent = email;
+  document.getElementById('profil-depuis').textContent = `Membre depuis ${depuis}`;
+
+  // Pré-remplir le formulaire
+  document.getElementById('edit-prenom').value = prenom;
+  document.getElementById('edit-email').value  = email;
+
+  // Charger les stats
+  await chargerStats(user.id);
+}
+
+async function chargerStats(userId) {
+  const [resBouteilles, resDegustations] = await Promise.all([
+    sb.from('bouteilles').select('id, quantite').eq('user_id', userId),
+    sb.from('degustations').select('id').eq('user_id', userId),
+  ]);
+
+  const bouteilles = resBouteilles.data || [];
+  const totalQty   = bouteilles.reduce((s, b) => s + (b.quantite || 1), 0);
+  const references = bouteilles.length;
+  const degust     = (resDegustations.data || []).length;
+
+  document.getElementById('stat-bouteilles').textContent   = totalQty;
+  document.getElementById('stat-references').textContent   = references;
+  document.getElementById('stat-degustations').textContent = degust;
+}
+
+// ── SAUVEGARDER INFOS ──
+async function sauvegarderInfos() {
+  const prenom = document.getElementById('edit-prenom').value.trim();
+  const email  = document.getElementById('edit-email').value.trim();
+  const msg    = document.getElementById('msg-infos');
+  msg.className = 'msg';
+
+  if (!prenom || !email) {
+    msg.textContent = 'Veuillez remplir tous les champs.';
+    msg.className = 'msg err'; return;
+  }
+
+  const updates = { data: { prenom } };
+  if (email !== userActuel.email) updates.email = email;
+
+  const { error } = await sb.auth.updateUser(updates);
+  if (error) {
+    msg.textContent = 'Erreur : ' + error.message;
+    msg.className = 'msg err'; return;
+  }
+
+  msg.textContent = '✅ Informations mises à jour !' + (email !== userActuel.email ? ' Vérifiez votre nouvelle adresse e-mail.' : '');
+  msg.className = 'msg ok';
+
+  // Mettre à jour l'affichage
+  document.getElementById('profil-nom-affichage').textContent = prenom;
+  const initiale = prenom[0].toUpperCase();
+  document.getElementById('profil-avatar').textContent = initiale;
+}
+
+// ── CHANGER MOT DE PASSE ──
+async function changerMotDePasse() {
+  const pwd1 = document.getElementById('pwd-nouveau').value;
+  const pwd2 = document.getElementById('pwd-confirmer').value;
+  const msg  = document.getElementById('msg-pwd');
+  msg.className = 'msg';
+
+  if (!pwd1 || !pwd2) {
+    msg.textContent = 'Veuillez remplir les deux champs.';
+    msg.className = 'msg err'; return;
+  }
+  if (pwd1.length < 8) {
+    msg.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
+    msg.className = 'msg err'; return;
+  }
+  if (pwd1 !== pwd2) {
+    msg.textContent = 'Les mots de passe ne correspondent pas.';
+    msg.className = 'msg err'; return;
+  }
+
+  const { error } = await sb.auth.updateUser({ password: pwd1 });
+  if (error) {
+    msg.textContent = 'Erreur : ' + error.message;
+    msg.className = 'msg err'; return;
+  }
+
+  msg.textContent = '✅ Mot de passe mis à jour avec succès !';
+  msg.className = 'msg ok';
+  document.getElementById('pwd-nouveau').value = '';
+  document.getElementById('pwd-confirmer').value = '';
+}
+
+// ── SUPPRIMER COMPTE ──
+async function demanderSuppression() {
+  const msg = document.getElementById('msg-suppr');
+  const confirm1 = confirm('Êtes-vous sûr de vouloir supprimer votre compte ?\n\nToutes vos données seront définitivement perdues.');
+  if (!confirm1) return;
+
+  const confirm2 = confirm('Cette action est IRRÉVERSIBLE.\n\nConfirmez-vous la suppression définitive de votre compte VINUP ?');
+  if (!confirm2) return;
+
+  // Supprimer toutes les données de l'utilisateur
+  const userId = userActuel.id;
+  try {
+    await sb.from('degustations').delete().eq('user_id', userId);
+    await sb.from('cave_emplacements').delete().eq('user_id', userId);
+    await sb.from('cave_meubles').delete().eq('user_id', userId);
+    await sb.from('bouteilles').delete().eq('user_id', userId);
+
+    // Déconnexion (la suppression du compte auth nécessite un Edge Function en prod)
+    await sb.auth.signOut();
+    alert('Votre compte et toutes vos données ont été supprimés. Au revoir !');
+    window.location.href = 'index.html';
+  } catch(err) {
+    msg.textContent = 'Erreur lors de la suppression : ' + err.message;
+    msg.className = 'msg err';
+  }
+}
+
+async function seDeconnecter() {
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>

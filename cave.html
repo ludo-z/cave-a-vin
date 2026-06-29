@@ -873,6 +873,7 @@
       .header-right > #lang-selector { display: none !important; }
       .header-right > span#user-prenom { display: none !important; }
       .header-right > #btn-deconnexion { display: none !important; }
+      .header-right > #btn-profil { display: none !important; }
       .hamburger { display: flex; }
       header { padding: 0 1rem; }
     }
@@ -901,6 +902,7 @@
   <div class="header-right">
     <div id="lang-selector"></div>
     <span id="user-prenom"></span>
+    <a href="profil.html" id="btn-profil" title="Mon profil" style="background:none;border:1px solid rgba(201,168,76,0.4);color:var(--gold);padding:0.4rem 0.7rem;border-radius:1px;text-decoration:none;font-size:0.9rem;transition:all 0.2s;display:inline-flex;align-items:center" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='none'">👤</a>
     <button class="btn-deconnexion" id="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
   </div>
 </header>
@@ -2384,6 +2386,7 @@ document.querySelectorAll('.overlay').forEach(o => {
     <a href="cave-plan.html" id="mobile-nav-plan">🗺️ Plan de cave</a>
     <a href="dashboard.html" id="mobile-nav-dashboard">📊 Tableau de bord</a>
     <a href="contact.html" id="mobile-nav-contact">✉️ Contact</a>
+    <a href="profil.html" id="mobile-nav-profil">👤 Mon profil</a>
     <div class="mobile-nav-separator"></div>
     <div class="mobile-nav-lang" id="mobile-lang-selector"></div>
     <div class="mobile-nav-separator"></div>

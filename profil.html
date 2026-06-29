@@ -128,13 +128,13 @@
   <a href="cave.html" class="header-logo"><span>VINUP</span></a>
   <div class="header-right">
     <div id="lang-selector-profil"></div>
-    <a href="cave.html" class="btn-back">← Retour</a>
+    <a href="cave.html" class="btn-back" id="btn-back-profil">← Retour</a>
   </div>
 </header>
 
 <main>
-  <div class="page-badge">Mon compte</div>
-  <h1>Mon profil</h1>
+  <div class="page-badge" id="profil-badge-el">Mon compte</div>
+  <h1 id="profil-title-el">Mon profil</h1>
 
   <!-- Avatar + infos -->
   <div class="profil-header">
@@ -144,22 +144,22 @@
       <p id="profil-email-affichage">—</p>
       <p class="membre-depuis" id="profil-depuis">—</p>
     </div>
-    <div class="profil-badge">✓ Compte actif</div>
+    <div class="profil-badge" id="profil-badge-actif">✓ Compte actif</div>
   </div>
 
   <!-- Stats rapides -->
   <div class="stats-mini">
     <div class="stat-mini">
       <div class="stat-mini-num" id="stat-bouteilles">—</div>
-      <div class="stat-mini-label">Bouteilles</div>
+      <div class="stat-mini-label" id="stat-bouteilles-label">Bouteilles</div>
     </div>
     <div class="stat-mini">
       <div class="stat-mini-num" id="stat-references">—</div>
-      <div class="stat-mini-label">Références</div>
+      <div class="stat-mini-label" id="stat-references-label">Références</div>
     </div>
     <div class="stat-mini">
       <div class="stat-mini-num" id="stat-degustations">—</div>
-      <div class="stat-mini-label">Dégustations</div>
+      <div class="stat-mini-label" id="stat-degustations-label">Dégustations</div>
     </div>
   </div>
 
@@ -167,18 +167,18 @@
   <div class="card">
     <div class="card-header">
       <div class="card-icon">✏️</div>
-      <div class="card-title">Informations personnelles</div>
+      <div class="card-title" id="profil-infos-title">Informations personnelles</div>
     </div>
     <div class="card-body">
       <div class="form-group">
-        <label for="edit-prenom">Prénom</label>
+        <label for="edit-prenom" id="label-prenom">Prénom</label>
         <input type="text" id="edit-prenom" placeholder="Votre prénom"/>
       </div>
       <div class="form-group">
-        <label for="edit-email">Adresse e-mail</label>
+        <label for="edit-email" id="label-email">Adresse e-mail</label>
         <input type="email" id="edit-email" placeholder="vous@exemple.com"/>
       </div>
-      <button class="btn-save" onclick="sauvegarderInfos()">Enregistrer</button>
+      <button class="btn-save" id="btn-save-infos" onclick="sauvegarderInfos()">Enregistrer</button>
       <div id="msg-infos" class="msg"></div>
     </div>
   </div>
@@ -187,18 +187,18 @@
   <div class="card">
     <div class="card-header">
       <div class="card-icon">🔒</div>
-      <div class="card-title">Changer le mot de passe</div>
+      <div class="card-title" id="profil-pwd-title">Changer le mot de passe</div>
     </div>
     <div class="card-body">
       <div class="form-group">
-        <label for="pwd-nouveau">Nouveau mot de passe</label>
+        <label for="pwd-nouveau" id="label-pwd-new">Nouveau mot de passe</label>
         <input type="password" id="pwd-nouveau" placeholder="8 caractères minimum"/>
       </div>
       <div class="form-group">
-        <label for="pwd-confirmer">Confirmer le mot de passe</label>
+        <label for="pwd-confirmer" id="label-pwd-confirm">Confirmer le mot de passe</label>
         <input type="password" id="pwd-confirmer" placeholder="Répétez le mot de passe"/>
       </div>
-      <button class="btn-save" onclick="changerMotDePasse()">Mettre à jour</button>
+      <button class="btn-save" id="btn-save-pwd" onclick="changerMotDePasse()">Mettre à jour</button>
       <div id="msg-pwd" class="msg"></div>
     </div>
   </div>
@@ -207,14 +207,14 @@
   <div class="card">
     <div class="card-header">
       <div class="card-icon">⭐</div>
-      <div class="card-title">Abonnement</div>
+      <div class="card-title" id="profil-abo-title">Abonnement</div>
     </div>
     <div class="card-body">
       <div class="abonnement-placeholder">
         <div class="icon">🍾</div>
-        <h3>Plan Gratuit</h3>
-        <p>Vous bénéficiez actuellement de l'accès gratuit à VINUP.<br>Des formules premium avec des fonctionnalités avancées seront disponibles prochainement.</p>
-        <div class="plan-gratuit">✓ Accès complet gratuit</div>
+        <h3 id="profil-abo-plan">Plan Gratuit</h3>
+        <p id="profil-abo-desc">Vous bénéficiez actuellement de l'accès gratuit à VINUP. Des formules premium avec des fonctionnalités avancées seront disponibles prochainement.</p>
+        <div class="plan-gratuit" id="profil-abo-badge">✓ Accès complet gratuit</div>
       </div>
     </div>
   </div>
@@ -223,13 +223,11 @@
   <div class="card danger-card">
     <div class="card-header">
       <div class="card-icon">⚠️</div>
-      <div class="card-title">Zone de danger</div>
+      <div class="card-title" id="profil-danger-title">Zone de danger</div>
     </div>
     <div class="card-body">
-      <p style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">
-        La suppression de votre compte est <strong>irréversible</strong>. Toutes vos données (vins, dégustations, plan de cave) seront définitivement supprimées.
-      </p>
-      <button class="btn-danger" onclick="demanderSuppression()">Supprimer mon compte</button>
+      <p id="profil-danger-desc" style="font-size:0.85rem;color:var(--muted);margin-bottom:1rem;line-height:1.6">La suppression de votre compte est irréversible. Toutes vos données (vins, dégustations, plan de cave) seront définitivement supprimées.</p>
+      <button class="btn-danger" id="btn-danger-suppr" onclick="demanderSuppression()">Supprimer mon compte</button>
       <div id="msg-suppr" class="msg"></div>
     </div>
   </div>
@@ -264,7 +262,37 @@ const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
     btn.addEventListener('click', () => setLang(l));
     wrap.appendChild(btn);
   });
+  appliquerTraductionsProfil();
 })();
+
+function appliquerTraductionsProfil() {
+  const tf = (id, key) => { const el = document.getElementById(id); if(el) el.textContent = t(key); };
+  document.title = 'Mon profil — VINUP';
+  tf('profil-badge-el',      'profil_badge');
+  tf('profil-title-el',      'profil_title');
+  tf('profil-badge-actif',   'profil_badge_actif');
+  tf('stat-bouteilles-label','profil_stat_bouteilles');
+  tf('stat-references-label','profil_stat_references');
+  tf('stat-degustations-label','profil_stat_degustations');
+  tf('profil-infos-title',   'profil_infos_title');
+  tf('label-prenom',         'profil_prenom');
+  tf('label-email',          'profil_email');
+  tf('btn-save-infos',       'profil_btn_save');
+  tf('profil-pwd-title',     'profil_pwd_title');
+  tf('label-pwd-new',        'profil_pwd_new');
+  tf('label-pwd-confirm',    'profil_pwd_confirm');
+  tf('btn-save-pwd',         'profil_pwd_btn');
+  tf('profil-abo-title',     'profil_abo_title');
+  tf('profil-abo-plan',      'profil_abo_plan');
+  tf('profil-abo-desc',      'profil_abo_desc');
+  tf('profil-abo-badge',     'profil_abo_badge');
+  tf('profil-danger-title',  'profil_danger_title');
+  tf('profil-danger-desc',   'profil_danger_desc');
+  tf('btn-danger-suppr',     'profil_danger_btn');
+  tf('btn-back-profil',      'profil_back');
+  const pwdPh = document.getElementById('pwd-nouveau');
+  if(pwdPh) pwdPh.placeholder = t('profil_pwd_placeholder');
+}
 
 // ── INIT ──
 let userActuel = null;
@@ -282,7 +310,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
 async function initialiserProfil(user) {
   const prenom = user.user_metadata?.prenom || '';
   const email  = user.email || '';
-  const depuis = new Date(user.created_at).toLocaleDateString('fr-CH', { month: 'long', year: 'numeric' });
+  const depuis = new Date(user.created_at).toLocaleDateString(getLang() === 'de' ? 'de-CH' : getLang() === 'en' ? 'en-GB' : 'fr-CH', { month: 'long', year: 'numeric' });
 
   // Avatar initiale
   const initiale = prenom ? prenom[0].toUpperCase() : email[0].toUpperCase();
@@ -291,7 +319,7 @@ async function initialiserProfil(user) {
   // Infos affichées
   document.getElementById('profil-nom-affichage').textContent = prenom || 'Utilisateur';
   document.getElementById('profil-email-affichage').textContent = email;
-  document.getElementById('profil-depuis').textContent = `Membre depuis ${depuis}`;
+  document.getElementById('profil-depuis').textContent = `${t('profil_depuis')} ${depuis}`;
 
   // Pré-remplir le formulaire
   document.getElementById('edit-prenom').value = prenom;
@@ -325,7 +353,7 @@ async function sauvegarderInfos() {
   msg.className = 'msg';
 
   if (!prenom || !email) {
-    msg.textContent = 'Veuillez remplir tous les champs.';
+    msg.textContent = t('profil_err_fields');
     msg.className = 'msg err'; return;
   }
 
@@ -338,7 +366,7 @@ async function sauvegarderInfos() {
     msg.className = 'msg err'; return;
   }
 
-  msg.textContent = '✅ Informations mises à jour !' + (email !== userActuel.email ? ' Vérifiez votre nouvelle adresse e-mail.' : '');
+  msg.textContent = t('profil_ok_infos') + (email !== userActuel.email ? t('profil_ok_email') : '');
   msg.className = 'msg ok';
 
   // Mettre à jour l'affichage
@@ -359,11 +387,11 @@ async function changerMotDePasse() {
     msg.className = 'msg err'; return;
   }
   if (pwd1.length < 8) {
-    msg.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
+    msg.textContent = t('profil_err_pwd_min');
     msg.className = 'msg err'; return;
   }
   if (pwd1 !== pwd2) {
-    msg.textContent = 'Les mots de passe ne correspondent pas.';
+    msg.textContent = t('profil_err_pwd_match');
     msg.className = 'msg err'; return;
   }
 
@@ -373,7 +401,7 @@ async function changerMotDePasse() {
     msg.className = 'msg err'; return;
   }
 
-  msg.textContent = '✅ Mot de passe mis à jour avec succès !';
+  msg.textContent = t('profil_ok_pwd');
   msg.className = 'msg ok';
   document.getElementById('pwd-nouveau').value = '';
   document.getElementById('pwd-confirmer').value = '';
@@ -382,10 +410,10 @@ async function changerMotDePasse() {
 // ── SUPPRIMER COMPTE ──
 async function demanderSuppression() {
   const msg = document.getElementById('msg-suppr');
-  const confirm1 = confirm('Êtes-vous sûr de vouloir supprimer votre compte ?\n\nToutes vos données seront définitivement perdues.');
+  const confirm1 = confirm(t('profil_confirm1'));
   if (!confirm1) return;
 
-  const confirm2 = confirm('Cette action est IRRÉVERSIBLE.\n\nConfirmez-vous la suppression définitive de votre compte VINUP ?');
+  const confirm2 = confirm(t('profil_confirm2'));
   if (!confirm2) return;
 
   // Supprimer toutes les données de l'utilisateur
@@ -398,7 +426,7 @@ async function demanderSuppression() {
 
     // Déconnexion (la suppression du compte auth nécessite un Edge Function en prod)
     await sb.auth.signOut();
-    alert('Votre compte et toutes vos données ont été supprimés. Au revoir !');
+    alert(t('profil_bye'));
     window.location.href = 'index.html';
   } catch(err) {
     msg.textContent = 'Erreur lors de la suppression : ' + err.message;

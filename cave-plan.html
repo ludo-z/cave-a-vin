@@ -812,9 +812,19 @@ function ouvrirChoisirVin(meubleId, col, row) {
 function filtrerVins() {
   const q = document.getElementById('vin-search-input').value.toLowerCase();
   const liste = document.getElementById('vin-liste');
-  const filtres = bouteilles.filter(b =>
-    (!q || (b.nom||'').toLowerCase().includes(q) || (b.chateau||'').toLowerCase().includes(q))
-  );
+
+  // Calculer le nombre de bouteilles déjà placées dans le plan pour chaque vin
+  const dejePlaces = {};
+  emplacements.forEach(e => {
+    if (e.bouteille_id) {
+      dejePlaces[e.bouteille_id] = (dejePlaces[e.bouteille_id] || 0) + 1;
+    }
+  });
+
+  const filtres = bouteilles.filter(b => {
+    const dispo = (b.quantite ?? 1) - (dejePlaces[b.id] || 0);
+    return dispo > 0 && (!q || (b.nom||'').toLowerCase().includes(q) || (b.chateau||'').toLowerCase().includes(q));
+  });
 
   if (filtres.length === 0) {
     liste.innerHTML = `<div style="padding:1.5rem;text-align:center;color:var(--muted);font-size:0.85rem">${t('plan_aucun_vin')}</div>`;
@@ -823,13 +833,15 @@ function filtrerVins() {
 
   liste.innerHTML = filtres.map(b => {
     const hex = COULEURS_HEX[b.couleur] || '#999';
+    const dispo = (b.quantite ?? 1) - (dejePlaces[b.id] || 0);
+    const total = b.quantite ?? 1;
     return `<div class="vin-item" onclick="placerBouteille('${b.id}')">
       <div class="vin-dot" style="background:${hex}"></div>
       <div>
         <div class="vin-nom">${b.nom}${b.millesime ? ` <span style="color:var(--bordeaux)">${b.millesime}</span>` : ''}</div>
         <div class="vin-detail">${[b.chateau, b.region, b.couleur].filter(Boolean).join(' · ')}</div>
       </div>
-      <div class="vin-qty">${b.quantite ?? 1} btl</div>
+      <div class="vin-qty" style="color:${dispo < total ? 'var(--bordeaux)' : 'inherit'}">${dispo}/${total} btl</div>
     </div>`;
   }).join('');
 }
@@ -838,6 +850,16 @@ async function placerBouteille(bouteilleId) {
   if (!caseSelectionnee) return;
   const { meubleId, col, row } = caseSelectionnee;
   const { data: { session } } = await sb.auth.getSession();
+
+  // Vérifier le stock disponible avant de placer
+  const bouteille = bouteilles.find(b => b.id === bouteilleId);
+  const dejePlaces = emplacements.filter(e => e.bouteille_id === bouteilleId).length;
+  const dispo = (bouteille?.quantite ?? 1) - dejePlaces;
+
+  if (dispo <= 0) {
+    alert(`Toutes les bouteilles de "${bouteille?.nom}" sont déjà placées dans le plan.`);
+    return;
+  }
 
   const existant = trouverEmplacement(meubleId, col, row);
   if (existant) {
@@ -848,6 +870,18 @@ async function placerBouteille(bouteilleId) {
 
   fermerModal('modal-choisir-vin');
   await chargerTout();
+}
+
+// ── SYNC STOCK → PLAN ──
+// Appelé depuis cave.html après une dégustation pour retirer du plan si stock = 0
+async function syncStockApresDegustation(bouteilleId, nouvelleQte) {
+  if (nouvelleQte > 0) return;
+  // Stock épuisé → retirer toutes les cases du plan pour ce vin
+  const { error } = await sb
+    .from('cave_emplacements')
+    .update({ bouteille_id: null })
+    .eq('bouteille_id', bouteilleId);
+  if (!error) await chargerTout();
 }
 
 // ── DÉTAIL CASE ──

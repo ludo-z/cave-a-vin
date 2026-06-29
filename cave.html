@@ -2295,6 +2295,27 @@ async function enregistrerDegustation() {
   const nvQte = Math.max(0, (bouteilleEnDegustation.quantite ?? 1) - nb);
   await sb.from('bouteilles').update({ quantite: nvQte }).eq('id', bouteilleEnDegustation.id);
 
+  // Si stock épuisé ou réduit → retirer les emplacements en trop du plan de cave
+  if (nvQte === 0) {
+    // Stock à zéro → vider toutes les cases du plan pour ce vin
+    await sb.from('cave_emplacements')
+      .update({ bouteille_id: null })
+      .eq('bouteille_id', bouteilleEnDegustation.id);
+  } else {
+    // Stock réduit → vérifier si on a plus de cases que de stock
+    const { data: empl } = await sb.from('cave_emplacements')
+      .select('id')
+      .eq('bouteille_id', bouteilleEnDegustation.id)
+      .order('id', { ascending: false });
+    if (empl && empl.length > nvQte) {
+      // Supprimer les emplacements en trop (les plus récents)
+      const aSupprimer = empl.slice(0, empl.length - nvQte);
+      for (const e of aSupprimer) {
+        await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', e.id);
+      }
+    }
+  }
+
   msg.textContent = `✅ Dégustation enregistrée ! Quantité restante : ${nvQte} bouteille${nvQte > 1 ? 's' : ''}`;
   msg.style.cssText = 'display:block;background:#f0fdf4;color:#2d6a4f;border-left:3px solid #52b788;padding:0.5rem 0.75rem;border-radius:1px;font-size:0.82rem;margin-top:0.5rem';
 

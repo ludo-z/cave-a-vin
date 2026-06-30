@@ -910,12 +910,14 @@ function renderMaturite(b) {
 }
 
 // ── À BOIRE BIENTÔT ──
+// Affiche les vins dont la fenêtre de maturité se termine cette année ou l'année prochaine
+// (et qui sont déjà entrés dans leur période de maturité, donc prêts à boire)
 function renderBientot(b) {
   const annee = new Date().getFullYear();
   const bientot = b.filter(x =>
     x.annee_maturite_debut && x.annee_maturite_fin &&
-    annee >= x.annee_maturite_debut &&
-    annee <= x.annee_maturite_fin + 1
+    annee >= x.annee_maturite_debut &&           // déjà prêt à boire
+    x.annee_maturite_fin <= annee + 1             // fenêtre qui se termine bientôt
   ).sort((a,b) => (a.annee_maturite_fin||9999) - (b.annee_maturite_fin||9999));
 
   if (bientot.length === 0) {

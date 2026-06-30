@@ -1400,10 +1400,38 @@ async function seDeconnecter() {
 }
 
 // ── CHARGEMENT ──
+async function getPhotoUrl(path) {
+  if (!path) return null;
+  if (path.includes('token=')) {
+    try {
+      const url = new URL(path);
+      const token = url.searchParams.get('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && (payload.exp - Date.now()/1000) > 3600) return path;
+      }
+    } catch(e) {}
+  }
+  let storagePath = path;
+  if (path.includes('/object/sign/photos-etiquettes/')) {
+    storagePath = decodeURIComponent(path.split('/object/sign/photos-etiquettes/')[1].split('?')[0]);
+  } else if (path.includes('/object/public/photos-etiquettes/')) {
+    storagePath = decodeURIComponent(path.split('/object/public/photos-etiquettes/')[1]);
+  }
+  const { data, error } = await sb.storage.from('photos-etiquettes').createSignedUrl(storagePath, 60 * 60 * 24 * 365);
+  if (error) { console.error('Erreur signed URL:', error); return null; }
+  return data?.signedUrl || null;
+}
+
 async function chargerBouteilles() {
   const { data, error } = await sb.from('bouteilles').select('*').order('nom');
   if (error) return console.error(error);
-  toutesLesBouteilles = data || [];
+  toutesLesBouteilles = await Promise.all((data || []).map(async b => {
+    if (b.photo_url) {
+      b._signedUrl = await getPhotoUrl(b.photo_url);
+    }
+    return b;
+  }));
   filtrer();
   mettreAJourStats();
 }
@@ -1464,8 +1492,9 @@ function rendreCartes() {
   container.innerHTML = bouteillesFiltrees.map(b => {
     const cc = `cc-${b.couleur || 'autre'}`;
     const maturiteHTML = maturiteBar(b);
-    const photoHTML = b.photo_url
-      ? `<img class="carte-photo" src="${b.photo_url}" alt="${b.nom}" loading="lazy"/>`
+    const photoURL = b._signedUrl || b.photo_url || null;
+    const photoHTML = photoURL
+      ? `<img class="carte-photo" src="${photoURL}" alt="${b.nom}" loading="lazy"/>`
       : `<div class="carte-photo-placeholder">🍷</div>`;
     return `
     <div class="carte-vin" onclick="voirDetail('${b.id}')">
@@ -1550,7 +1579,7 @@ function voirDetail(id) {
   const maturite = b.annee_maturite_debut && b.annee_maturite_fin
     ? `${b.annee_maturite_debut} – ${b.annee_maturite_fin}` : '—';
   body.innerHTML = `
-    ${b.photo_url ? `<img class="detail-img" src="${b.photo_url}" alt="${b.nom}"/>` : ''}
+    ${(b._signedUrl || b.photo_url) ? `<img class="detail-img" src="${b._signedUrl || b.photo_url}" alt="${b.nom}"/>` : ''}
     <div class="detail-grid">
       <div class="detail-section"><div class="detail-label">Nom</div><div class="detail-value">${b.nom || '—'}</div></div>
       <div class="detail-section"><div class="detail-label">Château / Domaine</div><div class="detail-value">${b.chateau || '—'}</div></div>
@@ -1629,7 +1658,7 @@ function ouvrirEdition(id) {
   if (b.photo_url) {
     wrapEdit.style.padding = '0';
     wrapEdit.style.border = 'none';
-    wrapEdit.innerHTML = `<img src="${b.photo_url}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;display:block;cursor:pointer" title="Cliquer pour changer" onclick="document.getElementById('f-photo').click()"/>`;
+    wrapEdit.innerHTML = `<img src="${b._signedUrl || b.photo_url}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;display:block;cursor:pointer" title="Cliquer pour changer" onclick="document.getElementById('f-photo').click()"/>`;
   } else {
     wrapEdit.style.padding = '0.85rem';
     wrapEdit.style.border = '2px dashed var(--stone)';
@@ -1793,8 +1822,9 @@ async function sauvegarder() {
       btn.disabled = false; btn.textContent = t('form_btn_save');
       return;
     }
-    const { data: urlData } = sb.storage.from('photos-etiquettes').getPublicUrl(path);
-    photo_url = urlData.publicUrl;
+    const { data: urlData, error: urlErr } = await sb.storage.from('photos-etiquettes').createSignedUrl(path, 60 * 60 * 24 * 365);
+    if (urlErr) { showMsgForm('Erreur URL photo.', 'error'); btn.disabled = false; btn.textContent = t('form_btn_save'); return; }
+    photo_url = urlData.signedUrl;
   }
 
   const payload = {

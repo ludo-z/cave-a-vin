@@ -493,6 +493,12 @@
       <div id="valeur-couleur-wrap"></div>
     </div>
 
+    <!-- ── PAYS ── -->
+    <div class="card col-6">
+      <div class="card-title">🌍 Répartition par pays</div>
+      <div class="region-list" id="pays-list"></div>
+    </div>
+
     <!-- ── RÉGIONS ── -->
     <div class="card col-6">
       <div class="card-title" data-t="dash_regions">Répartition par région</div>
@@ -641,6 +647,7 @@ sb.auth.onAuthStateChange(async (event, session) => {
     renderCouleurs(bouteilles);
     renderPhases(bouteilles);
     renderValeurCouleur(bouteilles);
+    renderPays(bouteilles);
     renderRegions(bouteilles);
     renderTimeline(bouteilles);
     renderMaturite(bouteilles);
@@ -803,6 +810,48 @@ function renderValeurCouleur(b) {
 }
 
 // ── RÉGIONS ──
+function renderPays(b) {
+  const groups = {};
+  b.forEach(x => {
+    const p = x.pays || 'Non renseigné';
+    if (!groups[p]) groups[p] = 0;
+    groups[p] += (x.quantite || 1);
+  });
+
+  const sorted = Object.entries(groups).sort((a,b) => b[1]-a[1]);
+  const max = sorted[0]?.[1] || 1;
+  const el = document.getElementById('pays-list');
+
+  if (sorted.length === 0) {
+    el.innerHTML = `<div class="empty"><p>Aucun pays renseigné</p></div>`;
+    return;
+  }
+
+  const FLAGS = {
+    'France':'🇫🇷','Italie':'🇮🇹','Espagne':'🇪🇸','Portugal':'🇵🇹',
+    'Allemagne':'🇩🇪','Autriche':'🇦🇹','Suisse':'🇨🇭','Grèce':'🇬🇷',
+    'Hongrie':'🇭🇺','Roumanie':'🇷🇴','Bulgarie':'🇧🇬','Croatie':'🇭🇷',
+    'Slovénie':'🇸🇮','Géorgie':'🇬🇪','Liban':'🇱🇧','Israël':'🇮🇱',
+    'Maroc':'🇲🇦','Algérie':'🇩🇿','Tunisie':'🇹🇳','Afrique du Sud':'🇿🇦',
+    'États-Unis':'🇺🇸','Argentine':'🇦🇷','Chili':'🇨🇱','Australie':'🇦🇺',
+    'Nouvelle-Zélande':'🇳🇿','Uruguay':'🇺🇾','Brésil':'🇧🇷',
+    'Chine':'🇨🇳','Japon':'🇯🇵','Canada':'🇨🇦',
+  };
+
+  el.innerHTML = sorted.map(([p, qty]) => {
+    const pct = Math.round((qty / max) * 100);
+    const flag = FLAGS[p] || '🌍';
+    return `
+    <div class="region-row">
+      <div class="region-nom" title="${p}">${flag} ${p}</div>
+      <div class="region-bar-wrap">
+        <div class="region-bar-track"><div class="region-bar-fill" style="width:${pct}%"></div></div>
+      </div>
+      <div class="region-count">${qty}</div>
+    </div>`;
+  }).join('');
+}
+
 function renderRegions(b) {
   const groups = {};
   b.forEach(x => {

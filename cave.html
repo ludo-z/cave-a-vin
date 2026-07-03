@@ -934,6 +934,23 @@
       <span class="search-icon">🔍</span>
       <input type="text" id="recherche" placeholder="Rechercher un vin, château, région…" oninput="filtrer()" data-t-ph="cave_search_placeholder"/>
     </div>
+    <select id="filtre-pays" onchange="filtrer()" style="min-width:140px">
+      <option value="">🌍 Tous les pays</option>
+      <option value="France">🇫🇷 France</option>
+      <option value="Italie">🇮🇹 Italie</option>
+      <option value="Espagne">🇪🇸 Espagne</option>
+      <option value="Portugal">🇵🇹 Portugal</option>
+      <option value="Allemagne">🇩🇪 Allemagne</option>
+      <option value="Autriche">🇦🇹 Autriche</option>
+      <option value="Suisse">🇨🇭 Suisse</option>
+      <option value="Géorgie">🇬🇪 Géorgie</option>
+      <option value="Afrique du Sud">🇿🇦 Afrique du Sud</option>
+      <option value="États-Unis">🇺🇸 États-Unis</option>
+      <option value="Argentine">🇦🇷 Argentine</option>
+      <option value="Chili">🇨🇱 Chili</option>
+      <option value="Australie">🇦🇺 Australie</option>
+      <option value="Nouvelle-Zélande">🇳🇿 Nouvelle-Zélande</option>
+    </select>
     <select id="filtre-couleur" onchange="filtrer()">
       <option value="" data-t="cave_filter_all_colors">Toutes les couleurs</option>
       <option value="rouge">Rouge</option>
@@ -1067,6 +1084,42 @@
         <div class="form-group">
           <label data-t="form_millesime">Millésime</label>
           <input type="number" id="f-millesime" class="champ-ia" placeholder="2019" min="1900" max="2099"/>
+        </div>
+        <div class="form-group">
+          <label data-t="form_pays">Pays</label>
+          <select id="f-pays">
+          <option value="">— choisir —</option>
+          <option value="France">🇫🇷 France</option>
+          <option value="Italie">🇮🇹 Italie</option>
+          <option value="Espagne">🇪🇸 Espagne</option>
+          <option value="Portugal">🇵🇹 Portugal</option>
+          <option value="Allemagne">🇩🇪 Allemagne</option>
+          <option value="Autriche">🇦🇹 Autriche</option>
+          <option value="Suisse">🇨🇭 Suisse</option>
+          <option value="Grèce">🇬🇷 Grèce</option>
+          <option value="Hongrie">🇭🇺 Hongrie</option>
+          <option value="Roumanie">🇷🇴 Roumanie</option>
+          <option value="Bulgarie">🇧🇬 Bulgarie</option>
+          <option value="Croatie">🇭🇷 Croatie</option>
+          <option value="Slovénie">🇸🇮 Slovénie</option>
+          <option value="Géorgie">🇬🇪 Géorgie</option>
+          <option value="Liban">🇱🇧 Liban</option>
+          <option value="Israël">🇮🇱 Israël</option>
+          <option value="Maroc">🇲🇦 Maroc</option>
+          <option value="Algérie">🇩🇿 Algérie</option>
+          <option value="Tunisie">🇹🇳 Tunisie</option>
+          <option value="Afrique du Sud">🇿🇦 Afrique du Sud</option>
+          <option value="États-Unis">🇺🇸 États-Unis</option>
+          <option value="Argentine">🇦🇷 Argentine</option>
+          <option value="Chili">🇨🇱 Chili</option>
+          <option value="Australie">🇦🇺 Australie</option>
+          <option value="Nouvelle-Zélande">🇳🇿 Nouvelle-Zélande</option>
+          <option value="Uruguay">🇺🇾 Uruguay</option>
+          <option value="Brésil">🇧🇷 Brésil</option>
+          <option value="Chine">🇨🇳 Chine</option>
+          <option value="Japon">🇯🇵 Japon</option>
+          <option value="Canada">🇨🇦 Canada</option>
+          </select>
         </div>
         <div class="form-group">
           <label data-t="form_region">Région</label>
@@ -1450,13 +1503,16 @@ function mettreAJourStats() {
 // ── FILTRES ──
 function filtrer() {
   const recherche = document.getElementById('recherche').value.toLowerCase();
+  const pays      = document.getElementById('filtre-pays').value;
   const couleur   = document.getElementById('filtre-couleur').value;
   const tri       = document.getElementById('filtre-tri').value;
 
   bouteillesFiltrees = toutesLesBouteilles.filter(b => {
+    if (pays && b.pays !== pays) return false;
     const matchRecherche = !recherche ||
       (b.nom||'').toLowerCase().includes(recherche) ||
       (b.chateau||'').toLowerCase().includes(recherche) ||
+      (b.pays||'').toLowerCase().includes(recherche) ||
       (b.region||'').toLowerCase().includes(recherche) ||
       (b.appellation||'').toLowerCase().includes(recherche);
     const matchCouleur = !couleur || b.couleur === couleur;
@@ -1505,6 +1561,7 @@ function rendreCartes() {
         ${b.chateau ? `<div class="carte-chateau">${b.chateau}</div>` : ''}
         <div class="carte-meta">
           ${b.millesime ? `<span class="tag tag-millesime">${b.millesime}</span>` : ''}
+          ${b.pays     ? `<span class="tag">🌍 ${b.pays}</span>` : ''}
           ${b.region    ? `<span class="tag">${b.region}</span>` : ''}
           ${b.couleur   ? `<span class="tag">${b.couleur}</span>` : ''}
           ${b.contenance && b.contenance != 75 ? `<span class="tag">${b.contenance} cl</span>` : ''}
@@ -1615,6 +1672,7 @@ function ouvrirAjout() {
     if (el) el.value = '';
   });
   document.getElementById('f-couleur').value = '';
+  document.getElementById('f-pays').value = '';
   document.getElementById('f-contenance').value = '75';
   document.getElementById('ia-query').value = '';
   document.getElementById('btn-ia-clear').style.display = 'none';
@@ -1645,6 +1703,7 @@ function ouvrirEdition(id) {
   document.getElementById('f-chateau').value        = b.chateau || '';
   document.getElementById('f-couleur').value        = b.couleur || '';
   document.getElementById('f-millesime').value      = b.millesime || '';
+  document.getElementById('f-pays').value           = b.pays || '';
   document.getElementById('f-region').value         = b.region || '';
   document.getElementById('f-appellation').value    = b.appellation || '';
   document.getElementById('f-quantite').value       = b.quantite ?? 1;
@@ -1756,6 +1815,7 @@ async function analyserPhotoIA() {
       'f-nom':            vin.nom,
       'f-chateau':        vin.chateau,
       'f-millesime':      vin.millesime,
+      'f-pays':           vin.pays,
       'f-region':         vin.region,
       'f-appellation':    vin.appellation,
       'f-maturite-debut': vin.annee_maturite_debut,
@@ -1832,6 +1892,7 @@ async function sauvegarder() {
     chateau:              document.getElementById('f-chateau').value.trim() || null,
     couleur,
     millesime:            parseInt(document.getElementById('f-millesime').value) || null,
+    pays:                 document.getElementById('f-pays').value || null,
     region:               document.getElementById('f-region').value.trim() || null,
     appellation:          document.getElementById('f-appellation').value.trim() || null,
     quantite:             parseInt(document.getElementById('f-quantite').value) || 1,
@@ -2131,7 +2192,7 @@ function afficherSuggestions(vins) {
         ${v.chateau ? `<span style="color:var(--muted);font-size:0.8rem"> — ${v.chateau}</span>` : ''}
       </div>
       <div class="suggestion-detail">
-        ${[v.region, v.appellation, v.couleur].filter(Boolean).join(' · ')}
+        ${[v.pays, v.region, v.appellation, v.couleur].filter(Boolean).join(' · ')}
       </div>
     </div>`).join('');
 

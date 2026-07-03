@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sommelier IA — VINUP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux:#6B1A2A; --bordeaux-dk:#4A1020; --gold:#C9A84C;
+      --cream:#F7F3ED; --stone:#E8E0D5; --ink:#1C1410;
+      --muted:#7A6E66; --bg:#F2EDE6; --white:#FFFFFF;
+    }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--ink); min-height:100vh; display:flex; flex-direction:column; }
+
+    /* ── HEADER ── */
+    header {
+      background:var(--bordeaux-dk); padding:0 2rem;
+      display:flex; align-items:center; justify-content:space-between;
+      height:64px; position:sticky; top:0; z-index:100;
+      box-shadow:0 2px 20px rgba(0,0,0,0.3); flex-shrink:0;
+    }
+    .header-logo { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:300; color:var(--cream); letter-spacing:0.05em; text-decoration:none; }
+    .header-logo span { color:var(--gold); font-style:italic; }
+    nav { display:flex; gap:0.5rem; }
+    .nav-btn { background:none; border:none; padding:0.5rem 0.85rem; color:rgba(247,243,237,0.7); font-family:'Inter',sans-serif; font-size:0.78rem; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; text-decoration:none; border-bottom:2px solid transparent; transition:all 0.2s; }
+    .nav-btn:hover { color:var(--cream); background:rgba(255,255,255,0.08); }
+    .nav-btn.active { color:var(--gold); border-bottom:2px solid var(--gold); }
+    .header-right { display:flex; align-items:center; gap:1rem; }
+    #lang-selector { display:flex; gap:0.25rem; }
+    #user-prenom { font-size:0.78rem; color:rgba(247,243,237,0.6); }
+    .btn-deconnexion { background:none; border:1px solid rgba(201,168,76,0.4); color:var(--gold); padding:0.4rem 0.85rem; font-family:'Inter',sans-serif; font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; border-radius:1px; transition:all 0.2s; }
+    .btn-deconnexion:hover { background:rgba(201,168,76,0.1); }
+    .btn-profil { background:none; border:1px solid rgba(201,168,76,0.4); color:var(--gold); padding:0.4rem 0.7rem; border-radius:1px; text-decoration:none; font-size:0.9rem; transition:all 0.2s; display:inline-flex; align-items:center; }
+    .btn-profil:hover { background:rgba(201,168,76,0.1); }
+
+    /* ── LAYOUT CHAT ── */
+    .sommelier-wrap {
+      flex:1; display:flex; flex-direction:column;
+      max-width:860px; width:100%; margin:0 auto;
+      padding:2rem 2rem 0; gap:1rem;
+    }
+
+    /* ── EN-TÊTE ── */
+    .sommelier-header {
+      text-align:center; padding:1.5rem 0 0.5rem;
+    }
+    .sommelier-avatar {
+      width:64px; height:64px; border-radius:50%;
+      background:linear-gradient(135deg, var(--bordeaux), var(--bordeaux-dk));
+      display:flex; align-items:center; justify-content:center;
+      font-size:1.8rem; margin:0 auto 0.75rem;
+      border:2px solid rgba(201,168,76,0.3);
+      box-shadow:0 4px 16px rgba(107,26,42,0.3);
+    }
+    .sommelier-header h1 { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300; color:var(--ink); }
+    .sommelier-header p { font-size:0.82rem; color:var(--muted); margin-top:0.3rem; }
+
+    /* ── SUGGESTIONS RAPIDES ── */
+    .suggestions { display:flex; flex-wrap:wrap; gap:0.5rem; justify-content:center; padding:0.5rem 0; }
+    .suggestion-chip {
+      background:var(--white); border:1px solid var(--stone);
+      border-radius:20px; padding:0.45rem 1rem;
+      font-size:0.78rem; color:var(--muted); cursor:pointer;
+      transition:all 0.15s; white-space:nowrap;
+    }
+    .suggestion-chip:hover { border-color:var(--bordeaux); color:var(--bordeaux); background:rgba(107,26,42,0.04); }
+
+    /* ── CHAT ── */
+    .chat-container {
+      flex:1; background:var(--white); border-radius:2px;
+      box-shadow:0 1px 4px rgba(0,0,0,0.06);
+      display:flex; flex-direction:column;
+      min-height:0; overflow:hidden;
+    }
+    .chat-messages {
+      flex:1; overflow-y:auto; padding:1.5rem;
+      display:flex; flex-direction:column; gap:1rem;
+      -webkit-overflow-scrolling:touch;
+    }
+    .msg-wrap { display:flex; gap:0.75rem; align-items:flex-start; }
+    .msg-wrap.user { flex-direction:row-reverse; }
+    .msg-avatar {
+      width:32px; height:32px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center; font-size:0.9rem;
+    }
+    .msg-avatar.ai { background:linear-gradient(135deg,var(--bordeaux),var(--bordeaux-dk)); color:var(--gold); }
+    .msg-avatar.user { background:var(--stone); color:var(--muted); }
+    .msg-bubble {
+      max-width:78%; padding:0.9rem 1.1rem; border-radius:2px;
+      font-size:0.88rem; line-height:1.65;
+    }
+    .msg-bubble.ai {
+      background:var(--bg); color:var(--ink);
+      border-left:3px solid var(--bordeaux);
+    }
+    .msg-bubble.user {
+      background:var(--bordeaux); color:var(--cream);
+      border-right:3px solid var(--gold);
+    }
+    .msg-bubble strong { font-weight:600; }
+    .msg-bubble ul { margin:0.5rem 0 0 1rem; }
+    .msg-bubble li { margin-bottom:0.3rem; }
+    .msg-bubble p { margin-bottom:0.5rem; }
+    .msg-bubble p:last-child { margin-bottom:0; }
+
+    /* Typing indicator */
+    .typing { display:flex; gap:4px; align-items:center; padding:0.75rem 1rem; }
+    .typing-dot { width:6px; height:6px; border-radius:50%; background:var(--muted); animation:bounce 1.2s infinite; }
+    .typing-dot:nth-child(2) { animation-delay:0.2s; }
+    .typing-dot:nth-child(3) { animation-delay:0.4s; }
+    @keyframes bounce { 0%,60%,100%{transform:translateY(0)} 30%{transform:translateY(-6px)} }
+
+    /* ── INPUT ── */
+    .chat-input-wrap {
+      padding:1rem 1.25rem;
+      border-top:1px solid var(--stone);
+      display:flex; gap:0.75rem; align-items:flex-end;
+      background:var(--white);
+    }
+    #chat-input {
+      flex:1; padding:0.75rem 1rem; border:1px solid var(--stone);
+      border-radius:1px; font-family:'Inter',sans-serif; font-size:0.9rem;
+      color:var(--ink); outline:none; resize:none; min-height:44px; max-height:120px;
+      transition:border-color 0.2s, box-shadow 0.2s; line-height:1.5;
+    }
+    #chat-input:focus { border-color:var(--bordeaux); box-shadow:0 0 0 3px rgba(107,26,42,0.06); }
+    .btn-send {
+      padding:0.75rem 1.25rem; background:var(--bordeaux); color:white;
+      border:none; border-radius:1px; font-family:'Inter',sans-serif;
+      font-size:0.8rem; letter-spacing:0.1em; cursor:pointer;
+      transition:background 0.2s; flex-shrink:0; height:44px;
+    }
+    .btn-send:hover { background:var(--bordeaux-dk); }
+    .btn-send:disabled { opacity:0.5; cursor:not-allowed; }
+
+    /* ── STATS MINI (contexte cave) ── */
+    .cave-context {
+      background:rgba(107,26,42,0.04); border:1px solid rgba(107,26,42,0.1);
+      border-radius:2px; padding:0.6rem 1rem;
+      display:flex; align-items:center; gap:1rem; flex-wrap:wrap;
+      font-size:0.72rem; color:var(--muted);
+    }
+    .cave-context span { display:flex; align-items:center; gap:0.3rem; }
+    .cave-context strong { color:var(--bordeaux); }
+
+    /* ── BTN RESET ── */
+    .btn-reset {
+      background:none; border:none; color:var(--muted); font-size:0.72rem;
+      cursor:pointer; letter-spacing:0.08em; text-transform:uppercase;
+      padding:0.3rem 0; transition:color 0.2s;
+    }
+    .btn-reset:hover { color:var(--bordeaux); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width:768px) {
+      nav { display:none !important; }
+      .header-right > #lang-selector { display:none !important; }
+      .header-right > span#user-prenom { display:none !important; }
+      .header-right > .btn-deconnexion { display:none !important; }
+      .header-right > .btn-profil { display:none !important; }
+      .hamburger { display:flex; }
+      header { padding:0 1rem; }
+    }
+    @media (min-width:769px) {
+      .hamburger { display:none !important; }
+      .mobile-nav { visibility:hidden !important; opacity:0 !important; pointer-events:none !important; }
+    }
+    @media (max-width:600px) {
+      .sommelier-wrap { padding:1rem 0.75rem 0; }
+      .chat-messages { padding:1rem; }
+      .msg-bubble { max-width:88%; font-size:0.85rem; }
+      .suggestions { gap:0.4rem; }
+      .suggestion-chip { font-size:0.73rem; padding:0.4rem 0.75rem; }
+    }
+
+    /* ── HAMBURGER ── */
+    .hamburger { display:none; flex-direction:column; justify-content:space-between; width:24px; height:18px; cursor:pointer; background:none; border:none; padding:0; z-index:201; }
+    .hamburger span { display:block; height:2px; background:var(--cream); border-radius:2px; transition:all 0.3s ease; }
+    .hamburger.open span:nth-child(1) { transform:translateY(8px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-8px) rotate(-45deg); }
+    .mobile-nav { position:fixed; top:64px; left:0; right:0; background:var(--bordeaux-dk); z-index:9999; padding:0.5rem 0; box-shadow:0 8px 24px rgba(0,0,0,0.4); border-top:1px solid rgba(201,168,76,0.2); visibility:hidden; opacity:0; pointer-events:none; transition:opacity 0.2s,visibility 0.2s; }
+    .mobile-nav.open { visibility:visible; opacity:1; pointer-events:auto; }
+    .mobile-nav a, .mobile-nav .mobile-nav-deconnexion { display:flex; align-items:center; gap:0.75rem; padding:0.9rem 1.5rem; color:rgba(247,243,237,0.8); text-decoration:none; font-family:'Inter',sans-serif; font-size:0.9rem; letter-spacing:0.05em; transition:background 0.15s,color 0.15s; border:none; background:none; width:100%; cursor:pointer; }
+    .mobile-nav a:hover, .mobile-nav .mobile-nav-deconnexion:hover { background:rgba(255,255,255,0.06); color:var(--cream); }
+    .mobile-nav a.active { color:var(--gold); }
+    .mobile-nav .mobile-nav-separator { height:1px; background:rgba(201,168,76,0.15); margin:0.25rem 1rem; }
+    .mobile-nav .mobile-nav-prenom { padding:0.6rem 1.5rem; font-size:0.75rem; color:rgba(247,243,237,0.4); letter-spacing:0.1em; text-transform:uppercase; }
+    .mobile-nav-lang { display:flex; gap:0.5rem; padding:0.6rem 1.5rem; }
+    .mobile-nav-lang button { background:none; border:none; font-size:1.2rem; cursor:pointer; opacity:0.4; transition:opacity 0.2s; }
+    .mobile-nav-lang button.active-lang { opacity:1; }
+
+    /* ── BMC ── */
+    #bmc-btn { position:fixed; bottom:1.5rem; left:1.5rem; z-index:999; display:flex; flex-direction:column; align-items:flex-start; gap:0.4rem; }
+  </style>
+  <script src="lang.js"></script>
+</head>
+<body>
+<header>
+  <a href="cave.html" class="header-logo"><span>VINUP</span></a>
+  <nav>
+    <a class="nav-btn" href="cave.html" id="nav-mes-vins">🍾 Mes vins</a>
+    <a class="nav-btn" href="cave-plan.html" id="nav-plan">🗺️ Plan de cave</a>
+    <a class="nav-btn" href="dashboard.html" id="nav-dashboard">📊 Tableau de bord</a>
+    <a class="nav-btn active" href="sommelier.html" id="nav-sommelier">🧑‍🍳 Sommelier</a>
+    <a class="nav-btn" href="contact.html" id="nav-contact">✉️ Contact</a>
+  </nav>
+  <div class="header-right">
+    <div id="lang-selector"></div>
+    <span id="user-prenom"></span>
+    <a href="profil.html" class="btn-profil" title="Mon profil">👤</a>
+    <button class="btn-deconnexion" id="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
+  </div>
+</header>
+
+<!-- Menu mobile -->
+<div class="mobile-nav" id="mobile-nav">
+  <div class="mobile-nav-prenom" id="mobile-prenom"></div>
+  <div class="mobile-nav-separator"></div>
+  <a href="cave.html" id="mobile-nav-mes-vins">🍾 Mes vins</a>
+  <a href="cave-plan.html" id="mobile-nav-plan">🗺️ Plan de cave</a>
+  <a href="dashboard.html" id="mobile-nav-dashboard">📊 Tableau de bord</a>
+  <a href="sommelier.html" id="mobile-nav-sommelier" class="active">🧑‍🍳 Sommelier</a>
+  <a href="contact.html" id="mobile-nav-contact">✉️ Contact</a>
+  <a href="profil.html" id="mobile-nav-profil">👤 Mon profil</a>
+  <div class="mobile-nav-separator"></div>
+  <div class="mobile-nav-lang" id="mobile-lang-selector"></div>
+  <div class="mobile-nav-separator"></div>
+  <button class="mobile-nav-deconnexion" onclick="seDeconnecter()">🚪 Déconnexion</button>
+</div>
+
+<div class="sommelier-wrap">
+
+  <!-- En-tête -->
+  <div class="sommelier-header">
+    <div class="sommelier-avatar">🧑‍🍳</div>
+    <h1>Votre Sommelier IA</h1>
+    <p>Je connais votre cave et peux vous conseiller accords, maturité, valeur et recommandations personnalisées.</p>
+  </div>
+
+  <!-- Contexte cave -->
+  <div class="cave-context" id="cave-context">
+    <span>🔄 Chargement de votre cave...</span>
+  </div>
+
+  <!-- Suggestions rapides -->
+  <div class="suggestions" id="suggestions">
+    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">🍖 Accord avec un magret de canard</div>
+    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">📊 Analyse ma cave</div>
+    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">⏰ Quels vins boire bientôt ?</div>
+    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">💰 Valeur de ma cave</div>
+    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">🎁 Vin pour un anniversaire</div>
+    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">🌍 Diversité de ma cave</div>
+  </div>
+
+  <!-- Chat -->
+  <div class="chat-container">
+    <div class="chat-messages" id="chat-messages">
+      <!-- Message de bienvenue -->
+      <div class="msg-wrap">
+        <div class="msg-avatar ai">🧑‍🍳</div>
+        <div class="msg-bubble ai" id="welcome-msg">
+          Bonjour ! Je suis votre sommelier personnel. Je suis en train de consulter votre cave pour vous offrir des conseils personnalisés... 🍷
+        </div>
+      </div>
+    </div>
+    <div class="chat-input-wrap">
+      <textarea id="chat-input" placeholder="Posez votre question au sommelier..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <button class="btn-send" id="btn-send" onclick="envoyer()">Envoyer</button>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end;padding:0.5rem 0 1rem">
+    <button class="btn-reset" onclick="resetChat()">🗑 Nouvelle conversation</button>
+  </div>
+
+</div>
+
+<!-- BMC -->
+<div id="bmc-btn">
+  <div id="bmc-tooltip" style="background:var(--ink);color:var(--cream);font-family:'Inter',sans-serif;font-size:0.72rem;padding:0.4rem 0.75rem;border-radius:20px;white-space:nowrap;opacity:0;transform:translateY(4px);transition:opacity 0.2s,transform 0.2s;pointer-events:none">Soutenir le projet ☕</div>
+  <a href="https://buymeacoffee.com/ludoz" target="_blank" rel="noopener"
+    style="display:flex;align-items:center;gap:0.5rem;background:#FFDD00;color:#000;font-family:'Inter',sans-serif;font-size:0.82rem;font-weight:600;padding:0.6rem 1.1rem;border-radius:30px;text-decoration:none;box-shadow:0 4px 16px rgba(0,0,0,0.15);transition:transform 0.2s,box-shadow 0.2s"
+    onmouseenter="this.style.transform='scale(1.05)';this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';document.getElementById('bmc-tooltip').style.opacity='1';document.getElementById('bmc-tooltip').style.transform='translateY(0)'"
+    onmouseleave="this.style.transform='scale(1)';this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)';document.getElementById('bmc-tooltip').style.opacity='0';document.getElementById('bmc-tooltip').style.transform='translateY(4px)'"
+  >☕ <span>Buy me a coffee</span></a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let caveDonnees = [];
+let histoChat = [];
+let sessionUser = null;
+
+// ── LANGUE ──
+(function() {
+  const flags = { fr:'🇫🇷', en:'🇬🇧', de:'🇩🇪' };
+  const lang = getLang();
+  const wrap = document.getElementById('lang-selector');
+  if (wrap) {
+    ['fr','en','de'].forEach(l => {
+      const btn = document.createElement('button');
+      btn.textContent = flags[l];
+      btn.style.cssText = `background:none;border:none;cursor:pointer;font-size:1.1rem;opacity:${lang===l?1:0.4};transition:opacity 0.2s;padding:0.2rem`;
+      btn.addEventListener('click', () => setLang(l));
+      wrap.appendChild(btn);
+    });
+  }
+})();
+
+// ── AUTH + INIT ──
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'INITIAL_SESSION') {
+    if (!session) { window.location.href = 'index.html'; return; }
+    sessionUser = session.user;
+    const prenom = session.user.user_metadata?.prenom || '';
+    document.getElementById('user-prenom').textContent = prenom ? `Bonjour, ${prenom}` : '';
+    await chargerCave(session.user.id);
+    initHamburger();
+  } else if (event === 'SIGNED_OUT') {
+    window.location.href = 'index.html';
+  }
+});
+
+async function chargerCave(userId) {
+  const { data, error } = await sb.from('bouteilles').select('*').eq('user_id', userId);
+  if (error) return;
+  caveDonnees = data || [];
+  afficherContexteCave();
+  afficherMessageBienvenue();
+}
+
+function afficherContexteCave() {
+  const total = caveDonnees.reduce((s, b) => s + (b.quantite || 1), 0);
+  const refs  = caveDonnees.length;
+  const valeur = caveDonnees.reduce((s, b) => s + ((b.prix_achat || 0) * (b.quantite || 1)), 0);
+  const pays   = [...new Set(caveDonnees.filter(b => b.pays).map(b => b.pays))].length;
+  const annee  = new Date().getFullYear();
+  const bientot = caveDonnees.filter(b => b.annee_maturite_fin && b.annee_maturite_fin <= annee + 1 && b.annee_maturite_debut && b.annee_maturite_debut <= annee).length;
+
+  document.getElementById('cave-context').innerHTML = `
+    <span>🍾 <strong>${total}</strong> bouteilles</span>
+    <span>📋 <strong>${refs}</strong> références</span>
+    ${pays > 0 ? `<span>🌍 <strong>${pays}</strong> pays</span>` : ''}
+    ${valeur > 0 ? `<span>💰 <strong>${Math.round(valeur)} CHF</strong></span>` : ''}
+    ${bientot > 0 ? `<span>⏰ <strong>${bientot}</strong> à boire bientôt</span>` : ''}
+  `;
+}
+
+function afficherMessageBienvenue() {
+  const prenom = sessionUser?.user_metadata?.prenom || '';
+  const total  = caveDonnees.reduce((s, b) => s + (b.quantite || 1), 0);
+  const refs   = caveDonnees.length;
+  const annee  = new Date().getFullYear();
+  const bientot = caveDonnees.filter(b =>
+    b.annee_maturite_fin && b.annee_maturite_fin <= annee + 1 &&
+    b.annee_maturite_debut && b.annee_maturite_debut <= annee
+  );
+
+  let bienvenue = `Bonjour${prenom ? ' ' + prenom : ''} ! 🍷 J'ai analysé votre cave : **${total} bouteilles** réparties en **${refs} références**.`;
+
+  if (bientot.length > 0) {
+    bienvenue += `\n\nAttention : **${bientot.length} vin${bientot.length > 1 ? 's arrivent' : ' arrive'} à maturité** cette année ou l'an prochain. Posez-moi vos questions !`;
+  } else {
+    bienvenue += `\n\nJe suis prêt à vous conseiller sur les accords mets-vins, l'analyse de votre cave, la maturité de vos bouteilles et bien plus. Que puis-je faire pour vous ?`;
+  }
+
+  document.getElementById('welcome-msg').innerHTML = formatMsg(bienvenue);
+}
+
+// ── CHAT ──
+function construireCaveContexte() {
+  if (caveDonnees.length === 0) return "La cave est vide.";
+  const annee = new Date().getFullYear();
+  const lignes = caveDonnees.map(b => {
+    const parts = [
+      b.nom, b.chateau, b.millesime, b.couleur, b.pays, b.region,
+      b.appellation, `${b.quantite||1} btl`,
+      b.prix_achat ? `${b.prix_achat} CHF` : null,
+      b.annee_maturite_debut && b.annee_maturite_fin ? `maturité ${b.annee_maturite_debut}-${b.annee_maturite_fin}` : null,
+      b.plats_accords ? `accords: ${b.plats_accords}` : null,
+    ].filter(Boolean);
+    return '- ' + parts.join(' | ');
+  });
+  return lignes.join('\n');
+}
+
+async function envoyer() {
+  const input = document.getElementById('chat-input');
+  const msg   = input.value.trim();
+  if (!msg) return;
+
+  ajouterMessage('user', msg);
+  input.value = '';
+  input.style.height = 'auto';
+  document.getElementById('btn-send').disabled = true;
+
+  histoChat.push({ role: 'user', content: msg });
+
+  // Indicateur de frappe
+  const typingId = ajouterTyping();
+
+  try {
+    const { data: { session } } = await sb.auth.getSession();
+    const systemPrompt = `Tu es un sommelier expert et passionné qui conseille l'utilisateur sur sa cave à vin personnelle.
+
+CAVE DE L'UTILISATEUR (${caveDonnees.length} références, ${caveDonnees.reduce((s,b)=>s+(b.quantite||1),0)} bouteilles) :
+${construireCaveContexte()}
+
+ANNÉE ACTUELLE : ${new Date().getFullYear()}
+
+TES COMPÉTENCES :
+- Accords mets-vins personnalisés basés sur les bouteilles disponibles
+- Analyse de la diversité et des manques de la cave
+- Recommandations de vins à ouvrir selon l'occasion
+- Estimation de valeur et évolution des prix
+- Conseil sur la maturité optimale et les vins à boire maintenant
+- Prédiction de l'apogée des vins
+
+RÈGLES :
+- Réponds toujours en faisant référence aux vins spécifiques de la cave
+- Sois précis, enthousiaste et pédagogue
+- Utilise des emojis avec parcimonie pour rendre la lecture agréable
+- Si tu recommandes un vin qui n'est pas en cave, dis-le clairement
+- Pour les estimations de valeur, base-toi sur les prix du marché actuels
+- Réponds dans la langue de l'utilisateur (français par défaut)
+- Sois concis mais complet (max 300 mots par réponse)`;
+
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/sommelier`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({
+        messages: histoChat,
+        system: systemPrompt,
+      })
+    });
+
+    const data = await response.json();
+    supprimerTyping(typingId);
+
+    if (data.error) throw new Error(data.error);
+
+    const reponse = data.content;
+    histoChat.push({ role: 'assistant', content: reponse });
+    ajouterMessage('ai', reponse);
+
+  } catch(err) {
+    supprimerTyping(typingId);
+    ajouterMessage('ai', `Désolé, une erreur s'est produite : ${err.message}. Veuillez réessayer.`);
+  }
+
+  document.getElementById('btn-send').disabled = false;
+  input.focus();
+}
+
+function ajouterMessage(role, texte) {
+  const container = document.getElementById('chat-messages');
+  const wrap = document.createElement('div');
+  wrap.className = `msg-wrap ${role}`;
+  wrap.innerHTML = `
+    <div class="msg-avatar ${role}">${role === 'ai' ? '🧑‍🍳' : '👤'}</div>
+    <div class="msg-bubble ${role}">${formatMsg(texte)}</div>
+  `;
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+}
+
+function ajouterTyping() {
+  const container = document.getElementById('chat-messages');
+  const id = 'typing-' + Date.now();
+  const wrap = document.createElement('div');
+  wrap.className = 'msg-wrap';
+  wrap.id = id;
+  wrap.innerHTML = `
+    <div class="msg-avatar ai">🧑‍🍳</div>
+    <div class="msg-bubble ai" style="padding:0.5rem 1rem">
+      <div class="typing">
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+        <div class="typing-dot"></div>
+      </div>
+    </div>
+  `;
+  container.appendChild(wrap);
+  container.scrollTop = container.scrollHeight;
+  return id;
+}
+
+function supprimerTyping(id) {
+  const el = document.getElementById(id);
+  if (el) el.remove();
+}
+
+function formatMsg(texte) {
+  return texte
+    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.*?)\*/g, '<em>$1</em>')
+    .replace(/^- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>)/gs, '<ul>$1</ul>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/\n/g, '<br>')
+    .replace(/^(.+)$/, '<p>$1</p>');
+}
+
+function envoyerSuggestion(el) {
+  document.getElementById('chat-input').value = el.textContent.replace(/^[^\s]+\s/, '');
+  envoyer();
+}
+
+function resetChat() {
+  histoChat = [];
+  const container = document.getElementById('chat-messages');
+  container.innerHTML = '';
+  ajouterMessage('ai', 'Conversation réinitialisée. Comment puis-je vous aider ? 🍷');
+}
+
+function handleKey(e) {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault();
+    envoyer();
+  }
+}
+
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 120) + 'px';
+}
+
+async function seDeconnecter() {
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+// ── HAMBURGER ──
+function initHamburger() {
+  const hamburger = document.createElement('button');
+  hamburger.className = 'hamburger';
+  hamburger.innerHTML = '<span></span><span></span><span></span>';
+  document.querySelector('header').appendChild(hamburger);
+  const mobileNav = document.getElementById('mobile-nav');
+  hamburger.addEventListener('click', e => {
+    e.stopPropagation();
+    hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open');
+  });
+  document.addEventListener('click', e => {
+    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+    }
+  });
+  // Mobile nav lang
+  const prenom = sessionUser?.user_metadata?.prenom || '';
+  const mobilePrenom = document.getElementById('mobile-prenom');
+  if (mobilePrenom && prenom) mobilePrenom.textContent = `Bonjour, ${prenom}`;
+  const mobileLang = document.getElementById('mobile-lang-selector');
+  if (mobileLang) {
+    const flags = { fr:'🇫🇷', en:'🇬🇧', de:'🇩🇪' };
+    const lang = getLang();
+    ['fr','en','de'].forEach(l => {
+      const btn = document.createElement('button');
+      btn.textContent = flags[l];
+      if (lang === l) btn.classList.add('active-lang');
+      btn.addEventListener('click', () => setLang(l));
+      mobileLang.appendChild(btn);
+    });
+  }
+}
+</script>
+</body>
+</html>

@@ -434,7 +434,7 @@ RÈGLES :
 - Réponds dans la langue de l'utilisateur (français par défaut)
 - Sois concis mais complet (max 300 mots par réponse)`;
 
-    const response = await fetch(`${SUPABASE_URL}/functions/v1/sommelier`, {
+    const response = await fetch(`${SUPABASE_URL}/functions/v1/quick-endpoint`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

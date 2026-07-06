@@ -409,7 +409,18 @@ async function envoyer() {
   const typingId = ajouterTyping();
 
   try {
-    const { data: { session } } = await sb.auth.getSession();
+    // Récupérer et rafraîchir la session si nécessaire
+    let { data: { session } } = await sb.auth.getSession();
+    if (!session) {
+      const { data: refreshed } = await sb.auth.refreshSession();
+      session = refreshed.session;
+    }
+    if (!session) {
+      supprimerTyping(typingId);
+      ajouterMessage('ai', 'Votre session a expiré. Veuillez vous reconnecter.');
+      window.location.href = 'index.html';
+      return;
+    }
     const systemPrompt = `Tu es un sommelier expert et passionné qui conseille l'utilisateur sur sa cave à vin personnelle.
 
 CAVE DE L'UTILISATEUR (${caveDonnees.length} références, ${caveDonnees.reduce((s,b)=>s+(b.quantite||1),0)} bouteilles) :

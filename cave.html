@@ -897,6 +897,7 @@
     <a class="nav-btn active" href="cave.html" id="nav-mes-vins">🍾 Mes vins</a>
     <a class="nav-btn" href="cave-plan.html" id="nav-plan">🗺️ Plan de cave</a>
     <a class="nav-btn" href="dashboard.html" id="nav-dashboard">📊 Tableau de bord</a>
+    <a class="nav-btn" href="sommelier.html" id="nav-sommelier">🧑‍🍳 Sommelier</a>
     <a class="nav-btn" href="contact.html" id="nav-contact">✉️ Contact</a>
   </nav>
   <div class="header-right">
@@ -2476,6 +2477,7 @@ document.querySelectorAll('.overlay').forEach(o => {
     <a href="cave.html" id="mobile-nav-mes-vins" class="active">🍾 Mes vins</a>
     <a href="cave-plan.html" id="mobile-nav-plan">🗺️ Plan de cave</a>
     <a href="dashboard.html" id="mobile-nav-dashboard">📊 Tableau de bord</a>
+    <a href="sommelier.html" id="mobile-nav-sommelier">🧑‍🍳 Sommelier</a>
     <a href="contact.html" id="mobile-nav-contact">✉️ Contact</a>
     <a href="profil.html" id="mobile-nav-profil">👤 Mon profil</a>
     <div class="mobile-nav-separator"></div>
@@ -2536,11 +2538,13 @@ document.addEventListener('DOMContentLoaded', function() {
     const mesVins = document.getElementById('mobile-nav-mes-vins');
     const plan    = document.getElementById('mobile-nav-plan');
     const dash    = document.getElementById('mobile-nav-dashboard');
+    const sommelier = document.getElementById('mobile-nav-sommelier');
     const contact = document.getElementById('mobile-nav-contact');
     const deconn  = document.getElementById('mobile-btn-deconnexion');
     if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
     if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
     if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
+    if (sommelier) sommelier.textContent = '🧑‍🍳 ' + (t('nav_sommelier')||'Sommelier');
     if (contact) contact.textContent = '✉️ Contact';
     if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
   };

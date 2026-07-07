@@ -435,6 +435,7 @@
     <a class="nav-btn" href="cave.html" id="nav-mes-vins">🍾 Mes vins</a>
     <a class="nav-btn" href="cave-plan.html" id="nav-plan">🗺️ Plan de cave</a>
     <a class="nav-btn active" href="dashboard.html" id="nav-dashboard">📊 Tableau de bord</a>
+    <a class="nav-btn" href="sommelier.html" id="nav-sommelier">🧑‍🍳 Sommelier</a>
     <a class="nav-btn" href="contact.html" id="nav-contact">✉️ Contact</a>
   </nav>
   <div class="header-right">
@@ -1034,6 +1035,7 @@ function renderEntrees(b) {
     <a href="cave.html" id="mobile-nav-mes-vins">🍾 Mes vins</a>
     <a href="cave-plan.html" id="mobile-nav-plan">🗺️ Plan de cave</a>
     <a href="dashboard.html" id="mobile-nav-dashboard" class="active">📊 Tableau de bord</a>
+    <a href="sommelier.html" id="mobile-nav-sommelier">🧑‍🍳 Sommelier</a>
     <a href="contact.html" id="mobile-nav-contact">✉️ Contact</a>
     <a href="profil.html" id="mobile-nav-profil">👤 Mon profil</a>
     <div class="mobile-nav-separator"></div>
@@ -1090,12 +1092,14 @@ document.addEventListener('DOMContentLoaded', function() {
     var mesVins = document.getElementById('mobile-nav-mes-vins');
     var plan    = document.getElementById('mobile-nav-plan');
     var dash    = document.getElementById('mobile-nav-dashboard');
+    var sommelier = document.getElementById('mobile-nav-sommelier');
     var contact = document.getElementById('mobile-nav-contact');
     var profil  = document.getElementById('mobile-nav-profil');
     var deconn  = document.getElementById('mobile-btn-deconnexion');
     if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
     if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
     if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
+    if (sommelier) sommelier.textContent = '🧑‍🍳 ' + (t('nav_sommelier')||'Sommelier');
     if (contact) contact.textContent = '✉️ Contact';
     if (profil)  profil.textContent  = '👤 ' + (t('nav_profil')||'Mon profil').replace(/^👤 ?/,'');
     if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');

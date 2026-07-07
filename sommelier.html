@@ -237,8 +237,8 @@
   <!-- En-tête -->
   <div class="sommelier-header">
     <div class="sommelier-avatar">🧑‍🍳</div>
-    <h1>Votre Sommelier IA</h1>
-    <p>Je connais votre cave et peux vous conseiller accords, maturité, valeur et recommandations personnalisées.</p>
+    <h1 id="som-title">Votre Sommelier IA</h1>
+    <p id="som-subtitle">Je connais votre cave et peux vous conseiller accords, maturité, valeur et recommandations personnalisées.</p>
   </div>
 
   <!-- Contexte cave -->
@@ -248,12 +248,12 @@
 
   <!-- Suggestions rapides -->
   <div class="suggestions" id="suggestions">
-    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">🍖 Accord avec un magret de canard</div>
-    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">📊 Analyse ma cave</div>
-    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">⏰ Quels vins boire bientôt ?</div>
-    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">💰 Valeur de ma cave</div>
-    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">🎁 Vin pour un anniversaire</div>
-    <div class="suggestion-chip" onclick="envoyerSuggestion(this)">🌍 Diversité de ma cave</div>
+    <div class="suggestion-chip" id="chip-accord" onclick="envoyerSuggestion(this)">🍖 Accord avec un magret de canard</div>
+    <div class="suggestion-chip" id="chip-analyse" onclick="envoyerSuggestion(this)">📊 Analyse ma cave</div>
+    <div class="suggestion-chip" id="chip-bientot" onclick="envoyerSuggestion(this)">⏰ Quels vins boire bientôt ?</div>
+    <div class="suggestion-chip" id="chip-valeur" onclick="envoyerSuggestion(this)">💰 Valeur de ma cave</div>
+    <div class="suggestion-chip" id="chip-anniversaire" onclick="envoyerSuggestion(this)">🎁 Vin pour un anniversaire</div>
+    <div class="suggestion-chip" id="chip-diversite" onclick="envoyerSuggestion(this)">🌍 Diversité de ma cave</div>
   </div>
 
   <!-- Chat -->
@@ -268,13 +268,13 @@
       </div>
     </div>
     <div class="chat-input-wrap">
-      <textarea id="chat-input" placeholder="Posez votre question au sommelier..." rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      <textarea id="chat-input" placeholder="Posez votre question au sommelier..." id="chat-input-field" rows="1" onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
       <button class="btn-send" id="btn-send" onclick="envoyer()">Envoyer</button>
     </div>
   </div>
 
   <div style="display:flex;justify-content:flex-end;padding:0.5rem 0 1rem">
-    <button class="btn-reset" onclick="resetChat()">🗑 Nouvelle conversation</button>
+    <button class="btn-reset" id="btn-reset" onclick="resetChat()">🗑 Nouvelle conversation</button>
   </div>
 
 </div>
@@ -314,7 +314,32 @@ let sessionUser = null;
       wrap.appendChild(btn);
     });
   }
+  appliquerTraductionsSommelier();
 })();
+
+function appliquerTraductionsSommelier() {
+  const tf = (id, key) => { const el = document.getElementById(id); if(el) el.textContent = t(key); };
+  document.title = 'Sommelier IA — VINUP';
+  tf('som-title',        'som_title');
+  tf('som-subtitle',     'som_subtitle');
+  tf('chip-accord',      'som_chip_accord');
+  tf('chip-analyse',     'som_chip_analyse');
+  tf('chip-bientot',     'som_chip_bientot');
+  tf('chip-valeur',      'som_chip_valeur');
+  tf('chip-anniversaire','som_chip_anniversaire');
+  tf('chip-diversite',   'som_chip_diversite');
+  tf('btn-send',         'som_btn_send');
+  tf('btn-reset',        'som_btn_reset');
+  // Nav links
+  if(document.getElementById('nav-mes-vins'))    document.getElementById('nav-mes-vins').textContent    = t('nav_mes_vins');
+  if(document.getElementById('nav-plan'))         document.getElementById('nav-plan').textContent         = t('nav_plan_cave');
+  if(document.getElementById('nav-dashboard'))    document.getElementById('nav-dashboard').textContent    = t('nav_dashboard');
+  if(document.getElementById('nav-sommelier'))    document.getElementById('nav-sommelier').textContent    = t('nav_sommelier');
+  if(document.getElementById('nav-contact'))      document.getElementById('nav-contact').textContent      = t('nav_contact');
+  if(document.getElementById('btn-deconnexion'))  document.getElementById('btn-deconnexion').textContent  = t('nav_deconnexion');
+  const inp = document.getElementById('chat-input');
+  if(inp) inp.placeholder = t('som_placeholder');
+}
 
 // ── AUTH + INIT ──
 sb.auth.onAuthStateChange(async (event, session) => {
@@ -347,11 +372,11 @@ function afficherContexteCave() {
   const bientot = caveDonnees.filter(b => b.annee_maturite_fin && b.annee_maturite_fin <= annee + 1 && b.annee_maturite_debut && b.annee_maturite_debut <= annee).length;
 
   document.getElementById('cave-context').innerHTML = `
-    <span>🍾 <strong>${total}</strong> bouteilles</span>
-    <span>📋 <strong>${refs}</strong> références</span>
+    <span>🍾 <strong>${total}</strong> ${t('som_stat_bouteilles')}</span>
+    <span>📋 <strong>${refs}</strong> ${t('som_stat_references')}</span>
     ${pays > 0 ? `<span>🌍 <strong>${pays}</strong> pays</span>` : ''}
     ${valeur > 0 ? `<span>💰 <strong>${Math.round(valeur)} CHF</strong></span>` : ''}
-    ${bientot > 0 ? `<span>⏰ <strong>${bientot}</strong> à boire bientôt</span>` : ''}
+    ${bientot > 0 ? `<span>⏰ <strong>${bientot}</strong> ${t('som_stat_bientot')}</span>` : ''}
   `;
 }
 
@@ -365,12 +390,13 @@ function afficherMessageBienvenue() {
     b.annee_maturite_debut && b.annee_maturite_debut <= annee
   );
 
-  let bienvenue = `Bonjour${prenom ? ' ' + prenom : ''} ! 🍷 J'ai analysé votre cave : **${total} bouteilles** réparties en **${refs} références**.`;
+  const warn = bientot.length > 1 ? t('som_maturite_warn') : t('som_maturite_warn1');
+  let bienvenue = `Bonjour${prenom ? ' ' + prenom : ''} ! 🍷 ${t('som_welcome_base')} **${total} ${t('som_stat_bouteilles')}** ${t('som_bouteilles')} **${refs} ${t('som_references')}**`;
 
   if (bientot.length > 0) {
-    bienvenue += `\n\nAttention : **${bientot.length} vin${bientot.length > 1 ? 's arrivent' : ' arrive'} à maturité** cette année ou l'an prochain. Posez-moi vos questions !`;
+    bienvenue += `\n\nAttention : **${bientot.length} ${warn}**`;
   } else {
-    bienvenue += `\n\nJe suis prêt à vous conseiller sur les accords mets-vins, l'analyse de votre cave, la maturité de vos bouteilles et bien plus. Que puis-je faire pour vous ?`;
+    bienvenue += `\n\n${t('som_welcome_end')}`;
   }
 
   document.getElementById('welcome-msg').innerHTML = formatMsg(bienvenue);
@@ -417,7 +443,7 @@ async function envoyer() {
     }
     if (!session) {
       supprimerTyping(typingId);
-      ajouterMessage('ai', 'Votre session a expiré. Veuillez vous reconnecter.');
+      ajouterMessage('ai', t('som_session_expired'));
       window.location.href = 'index.html';
       return;
     }
@@ -442,7 +468,7 @@ RÈGLES :
 - Utilise des emojis avec parcimonie pour rendre la lecture agréable
 - Si tu recommandes un vin qui n'est pas en cave, dis-le clairement
 - Pour les estimations de valeur, base-toi sur les prix du marché actuels
-- Réponds dans la langue de l'utilisateur (français par défaut)
+- Réponds dans la langue de l'utilisateur. Langue actuelle : ${getLang() === "de" ? "allemand" : getLang() === "en" ? "anglais" : "français"}
 - Sois concis mais complet (max 300 mots par réponse)`;
 
     const response = await fetch(`${SUPABASE_URL}/functions/v1/quick-endpoint`, {
@@ -468,7 +494,7 @@ RÈGLES :
 
   } catch(err) {
     supprimerTyping(typingId);
-    ajouterMessage('ai', `Désolé, une erreur s'est produite : ${err.message}. Veuillez réessayer.`);
+    ajouterMessage('ai', `${t('som_error')} ${err.message}`);
   }
 
   document.getElementById('btn-send').disabled = false;
@@ -533,7 +559,7 @@ function resetChat() {
   histoChat = [];
   const container = document.getElementById('chat-messages');
   container.innerHTML = '';
-  ajouterMessage('ai', 'Conversation réinitialisée. Comment puis-je vous aider ? 🍷');
+  ajouterMessage('ai', t('som_reset_msg'));
 }
 
 function handleKey(e) {

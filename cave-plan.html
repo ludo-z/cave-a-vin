@@ -154,6 +154,17 @@
     .casier-row { display: flex; align-items: center; margin-bottom: 4px; }
     /* Quinconce : rangées paires calées dans les creux (décalage demi-case) */
     .case-groove { margin-left: 26px !important; }
+    /* Profondeur 2 : case coupée en deux (arrière en haut, avant en bas) */
+    .case-split {
+      width: 44px; height: 44px; margin: 2px;
+      display: flex; flex-direction: column; gap: 2px;
+      box-sizing: border-box;
+    }
+    .case-split .case-half {
+      width: 100%; height: auto; flex: 1; min-height: 0;
+      margin: 0; box-sizing: border-box;
+      border-width: 1px; font-size: 0.5rem;
+    }
     .casier-label-row {
       width: 28px; font-size: 0.62rem; color: var(--muted);
       text-align: right; padding-right: 4px; flex-shrink: 0;
@@ -336,6 +347,7 @@
       main { padding: 0.75rem; }
       .case { width: 32px; height: 32px; font-size: 0.45rem; }
       .case-groove { margin-left: 20px !important; }
+      .case-split { width: 32px; height: 32px; }
       .casier-label-col { width: 32px; }
       .casier-label-row { width: 22px; font-size: 0.55rem; }
       .meuble-body { padding: 0.75rem 0.5rem; overflow-x: auto; }
@@ -558,12 +570,22 @@
           <input type="number" id="m-rangees" value="8" min="1" max="30"/>
         </div>
       </div>
-      <div class="form-group">
-        <label data-t="plan_disposition">Disposition</label>
-        <select id="m-disposition" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
-          <option value="grille" data-t="plan_disp_grille">Grille droite (colonnes alignées)</option>
-          <option value="quinconce" data-t="plan_disp_quinconce">Quinconce (bouteilles couchées, en pyramide)</option>
-        </select>
+      <div class="form-row">
+        <div class="form-group">
+          <label data-t="plan_disposition">Disposition</label>
+          <select id="m-disposition" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
+            <option value="grille" data-t="plan_disp_grille">Grille droite (colonnes alignées)</option>
+            <option value="pyramide" data-t="plan_disp_pyramide">Pyramide (5-4-5-4, depuis le bas)</option>
+            <option value="decale" data-t="plan_disp_decale">Quinconce décalé (même nombre, décalé)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label data-t="plan_profondeur">Profondeur</label>
+          <select id="m-profondeur" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
+            <option value="1" data-t="plan_prof_1">1 niveau (support, casier)</option>
+            <option value="2" data-t="plan_prof_2">2 niveaux (frigo : avant + arrière)</option>
+          </select>
+        </div>
       </div>
       <div style="font-size:0.78rem;color:var(--muted);margin-top:-0.25rem">
         <span data-t="plan_capacite">Capacité :</span> <strong id="capacite-preview">48</strong> <span data-t="plan_capacite_unit">bouteilles</span>
@@ -681,22 +703,29 @@ function rendreInterface() {
   appliquerTraductionsPlan();
 }
 
-// Capacité selon la disposition : en quinconce, les rangées paires ont une case de moins.
-function capaciteMeuble(colonnes, rangees, disposition) {
-  if (disposition === 'quinconce') {
-    const impaires = Math.ceil(rangees / 2);
-    const paires   = Math.floor(rangees / 2);
-    return impaires * colonnes + paires * Math.max(colonnes - 1, 0);
+// Capacité selon disposition et profondeur.
+function capaciteMeuble(colonnes, rangees, disposition, profondeur) {
+  disposition = normDisposition(disposition);
+  profondeur = profondeur || 1;
+  let base;
+  if (disposition === 'pyramide') {
+    const pleines = Math.ceil(rangees / 2);
+    const creuses = Math.floor(rangees / 2);
+    base = pleines * colonnes + creuses * Math.max(colonnes - 1, 0);
+  } else {
+    base = colonnes * rangees; // grille et décalé
   }
-  return colonnes * rangees;
+  return base * profondeur;
 }
 
 function rendreMeuble(m) {
   const empl = emplacements.filter(e => e.meuble_id === m.id);
   const occupees = empl.filter(e => e.bouteilles).length;
-  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition);
-  const quinconce = m.disposition === 'quinconce';
-  const dispTag = (() => { const v = t('plan_disp_tag'); return (!v || v === 'plan_disp_tag') ? 'quinconce' : v; })();
+  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition, m.profondeur);
+  const disp = normDisposition(m.disposition);
+  const dispTag = disp === 'pyramide' ? 'pyramide' : (disp === 'decale' ? 'quinconce décalé' : '');
+  const profTag = (m.profondeur === 2) ? '2 de profondeur' : '';
+  const tags = [dispTag, profTag].filter(Boolean).join(' · ');
 
   const card = document.createElement('div');
   card.className = 'meuble-card';
@@ -706,7 +735,7 @@ function rendreMeuble(m) {
     <div class="meuble-header">
       <div>
         <div class="meuble-titre">${m.nom}</div>
-        <div class="meuble-info">${m.colonnes} ${t('plan_col')} × ${m.rangees} ${t('plan_rng')}${quinconce ? ' · ' + dispTag : ''} — ${capacite} ${t('plan_emplacements')}</div>
+        <div class="meuble-info">${m.colonnes} ${t('plan_col')} × ${m.rangees} ${t('plan_rng')}${tags ? ' · ' + tags : ''} — ${capacite} ${t('plan_emplacements')}</div>
       </div>
       <div class="meuble-actions">
         <button class="btn-secondary" style="font-size:0.72rem;padding:0.4rem 0.8rem" onclick="ouvrirModalMeuble('${m.id}')">${t('plan_btn_modify').replace('✏️ ','✏️ ')}</button>
@@ -736,7 +765,9 @@ function rendreMeuble(m) {
   }
   wrap.appendChild(labelsTop);
 
-  // Rangées
+  // Rangées (construites de haut en bas ; le motif se calcule DEPUIS LE BAS)
+  const disposition = normDisposition(m.disposition);
+  const profondeur  = m.profondeur || 1;
   for (let r = 1; r <= m.rangees; r++) {
     const row = document.createElement('div');
     row.className = 'casier-row';
@@ -745,40 +776,26 @@ function rendreMeuble(m) {
     labelRow.textContent = r;
     row.appendChild(labelRow);
 
-    // En quinconce, les rangées paires se calent dans les creux : décalées et une case de moins.
-    const paire = quinconce && (r % 2 === 0);
-    const nbCol = paire ? Math.max(m.colonnes - 1, 0) : m.colonnes;
+    // depuisBas = 0 pour la rangée du bas (toujours pleine). Les rangées "creuses"
+    // (calées dans les creux) sont celles à distance impaire du bas.
+    const depuisBas = m.rangees - r;
+    const creuse = disposition !== 'grille' && (depuisBas % 2 === 1);
+    // En pyramide, la rangée creuse a une case de moins ; en décalé, même nombre.
+    const nbCol = (creuse && disposition === 'pyramide') ? Math.max(m.colonnes - 1, 0) : m.colonnes;
 
     for (let c = 1; c <= nbCol; c++) {
-      const empl = trouverEmplacement(m.id, c, r);
-      const bouteille = empl?.bouteilles;
-      const div = document.createElement('div');
-      div.className = 'case';
-      if (paire && c === 1) div.classList.add('case-groove');
-      div.dataset.meubleId = m.id;
-      div.dataset.col = c;
-      div.dataset.row = r;
-
-      if (bouteille) {
-        const cls = COULEURS[bouteille.couleur] || 'autre';
-        div.classList.add(cls);
-        div.setAttribute('draggable', 'true');
-        const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase();
-        div.innerHTML = `<span>${abbr}</span>
-          <div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}</div>`;
-        div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, empl));
-        div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r));
-        div.addEventListener('dragend',   e => finDrag(e));
+      let cell;
+      if (profondeur === 2) {
+        // Case coupée en deux : arrière (haut) + avant (bas)
+        cell = document.createElement('div');
+        cell.className = 'case-split';
+        cell.appendChild(construireCase(m, c, r, 2, true));
+        cell.appendChild(construireCase(m, c, r, 1, true));
       } else {
-        div.classList.add('vide');
-        div.innerHTML = '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
-        div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r));
-        div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
-        div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
-        div.addEventListener('drop',      e => deposeCase(e, m.id, c, r));
+        cell = construireCase(m, c, r, 1, false);
       }
-
-      row.appendChild(div);
+      if (creuse && c === 1) cell.classList.add('case-groove');
+      row.appendChild(cell);
     }
     wrap.appendChild(row);
   }
@@ -786,13 +803,55 @@ function rendreMeuble(m) {
   return card;
 }
 
-function trouverEmplacement(meubleId, col, row) {
-  return emplacements.find(e => e.meuble_id === meubleId && e.colonne === col && e.rangee === row) || null;
+// Normalise l'ancienne valeur 'quinconce' vers 'pyramide'.
+function normDisposition(d) {
+  if (d === 'quinconce') return 'pyramide';
+  return d || 'grille';
+}
+
+// Construit une case (un emplacement) entièrement câblée. niveau : 1 = avant, 2 = arrière.
+function construireCase(m, c, r, niveau, half) {
+  const empl = trouverEmplacement(m.id, c, r, niveau);
+  const bouteille = empl?.bouteilles;
+  const div = document.createElement('div');
+  div.className = 'case' + (half ? ' case-half' : '');
+  div.dataset.meubleId = m.id;
+  div.dataset.col = c;
+  div.dataset.row = r;
+  div.dataset.niveau = niveau;
+
+  if (bouteille) {
+    const cls = COULEURS[bouteille.couleur] || 'autre';
+    div.classList.add(cls);
+    div.setAttribute('draggable', 'true');
+    const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase();
+    const profTip = (m.profondeur === 2) ? (niveau === 2 ? ' · arrière' : ' · avant') : '';
+    div.innerHTML = `<span>${abbr}</span>
+      <div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}${profTip}</div>`;
+    div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
+    div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r, niveau));
+    div.addEventListener('dragend',   e => finDrag(e));
+  } else {
+    div.classList.add('vide');
+    div.innerHTML = '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
+    div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r, niveau));
+    div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
+    div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+    div.addEventListener('drop',      e => deposeCase(e, m.id, c, r, niveau));
+  }
+  return div;
+}
+
+function trouverEmplacement(meubleId, col, row, niveau) {
+  niveau = niveau || 1;
+  return emplacements.find(e =>
+    e.meuble_id === meubleId && e.colonne === col && e.rangee === row && (e.niveau || 1) === niveau
+  ) || null;
 }
 
 // ── DRAG & DROP ──
-function demarrerDrag(e, meubleId, col, row) {
-  dragSource = { meubleId, col, row };
+function demarrerDrag(e, meubleId, col, row, niveau) {
+  dragSource = { meubleId, col, row, niveau: niveau || 1 };
   e.target.classList.add('dragging');
   e.dataTransfer.effectAllowed = 'move';
 }
@@ -800,14 +859,15 @@ function finDrag(e) {
   e.target.classList.remove('dragging');
   document.querySelectorAll('.drag-over').forEach(el => el.classList.remove('drag-over'));
 }
-async function deposeCase(e, meubleId, col, row) {
+async function deposeCase(e, meubleId, col, row, niveau) {
   e.preventDefault();
-  e.target.classList.remove('drag-over');
+  if (e.target && e.target.classList) e.target.classList.remove('drag-over');
+  niveau = niveau || 1;
   if (!dragSource) return;
-  if (dragSource.meubleId === meubleId && dragSource.col === col && dragSource.row === row) return;
+  if (dragSource.meubleId === meubleId && dragSource.col === col && dragSource.row === row && (dragSource.niveau || 1) === niveau) return;
 
-  const src = trouverEmplacement(dragSource.meubleId, dragSource.col, dragSource.row);
-  const dst = trouverEmplacement(meubleId, col, row);
+  const src = trouverEmplacement(dragSource.meubleId, dragSource.col, dragSource.row, dragSource.niveau);
+  const dst = trouverEmplacement(meubleId, col, row, niveau);
   if (!src) return;
 
   if (dst && dst.bouteilles) {
@@ -821,7 +881,7 @@ async function deposeCase(e, meubleId, col, row) {
       await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', src.id);
     } else {
       const { data: { session } } = await sb.auth.getSession();
-      await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: src.bouteille_id, colonne: col, rangee: row });
+      await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: src.bouteille_id, colonne: col, rangee: row, niveau });
       await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', src.id);
     }
   }
@@ -831,8 +891,8 @@ async function deposeCase(e, meubleId, col, row) {
 }
 
 // ── CHOISIR VIN ──
-function ouvrirChoisirVin(meubleId, col, row) {
-  caseSelectionnee = { meubleId, col, row };
+function ouvrirChoisirVin(meubleId, col, row, niveau) {
+  caseSelectionnee = { meubleId, col, row, niveau: niveau || 1 };
   document.getElementById('label-case-cible').textContent = `${t('plan_emplacement_label')} ${col}, ${t('plan_rangee_label')} ${row}`;
   document.getElementById('vin-search-input').value = '';
   filtrerVins();
@@ -878,7 +938,7 @@ function filtrerVins() {
 
 async function placerBouteille(bouteilleId) {
   if (!caseSelectionnee) return;
-  const { meubleId, col, row } = caseSelectionnee;
+  const { meubleId, col, row, niveau } = caseSelectionnee;
   const { data: { session } } = await sb.auth.getSession();
 
   // Vérifier le stock disponible avant de placer
@@ -891,11 +951,11 @@ async function placerBouteille(bouteilleId) {
     return;
   }
 
-  const existant = trouverEmplacement(meubleId, col, row);
+  const existant = trouverEmplacement(meubleId, col, row, niveau);
   if (existant) {
     await sb.from('cave_emplacements').update({ bouteille_id: bouteilleId }).eq('id', existant.id);
   } else {
-    await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: bouteilleId, colonne: col, rangee: row });
+    await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: bouteilleId, colonne: col, rangee: row, niveau: niveau || 1 });
   }
 
   fermerModal('modal-choisir-vin');
@@ -915,10 +975,12 @@ async function syncStockApresDegustation(bouteilleId, nouvelleQte) {
 }
 
 // ── DÉTAIL CASE ──
-function ouvrirDetailCase(meubleId, col, row, empl) {
+function ouvrirDetailCase(meubleId, col, row, niveau, empl) {
   emplacementEnCours = empl;
   const b = empl?.bouteilles;
   if (!b) return;
+  const m = meubles.find(x => x.id === meubleId);
+  const profTxt = (m && m.profondeur === 2) ? (niveau === 2 ? ' · arrière' : ' · avant') : '';
 
   document.getElementById('detail-case-titre').textContent = b.nom || 'Bouteille';
   const hex = COULEURS_HEX[b.couleur] || '#999';
@@ -943,7 +1005,7 @@ function ouvrirDetailCase(meubleId, col, row, empl) {
       <div class="detail-field"><div class="detail-field-label">Appellation</div><div class="detail-field-value">${b.appellation || '—'}</div></div>
       <div class="detail-field"><div class="detail-field-label">Quantité</div><div class="detail-field-value">${b.quantite ?? 1} btl</div></div>
       <div class="detail-field"><div class="detail-field-label">Maturité</div><div class="detail-field-value">${etat}</div></div>
-      <div class="detail-field"><div class="detail-field-label">${t('plan_emplacement')}</div><div class="detail-field-value">Col. ${col} · Rng. ${row}</div></div>
+      <div class="detail-field"><div class="detail-field-label">${t('plan_emplacement')}</div><div class="detail-field-value">Col. ${col} · Rng. ${row}${profTxt}</div></div>
       <div class="detail-field"><div class="detail-field-label">Prix achat</div><div class="detail-field-value">${b.prix_achat ? b.prix_achat.toFixed(2) + ' CHF' : '—'}</div></div>
     </div>
     ${b.plats_accords ? `<div style="margin-top:0.75rem"><div class="detail-field-label">Accords</div><div class="detail-field-value" style="font-size:0.85rem;margin-top:0.2rem">${b.plats_accords}</div></div>` : ''}`;
@@ -962,7 +1024,7 @@ function deplacerBouteille() {
   if (!emplacementEnCours) return;
   fermerModal('modal-detail-case');
   // Marquer la source puis ouvrir le modal de choix de destination
-  dragSource = { meubleId: emplacementEnCours.meuble_id, col: emplacementEnCours.colonne, row: emplacementEnCours.rangee };
+  dragSource = { meubleId: emplacementEnCours.meuble_id, col: emplacementEnCours.colonne, row: emplacementEnCours.rangee, niveau: emplacementEnCours.niveau || 1 };
   alert(t('plan_deplacer_msg'));
   // Activer le mode déplacement via click
   activerModeDeplacementClick();
@@ -975,8 +1037,9 @@ function activerModeDeplacementClick() {
       const mId = el.dataset.meubleId;
       const col = parseInt(el.dataset.col);
       const row = parseInt(el.dataset.row);
+      const niveau = parseInt(el.dataset.niveau) || 1;
       document.querySelectorAll('.case').forEach(e => { e.style.outline = ''; e.removeEventListener('click', handler); });
-      if (dragSource) await deposeCase({ preventDefault: ()=>{} }, mId, col, row);
+      if (dragSource) await deposeCase({ preventDefault: ()=>{} }, mId, col, row, niveau);
       dragSource = null;
     };
     el.addEventListener('click', handler, { once: true });
@@ -992,7 +1055,8 @@ function ouvrirModalMeuble(id = null) {
     document.getElementById('m-nom').value      = m.nom;
     document.getElementById('m-colonnes').value = m.colonnes;
     document.getElementById('m-rangees').value  = m.rangees;
-    document.getElementById('m-disposition').value = m.disposition || 'grille';
+    document.getElementById('m-disposition').value = normDisposition(m.disposition);
+    document.getElementById('m-profondeur').value  = String(m.profondeur || 1);
     mettreAJourCapacite();
   } else {
     document.getElementById('modal-meuble-titre').textContent = t('plan_modal_new');
@@ -1000,6 +1064,7 @@ function ouvrirModalMeuble(id = null) {
     document.getElementById('m-colonnes').value = 6;
     document.getElementById('m-rangees').value  = 8;
     document.getElementById('m-disposition').value = 'grille';
+    document.getElementById('m-profondeur').value  = '1';
     mettreAJourCapacite();
   }
   appliquerTraductionsPlan(); ouvrirModal('modal-meuble');
@@ -1009,25 +1074,28 @@ function mettreAJourCapacite() {
   const c = parseInt(document.getElementById('m-colonnes').value) || 0;
   const r = parseInt(document.getElementById('m-rangees').value)  || 0;
   const disp = document.getElementById('m-disposition').value;
-  document.getElementById('capacite-preview').textContent = capaciteMeuble(c, r, disp);
+  const prof = parseInt(document.getElementById('m-profondeur').value) || 1;
+  document.getElementById('capacite-preview').textContent = capaciteMeuble(c, r, disp, prof);
 }
 
 document.getElementById('m-colonnes').addEventListener('input', mettreAJourCapacite);
 document.getElementById('m-rangees').addEventListener('input', mettreAJourCapacite);
 document.getElementById('m-disposition').addEventListener('change', mettreAJourCapacite);
+document.getElementById('m-profondeur').addEventListener('change', mettreAJourCapacite);
 
 async function sauvegarderMeuble() {
   const nom      = document.getElementById('m-nom').value.trim();
   const colonnes = parseInt(document.getElementById('m-colonnes').value);
   const rangees  = parseInt(document.getElementById('m-rangees').value);
   const disposition = document.getElementById('m-disposition').value;
+  const profondeur  = parseInt(document.getElementById('m-profondeur').value) || 1;
   if (!nom || !colonnes || !rangees) return alert('Merci de remplir tous les champs.');
 
   if (meubleEnEdition) {
-    await sb.from('cave_meubles').update({ nom, colonnes, rangees, disposition }).eq('id', meubleEnEdition);
+    await sb.from('cave_meubles').update({ nom, colonnes, rangees, disposition, profondeur }).eq('id', meubleEnEdition);
   } else {
     const { data: { session } } = await sb.auth.getSession();
-    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, disposition, ordre: meubles.length });
+    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, disposition, profondeur, ordre: meubles.length });
   }
 
   fermerModal('modal-meuble');

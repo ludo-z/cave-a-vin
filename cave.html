@@ -1453,10 +1453,43 @@ async function seDeconnecter() {
   window.location.href = 'index.html';
 }
 
+// ── PHOTOS ──
+// Redimensionne/compresse une image côté client via canvas → Blob JPEG léger.
+function redimensionnerImage(file, maxDim, quality) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (width >= height && width > maxDim) { height = Math.round(height * maxDim / width); width = maxDim; }
+      else if (height > maxDim) { width = Math.round(width * maxDim / height); height = maxDim; }
+      const canvas = document.createElement('canvas');
+      canvas.width = width; canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('toBlob null')), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Chargement image échoué')); };
+    img.src = url;
+  });
+}
+
+// Extrait le chemin storage brut depuis une URL signée/publique (ou renvoie le chemin déjà brut).
+function extraireStoragePath(path) {
+  if (path.includes('/object/sign/photos-etiquettes/'))
+    return decodeURIComponent(path.split('/object/sign/photos-etiquettes/')[1].split('?')[0]);
+  if (path.includes('/object/public/photos-etiquettes/'))
+    return decodeURIComponent(path.split('/object/public/photos-etiquettes/')[1]);
+  return path;
+}
+
 // ── CHARGEMENT ──
-async function getPhotoUrl(path) {
+// opts.thumb = true → renvoie l'URL de la miniature (uniquement pour les nouvelles photos).
+async function getPhotoUrl(path, opts) {
   if (!path) return null;
-  if (path.includes('token=')) {
+  const thumb = opts && opts.thumb;
+  // Cache : si l'URL signée pleine taille est encore valable >1h, on la réutilise (sauf demande de miniature).
+  if (!thumb && path.includes('token=')) {
     try {
       const url = new URL(path);
       const token = url.searchParams.get('token');
@@ -1466,11 +1499,11 @@ async function getPhotoUrl(path) {
       }
     } catch(e) {}
   }
-  let storagePath = path;
-  if (path.includes('/object/sign/photos-etiquettes/')) {
-    storagePath = decodeURIComponent(path.split('/object/sign/photos-etiquettes/')[1].split('?')[0]);
-  } else if (path.includes('/object/public/photos-etiquettes/')) {
-    storagePath = decodeURIComponent(path.split('/object/public/photos-etiquettes/')[1]);
+  let storagePath = extraireStoragePath(path);
+  // Les nouvelles photos sont stockées en chemin brut (pas d'http) et possèdent une miniature "_thumb.jpg".
+  const estNouvelle = !path.includes('http');
+  if (thumb && estNouvelle) {
+    storagePath = storagePath.replace(/(\.[^.\/]+)$/, '_thumb.jpg');
   }
   const { data, error } = await sb.storage.from('photos-etiquettes').createSignedUrl(storagePath, 60 * 60 * 24 * 365);
   if (error) { console.error('Erreur signed URL:', error); return null; }
@@ -1482,12 +1515,20 @@ async function chargerBouteilles() {
   if (error) return console.error(error);
   toutesLesBouteilles = await Promise.all((data || []).map(async b => {
     if (b.photo_url) {
-      b._signedUrl = await getPhotoUrl(b.photo_url);
+      // Grille : on ne charge que la miniature légère. La pleine taille est signée à la demande (détail).
+      b._thumbUrl = await getPhotoUrl(b.photo_url, { thumb: true });
     }
     return b;
   }));
   filtrer();
   mettreAJourStats();
+}
+
+// Signe la photo pleine taille à la demande (vue détail / édition), avec cache.
+async function getFullUrl(b) {
+  if (!b.photo_url) return null;
+  if (!b._signedUrl) b._signedUrl = await getPhotoUrl(b.photo_url);
+  return b._signedUrl;
 }
 
 function mettreAJourStats() {
@@ -1549,7 +1590,7 @@ function rendreCartes() {
   container.innerHTML = bouteillesFiltrees.map(b => {
     const cc = `cc-${b.couleur || 'autre'}`;
     const maturiteHTML = maturiteBar(b);
-    const photoURL = b._signedUrl || b.photo_url || null;
+    const photoURL = b._thumbUrl || b._signedUrl || null;
     const photoHTML = photoURL
       ? `<img class="carte-photo" src="${photoURL}" alt="${b.nom}" loading="lazy"/>`
       : `<div class="carte-photo-placeholder">🍷</div>`;
@@ -1627,7 +1668,7 @@ function setVue(vue) {
 }
 
 // ── MODAL DÉTAIL ──
-function voirDetail(id) {
+async function voirDetail(id) {
   const b = toutesLesBouteilles.find(x => x.id === id);
   if (!b) return;
   detailEnCours = b;
@@ -1636,8 +1677,9 @@ function voirDetail(id) {
   const prix = b.prix_achat ? `${b.prix_achat.toFixed(2)} €` : '—';
   const maturite = b.annee_maturite_debut && b.annee_maturite_fin
     ? `${b.annee_maturite_debut} – ${b.annee_maturite_fin}` : '—';
+  const fullUrl = await getFullUrl(b);
   body.innerHTML = `
-    ${(b._signedUrl || b.photo_url) ? `<img class="detail-img" src="${b._signedUrl || b.photo_url}" alt="${b.nom}"/>` : ''}
+    ${fullUrl ? `<img class="detail-img" src="${fullUrl}" alt="${b.nom}"/>` : ''}
     <div class="detail-grid">
       <div class="detail-section"><div class="detail-label">Nom</div><div class="detail-value">${b.nom || '—'}</div></div>
       <div class="detail-section"><div class="detail-label">Château / Domaine</div><div class="detail-value">${b.chateau || '—'}</div></div>
@@ -1718,7 +1760,7 @@ function ouvrirEdition(id) {
   if (b.photo_url) {
     wrapEdit.style.padding = '0';
     wrapEdit.style.border = 'none';
-    wrapEdit.innerHTML = `<img src="${b._signedUrl || b.photo_url}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;display:block;cursor:pointer" title="Cliquer pour changer" onclick="document.getElementById('f-photo').click()"/>`;
+    wrapEdit.innerHTML = `<img src="${b._thumbUrl || b._signedUrl || ''}" style="width:100%;max-height:140px;object-fit:cover;border-radius:2px;display:block;cursor:pointer" title="Cliquer pour changer" onclick="document.getElementById('f-photo').click()"/>`;
   } else {
     wrapEdit.style.padding = '0.85rem';
     wrapEdit.style.border = '2px dashed var(--stone)';
@@ -1875,17 +1917,29 @@ async function sauvegarder() {
 
   if (photoFile) {
     const { data: { session } } = await sb.auth.getSession();
-    const ext  = photoFile.name.split('.').pop();
-    const path = `${session.user.id}/${Date.now()}.${ext}`;
-    const { error: upErr } = await sb.storage.from('photos-etiquettes').upload(path, photoFile, { upsert: true });
-    if (upErr) {
+    const base      = `${session.user.id}/${Date.now()}`;
+    const fullPath  = `${base}.jpg`;
+    const thumbPath = `${base}_thumb.jpg`;
+    try {
+      // Pleine taille : lisible pour l'étiquette mais compressée (~150-400 Ko au lieu de plusieurs Mo).
+      // Miniature : ~20-40 Ko, utilisée dans la grille → egress divisé par ~100.
+      const [full, thumb] = await Promise.all([
+        redimensionnerImage(photoFile, 1400, 0.82),
+        redimensionnerImage(photoFile, 400, 0.60),
+      ]);
+      const [up1, up2] = await Promise.all([
+        sb.storage.from('photos-etiquettes').upload(fullPath,  full,  { upsert: true, contentType: 'image/jpeg' }),
+        sb.storage.from('photos-etiquettes').upload(thumbPath, thumb, { upsert: true, contentType: 'image/jpeg' }),
+      ]);
+      if (up1.error || up2.error) throw (up1.error || up2.error);
+      // On stocke le CHEMIN brut (pas l'URL signée) : plus léger et n'expire jamais.
+      photo_url = fullPath;
+    } catch (e) {
+      console.error(e);
       showMsgForm('Erreur lors de l\'upload de la photo.', 'error');
       btn.disabled = false; btn.textContent = t('form_btn_save');
       return;
     }
-    const { data: urlData, error: urlErr } = await sb.storage.from('photos-etiquettes').createSignedUrl(path, 60 * 60 * 24 * 365);
-    if (urlErr) { showMsgForm('Erreur URL photo.', 'error'); btn.disabled = false; btn.textContent = t('form_btn_save'); return; }
-    photo_url = urlData.signedUrl;
   }
 
   const payload = {

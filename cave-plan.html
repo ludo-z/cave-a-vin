@@ -895,7 +895,8 @@ async function deposeCase(e, meubleId, col, row, niveau) {
       await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', src.id);
     } else {
       const { data: { session } } = await sb.auth.getSession();
-      await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: src.bouteille_id, colonne: col, rangee: row, niveau });
+      const { error: insErr } = await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: src.bouteille_id, colonne: col, rangee: row, niveau });
+      if (insErr) { alert('Déplacement impossible : ' + insErr.message); return; }
       await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', src.id);
     }
   }
@@ -966,10 +967,16 @@ async function placerBouteille(bouteilleId) {
   }
 
   const existant = trouverEmplacement(meubleId, col, row, niveau);
+  let resErr = null;
   if (existant) {
-    await sb.from('cave_emplacements').update({ bouteille_id: bouteilleId }).eq('id', existant.id);
+    ({ error: resErr } = await sb.from('cave_emplacements').update({ bouteille_id: bouteilleId }).eq('id', existant.id));
   } else {
-    await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: bouteilleId, colonne: col, rangee: row, niveau: niveau || 1 });
+    ({ error: resErr } = await sb.from('cave_emplacements').insert({ user_id: session.user.id, meuble_id: meubleId, bouteille_id: bouteilleId, colonne: col, rangee: row, niveau: niveau || 1 }));
+  }
+  if (resErr) {
+    alert('Impossible de placer la bouteille : ' + resErr.message +
+      '\n\n(Si le message parle de "unique constraint", il faut ajouter "niveau" à la contrainte d\'unicité de cave_emplacements.)');
+    return;
   }
 
   fermerModal('modal-choisir-vin');

@@ -154,7 +154,7 @@
     .casier-row { display: flex; align-items: center; margin-bottom: 4px; }
     /* Quinconce : rangées paires calées dans les creux (décalage demi-case) */
     .case-groove { margin-left: 26px !important; }
-    /* Profondeur 2 : triangles pleine case emboîtés (frigo à vin).
+    /* Profondeur 2 : triangles emboîtés, chacun contouré et espacé (emplacements autonomes).
        Avant = pointe en haut ; arrière = pointe en bas, décalé d'une demi-case. */
     .case-split {
       position: relative;
@@ -164,20 +164,21 @@
     .case-split .case-half {
       position: absolute; top: 0; left: 0; width: 44px; height: 44px;
       margin: 0; border: none; border-radius: 0; display: flex;
+      filter: drop-shadow(1px 0 0 var(--ink)) drop-shadow(-1px 0 0 var(--ink))
+              drop-shadow(0 1px 0 var(--ink)) drop-shadow(0 -1px 0 var(--ink));
     }
+    .case-split .case-half.vide { background: var(--vide); }
     .case-split .case-half.avant {
-      clip-path: polygon(0 100%, 100% 100%, 50% 0);
-      align-items: flex-end; justify-content: center;
-      z-index: 1;
+      clip-path: polygon(50% 8%, 92% 92%, 8% 92%);
+      align-items: flex-end; justify-content: center; z-index: 1;
     }
     .case-split .case-half.arriere {
-      clip-path: polygon(0 0, 100% 0, 50% 100%);
+      clip-path: polygon(8% 8%, 92% 8%, 50% 92%);
       align-items: flex-start; justify-content: center;
       transform: translateX(50%); z-index: 0;
     }
-    .case-split .case-half.vide { background: var(--vide); }
-    .case-split .case-half:hover { transform: none; box-shadow: none; z-index: 3; }
-    .case-split .case-half.arriere:hover { transform: translateX(50%); }
+    .case-split .case-half.avant:hover   { transform: none;               z-index: 3; box-shadow: none; }
+    .case-split .case-half.arriere:hover { transform: translateX(50%);    z-index: 3; box-shadow: none; }
     .case-split .case-half span { font-size: 0.4rem; padding: 1px 2px; line-height: 1; }
     .casier-label-row {
       width: 28px; font-size: 0.62rem; color: var(--muted);

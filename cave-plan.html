@@ -152,6 +152,8 @@
       font-size: 0.62rem; color: var(--muted); letter-spacing: 0.05em;
     }
     .casier-row { display: flex; align-items: center; margin-bottom: 4px; }
+    /* Quinconce : rangées paires calées dans les creux (décalage demi-case) */
+    .case-groove { margin-left: 26px !important; }
     .casier-label-row {
       width: 28px; font-size: 0.62rem; color: var(--muted);
       text-align: right; padding-right: 4px; flex-shrink: 0;
@@ -333,6 +335,7 @@
     @media (max-width: 600px) {
       main { padding: 0.75rem; }
       .case { width: 32px; height: 32px; font-size: 0.45rem; }
+      .case-groove { margin-left: 20px !important; }
       .casier-label-col { width: 32px; }
       .casier-label-row { width: 22px; font-size: 0.55rem; }
       .meuble-body { padding: 0.75rem 0.5rem; overflow-x: auto; }
@@ -555,6 +558,13 @@
           <input type="number" id="m-rangees" value="8" min="1" max="30"/>
         </div>
       </div>
+      <div class="form-group">
+        <label data-t="plan_disposition">Disposition</label>
+        <select id="m-disposition" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
+          <option value="grille" data-t="plan_disp_grille">Grille droite (colonnes alignées)</option>
+          <option value="quinconce" data-t="plan_disp_quinconce">Quinconce (bouteilles couchées, en pyramide)</option>
+        </select>
+      </div>
       <div style="font-size:0.78rem;color:var(--muted);margin-top:-0.25rem">
         <span data-t="plan_capacite">Capacité :</span> <strong id="capacite-preview">48</strong> <span data-t="plan_capacite_unit">bouteilles</span>
       </div>
@@ -671,10 +681,22 @@ function rendreInterface() {
   appliquerTraductionsPlan();
 }
 
+// Capacité selon la disposition : en quinconce, les rangées paires ont une case de moins.
+function capaciteMeuble(colonnes, rangees, disposition) {
+  if (disposition === 'quinconce') {
+    const impaires = Math.ceil(rangees / 2);
+    const paires   = Math.floor(rangees / 2);
+    return impaires * colonnes + paires * Math.max(colonnes - 1, 0);
+  }
+  return colonnes * rangees;
+}
+
 function rendreMeuble(m) {
   const empl = emplacements.filter(e => e.meuble_id === m.id);
   const occupees = empl.filter(e => e.bouteilles).length;
-  const capacite = m.colonnes * m.rangees;
+  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition);
+  const quinconce = m.disposition === 'quinconce';
+  const dispTag = (() => { const v = t('plan_disp_tag'); return (!v || v === 'plan_disp_tag') ? 'quinconce' : v; })();
 
   const card = document.createElement('div');
   card.className = 'meuble-card';
@@ -684,7 +706,7 @@ function rendreMeuble(m) {
     <div class="meuble-header">
       <div>
         <div class="meuble-titre">${m.nom}</div>
-        <div class="meuble-info">${m.colonnes} ${t('plan_col')} × ${m.rangees} ${t('plan_rng')} — ${capacite} ${t('plan_emplacements')}</div>
+        <div class="meuble-info">${m.colonnes} ${t('plan_col')} × ${m.rangees} ${t('plan_rng')}${quinconce ? ' · ' + dispTag : ''} — ${capacite} ${t('plan_emplacements')}</div>
       </div>
       <div class="meuble-actions">
         <button class="btn-secondary" style="font-size:0.72rem;padding:0.4rem 0.8rem" onclick="ouvrirModalMeuble('${m.id}')">${t('plan_btn_modify').replace('✏️ ','✏️ ')}</button>
@@ -723,11 +745,16 @@ function rendreMeuble(m) {
     labelRow.textContent = r;
     row.appendChild(labelRow);
 
-    for (let c = 1; c <= m.colonnes; c++) {
+    // En quinconce, les rangées paires se calent dans les creux : décalées et une case de moins.
+    const paire = quinconce && (r % 2 === 0);
+    const nbCol = paire ? Math.max(m.colonnes - 1, 0) : m.colonnes;
+
+    for (let c = 1; c <= nbCol; c++) {
       const empl = trouverEmplacement(m.id, c, r);
       const bouteille = empl?.bouteilles;
       const div = document.createElement('div');
       div.className = 'case';
+      if (paire && c === 1) div.classList.add('case-groove');
       div.dataset.meubleId = m.id;
       div.dataset.col = c;
       div.dataset.row = r;
@@ -965,12 +992,14 @@ function ouvrirModalMeuble(id = null) {
     document.getElementById('m-nom').value      = m.nom;
     document.getElementById('m-colonnes').value = m.colonnes;
     document.getElementById('m-rangees').value  = m.rangees;
+    document.getElementById('m-disposition').value = m.disposition || 'grille';
     mettreAJourCapacite();
   } else {
     document.getElementById('modal-meuble-titre').textContent = t('plan_modal_new');
     document.getElementById('m-nom').value      = '';
     document.getElementById('m-colonnes').value = 6;
     document.getElementById('m-rangees').value  = 8;
+    document.getElementById('m-disposition').value = 'grille';
     mettreAJourCapacite();
   }
   appliquerTraductionsPlan(); ouvrirModal('modal-meuble');
@@ -979,23 +1008,26 @@ function ouvrirModalMeuble(id = null) {
 function mettreAJourCapacite() {
   const c = parseInt(document.getElementById('m-colonnes').value) || 0;
   const r = parseInt(document.getElementById('m-rangees').value)  || 0;
-  document.getElementById('capacite-preview').textContent = c * r;
+  const disp = document.getElementById('m-disposition').value;
+  document.getElementById('capacite-preview').textContent = capaciteMeuble(c, r, disp);
 }
 
 document.getElementById('m-colonnes').addEventListener('input', mettreAJourCapacite);
 document.getElementById('m-rangees').addEventListener('input', mettreAJourCapacite);
+document.getElementById('m-disposition').addEventListener('change', mettreAJourCapacite);
 
 async function sauvegarderMeuble() {
   const nom      = document.getElementById('m-nom').value.trim();
   const colonnes = parseInt(document.getElementById('m-colonnes').value);
   const rangees  = parseInt(document.getElementById('m-rangees').value);
+  const disposition = document.getElementById('m-disposition').value;
   if (!nom || !colonnes || !rangees) return alert('Merci de remplir tous les champs.');
 
   if (meubleEnEdition) {
-    await sb.from('cave_meubles').update({ nom, colonnes, rangees }).eq('id', meubleEnEdition);
+    await sb.from('cave_meubles').update({ nom, colonnes, rangees, disposition }).eq('id', meubleEnEdition);
   } else {
     const { data: { session } } = await sb.auth.getSession();
-    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, ordre: meubles.length });
+    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, disposition, ordre: meubles.length });
   }
 
   fermerModal('modal-meuble');

@@ -1531,6 +1531,55 @@ async function getFullUrl(b) {
   return b._signedUrl;
 }
 
+// ── MAINTENANCE (ponctuel) : régénère les miniatures des anciennes photos ──
+// À lancer UNE fois depuis la console (F12) sur la page cave :  regenererMiniatures()
+// Pour y aller par lots (limiter l'egress) :  regenererMiniatures(20)
+// Pour REGÉNÉRER des miniatures déjà créées (ex. après changement de taille) :
+//     regenererMiniatures(9999, { force: true })
+// Relançable sans risque : sans "force", les photos déjà migrées sont ignorées.
+async function regenererMiniatures(limite, opts) {
+  limite = limite || 9999;
+  const force = !!(opts && opts.force);
+  // Sans force : seulement les "legacy" (photo_url contient une URL http, sans miniature).
+  // Avec force : toutes les photos, pour recréer les miniatures à la nouvelle taille.
+  const aTraiter = toutesLesBouteilles
+    .filter(b => b.photo_url && (force || b.photo_url.includes('http')))
+    .slice(0, limite);
+  console.log(`🔧 ${aTraiter.length} photo(s) à ${force ? 'régénérer' : 'migrer'}…`);
+  let ok = 0, ko = 0;
+  for (const b of aTraiter) {
+    try {
+      const storagePath = extraireStoragePath(b.photo_url);
+      // Téléchargement de la pleine taille (coût egress ponctuel, une seule fois par photo)
+      const { data: blob, error: dlErr } = await sb.storage.from('photos-etiquettes').download(storagePath);
+      if (dlErr) throw dlErr;
+      const thumb = await redimensionnerImage(blob, 800, 0.72);
+      const thumbPath = storagePath.replace(/(\.[^.\/]+)$/, '_thumb.jpg');
+      const { error: upErr } = await sb.storage.from('photos-etiquettes')
+        .upload(thumbPath, thumb, { upsert: true, contentType: 'image/jpeg' });
+      if (upErr) throw upErr;
+      // Bascule photo_url en chemin brut → getPhotoUrl trouvera désormais la miniature
+      if (b.photo_url !== storagePath) {
+        const { error: updErr } = await sb.from('bouteilles').update({ photo_url: storagePath }).eq('id', b.id);
+        if (updErr) throw updErr;
+        b.photo_url = storagePath;
+      }
+      b._signedUrl = null;
+      b._thumbUrl  = await getPhotoUrl(storagePath, { thumb: true });
+      ok++;
+      console.log(`✓ ${b.nom || b.id} (${ok}/${aTraiter.length})`);
+    } catch (e) {
+      ko++;
+      console.warn(`✗ ${b.nom || b.id} :`, e.message || e);
+    }
+    await new Promise(r => setTimeout(r, 150)); // throttle léger
+  }
+  console.log(`✅ Terminé — ${ok} traitée(s), ${ko} échec(s).`);
+  if (ok) filtrer();
+  return { ok, ko };
+}
+window.regenererMiniatures = regenererMiniatures;
+
 function mettreAJourStats() {
   const total  = toutesLesBouteilles.reduce((s, b) => s + (b.quantite || 1), 0);
   const rouges = toutesLesBouteilles.filter(b => b.couleur === 'rouge').reduce((s, b) => s + (b.quantite || 1), 0);
@@ -1922,10 +1971,10 @@ async function sauvegarder() {
     const thumbPath = `${base}_thumb.jpg`;
     try {
       // Pleine taille : lisible pour l'étiquette mais compressée (~150-400 Ko au lieu de plusieurs Mo).
-      // Miniature : ~20-40 Ko, utilisée dans la grille → egress divisé par ~100.
+      // Miniature : 800px ~60-90 Ko (nette sur écran retina), utilisée dans la grille → egress fortement réduit.
       const [full, thumb] = await Promise.all([
         redimensionnerImage(photoFile, 1400, 0.82),
-        redimensionnerImage(photoFile, 400, 0.60),
+        redimensionnerImage(photoFile, 800, 0.72),
       ]);
       const [up1, up2] = await Promise.all([
         sb.storage.from('photos-etiquettes').upload(fullPath,  full,  { upsert: true, contentType: 'image/jpeg' }),

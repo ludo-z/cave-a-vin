@@ -215,6 +215,14 @@
     .case.drag-over { border: 2px solid var(--gold) !important; transform: scale(1.1); }
     .case.dragging  { opacity: 0.4; }
 
+    /* Profondeur 1 : la case devient une bouteille (carré neutralisé) */
+    .case.bottle-cell { background: transparent !important; border: none !important; overflow: visible; }
+    .case.bottle-cell:hover { transform: none; box-shadow: none; }
+    .case.bottle-cell:hover svg path { stroke: var(--gold); stroke-width: 2.4; }
+    .case.bottle-cell:hover svg path[fill="none"] { fill: rgba(201,168,76,0.20); }
+    .case.bottle-cell.drag-over { border: none !important; transform: none; }
+    .case.bottle-cell.drag-over svg path { stroke: var(--gold); stroke-width: 2.6; fill: rgba(201,168,76,0.25); }
+
     /* Tooltip */
     .case-tooltip {
       position: absolute; bottom: calc(100% + 6px); left: 50%;
@@ -828,6 +836,17 @@ function normDisposition(d) {
   return d || 'grille';
 }
 
+// Silhouette de bouteille goulot en haut (repère 0..44), pivotée à 180° pour goulot en bas.
+const BOTTLE_PATH = 'M19.5,6 L24.5,6 L24.5,9 L23,10 L23,17 C23,20 29,20 29,25 L29,34 '
+  + 'Q29,37.5 25.5,37.5 L18.5,37.5 Q15,37.5 15,34 L15,25 C15,20 21,20 21,17 L21,10 L19.5,9 Z';
+function svgBouteille(isUp, bouteille) {
+  const rot  = isUp ? '' : 'transform="rotate(180 22 22)"';
+  const fill = bouteille ? (COULEURS_HEX[bouteille.couleur] || '#8a8a8a') : 'none';
+  const dash = bouteille ? '' : 'stroke-dasharray="3 2"';
+  return `<svg viewBox="0 0 44 44" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible">`
+    + `<path d="${BOTTLE_PATH}" ${rot} fill="${fill}" stroke="var(--ink)" stroke-width="1.4" stroke-linejoin="round" ${dash}/></svg>`;
+}
+
 // Construit une case (un emplacement) entièrement câblée. niveau : 1 = avant, 2 = arrière.
 function construireCase(m, c, r, niveau, half) {
   const empl = trouverEmplacement(m.id, c, r, niveau);
@@ -838,21 +857,19 @@ function construireCase(m, c, r, niveau, half) {
   div.dataset.row = r;
   div.dataset.niveau = niveau;
 
-  // ── Profondeur 1 : case carrée classique ──
+  // ── Profondeur 1 : une bouteille droite (goulot en haut) par case ──
   if (!half) {
-    div.className = 'case';
+    div.className = 'case bottle-cell';
+    const svg = svgBouteille(true, bouteille);
     if (bouteille) {
-      div.classList.add(COULEURS[bouteille.couleur] || 'autre');
       div.setAttribute('draggable', 'true');
-      const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase();
-      div.innerHTML = `<span>${abbr}</span>
-        <div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}</div>`;
+      div.innerHTML = svg
+        + `<div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}</div>`;
       div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
       div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r, niveau));
       div.addEventListener('dragend',   e => finDrag(e));
     } else {
-      div.classList.add('vide');
-      div.innerHTML = '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
+      div.innerHTML = svg + '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
       div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r, niveau));
       div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
       div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
@@ -861,7 +878,7 @@ function construireCase(m, c, r, niveau, half) {
     return div;
   }
 
-  // ── Profondeur 2 : bouteille emboîtée (silhouette SVG, pleine si remplie, pointillée si vide) ──
+  // ── Profondeur 2 : deux bouteilles emboîtées (avant + arrière décalée) ──
   // Rôle stable : niveau 2 (arrière) est toujours la bouteille décalée d'une demi-case.
   // L'orientation (goulot haut / bas) s'inverse une rangée sur deux → emboîtement goulot/corps.
   const rowInverse = (r % 2 === 0);
@@ -869,14 +886,7 @@ function construireCase(m, c, r, niveau, half) {
   const isUp = shifted ? rowInverse : !rowInverse;
   div.className = 'case-half ' + (isUp ? 'tri-up' : 'tri-down') + (shifted ? ' tri-shift' : '');
 
-  // Silhouette de bouteille goulot en haut (repère 0..44), pivotée à 180° pour goulot en bas.
-  const bottle = 'M19.5,6 L24.5,6 L24.5,9 L23,10 L23,17 C23,20 29,20 29,25 L29,34 '
-    + 'Q29,37.5 25.5,37.5 L18.5,37.5 Q15,37.5 15,34 L15,25 C15,20 21,20 21,17 L21,10 L19.5,9 Z';
-  const rot = isUp ? '' : 'transform="rotate(180 22 22)"';
-  const fill = bouteille ? (COULEURS_HEX[bouteille.couleur] || '#8a8a8a') : 'none';
-  const dash = bouteille ? '' : 'stroke-dasharray="3 2"';
-  const svg = `<svg viewBox="0 0 44 44" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible">`
-    + `<path d="${bottle}" ${rot} fill="${fill}" stroke="var(--ink)" stroke-width="1.4" stroke-linejoin="round" ${dash}/></svg>`;
+  const svg = svgBouteille(isUp, bouteille);
 
   if (bouteille) {
     div.setAttribute('draggable', 'true');
@@ -1092,14 +1102,15 @@ function deplacerBouteille() {
 }
 
 function activerModeDeplacementClick() {
-  document.querySelectorAll('.case').forEach(el => {
+  const cibles = document.querySelectorAll('.case, .case-half');
+  cibles.forEach(el => {
     el.style.outline = '2px solid var(--gold)';
     const handler = async () => {
       const mId = el.dataset.meubleId;
       const col = parseInt(el.dataset.col);
       const row = parseInt(el.dataset.row);
       const niveau = parseInt(el.dataset.niveau) || 1;
-      document.querySelectorAll('.case').forEach(e => { e.style.outline = ''; e.removeEventListener('click', handler); });
+      document.querySelectorAll('.case, .case-half').forEach(e => { e.style.outline = ''; e.removeEventListener('click', handler); });
       if (dragSource) await deposeCase({ preventDefault: ()=>{} }, mId, col, row, niveau);
       dragSource = null;
     };

@@ -165,21 +165,14 @@
       position: absolute; top: 0; left: 0; width: 100%; height: 100%;
       margin: 0; border: none; border-radius: 0; background: transparent; z-index: 1;
     }
-    .case-split .case-half.tri-up   { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
-    .case-split .case-half.tri-down { clip-path: polygon(0 0, 100% 0, 50% 100%); }
+    .case-split .case-half.tri-up,
+    .case-split .case-half.tri-down { clip-path: inset(0 27% 0 27%); }
     .case-split .case-half.tri-shift { transform: translateX(50%); z-index: 0; }
     .case-split .case-half.tri-shift:hover { transform: translateX(50%); }
     .case-split .case-half:hover { z-index: 3; }
     .case-split .case-half:hover .case-tooltip { opacity: 1; }
     .case-split .case-half.dragging { opacity: 0.4; }
     .case-split .case-half.drag-over { filter: brightness(1.25); }
-    .tri-abbr {
-      position: absolute; left: 0; right: 0; text-align: center;
-      font-size: 0.4rem; font-weight: 600; color: #fff;
-      pointer-events: none; letter-spacing: 0.03em;
-    }
-    .tri-up .tri-abbr   { bottom: 4px; }
-    .tri-down .tri-abbr { top: 4px; }
     .casier-label-row {
       width: 28px; font-size: 0.62rem; color: var(--muted);
       text-align: right; padding-right: 4px; flex-shrink: 0;
@@ -857,26 +850,27 @@ function construireCase(m, c, r, niveau, half) {
     return div;
   }
 
-  // ── Profondeur 2 : triangle emboîté (SVG pour le contour plein/pointillé) ──
-  // Rôle stable : niveau 2 (arrière) est toujours le triangle décalé d'une demi-case.
-  // L'orientation s'inverse une rangée sur deux → le rendu alterne réellement.
+  // ── Profondeur 2 : bouteille emboîtée (silhouette SVG, pleine si remplie, pointillée si vide) ──
+  // Rôle stable : niveau 2 (arrière) est toujours la bouteille décalée d'une demi-case.
+  // L'orientation (goulot haut / bas) s'inverse une rangée sur deux → emboîtement goulot/corps.
   const rowInverse = (r % 2 === 0);
   const shifted = (niveau === 2);
   const isUp = shifted ? rowInverse : !rowInverse;
   div.className = 'case-half ' + (isUp ? 'tri-up' : 'tri-down') + (shifted ? ' tri-shift' : '');
 
-  // Points du triangle (repère 0..44), légèrement rentrés pour créer l'espace entre triangles.
-  const pts = isUp ? '22,5 39,39 5,39' : '5,5 39,5 22,39';
-  const fill = bouteille ? (COULEURS_HEX[bouteille.couleur] || '#8a8a8a') : 'var(--vide)';
+  // Silhouette de bouteille goulot en haut (repère 0..44), pivotée à 180° pour goulot en bas.
+  const bottle = 'M19.5,6 L24.5,6 L24.5,9 L23,10 L23,17 C23,20 29,20 29,25 L29,34 '
+    + 'Q29,37.5 25.5,37.5 L18.5,37.5 Q15,37.5 15,34 L15,25 C15,20 21,20 21,17 L21,10 L19.5,9 Z';
+  const rot = isUp ? '' : 'transform="rotate(180 22 22)"';
+  const fill = bouteille ? (COULEURS_HEX[bouteille.couleur] || '#8a8a8a') : 'none';
   const dash = bouteille ? '' : 'stroke-dasharray="3 2"';
   const svg = `<svg viewBox="0 0 44 44" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible">`
-    + `<polygon points="${pts}" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round" ${dash}/></svg>`;
+    + `<path d="${bottle}" ${rot} fill="${fill}" stroke="var(--ink)" stroke-width="1.4" stroke-linejoin="round" ${dash}/></svg>`;
 
   if (bouteille) {
     div.setAttribute('draggable', 'true');
-    const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase();
     const profTip = niveau === 2 ? ' · arrière' : ' · avant';
-    div.innerHTML = svg + `<span class="tri-abbr">${abbr}</span>`
+    div.innerHTML = svg
       + `<div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}${profTip}</div>`;
     div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
     div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r, niveau));

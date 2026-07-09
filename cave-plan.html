@@ -173,6 +173,14 @@
     .case-split .case-half:hover .case-tooltip { opacity: 1; }
     .case-split .case-half.dragging { opacity: 0.4; }
     .case-split .case-half.drag-over { filter: brightness(1.25); }
+    /* Surbrillance au survol : contour doré + fond léger pour les bouteilles vides */
+    .case-split .case-half:hover svg path { stroke: var(--gold); stroke-width: 2.4; }
+    .case-split .case-half:hover svg path[fill="none"] { fill: rgba(201,168,76,0.20); }
+
+    /* Profondeur 2 : cases (et numéros de colonnes) agrandies pour des bouteilles plus grandes */
+    .casier-wrap.prof2 .case-split { width: 58px; height: 58px; }
+    .casier-wrap.prof2 .casier-label-col { width: 58px; }
+    .casier-wrap.prof2 .case-groove { margin-left: 33px !important; }
     .casier-label-row {
       width: 28px; font-size: 0.62rem; color: var(--muted);
       text-align: right; padding-right: 4px; flex-shrink: 0;
@@ -356,6 +364,9 @@
       .case { width: 32px; height: 32px; font-size: 0.45rem; }
       .case-groove { margin-left: 20px !important; }
       .case-split { width: 32px; height: 32px; }
+      .casier-wrap.prof2 .case-split { width: 44px; height: 44px; }
+      .casier-wrap.prof2 .casier-label-col { width: 44px; }
+      .casier-wrap.prof2 .case-groove { margin-left: 26px !important; }
       .casier-label-col { width: 32px; }
       .casier-label-row { width: 22px; font-size: 0.55rem; }
       .meuble-body { padding: 0.75rem 0.5rem; overflow-x: auto; }
@@ -760,7 +771,7 @@ function rendreMeuble(m) {
   // Grille
   const body = card.querySelector(`#body-${m.id}`);
   const wrap = document.createElement('div');
-  wrap.className = 'casier-wrap';
+  wrap.className = 'casier-wrap' + ((m.profondeur || 1) === 2 ? ' prof2' : '');
 
   // Labels colonnes
   const labelsTop = document.createElement('div');

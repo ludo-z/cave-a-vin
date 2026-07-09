@@ -154,32 +154,32 @@
     .casier-row { display: flex; align-items: center; margin-bottom: 4px; }
     /* Quinconce : rangées paires calées dans les creux (décalage demi-case) */
     .case-groove { margin-left: 26px !important; }
-    /* Profondeur 2 : triangles emboîtés, chacun contouré et espacé (emplacements autonomes).
-       Avant = pointe en haut ; arrière = pointe en bas, décalé d'une demi-case. */
+    /* Profondeur 2 : triangles emboîtés (contour SVG plein si rempli, pointillé si vide).
+       Orientation alternée par rangée ; le triangle "pointe en bas" est décalé pour s'emboîter. */
     .case-split {
       position: relative;
       width: 44px; height: 44px; margin: 2px; box-sizing: border-box;
       overflow: visible;
     }
     .case-split .case-half {
-      position: absolute; top: 0; left: 0; width: 44px; height: 44px;
-      margin: 0; border: none; border-radius: 0; display: flex;
-      filter: drop-shadow(1px 0 0 var(--ink)) drop-shadow(-1px 0 0 var(--ink))
-              drop-shadow(0 1px 0 var(--ink)) drop-shadow(0 -1px 0 var(--ink));
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      margin: 0; border: none; border-radius: 0; background: transparent; z-index: 1;
     }
-    .case-split .case-half.vide { background: var(--vide); }
-    .case-split .case-half.avant {
-      clip-path: polygon(50% 8%, 92% 92%, 8% 92%);
-      align-items: flex-end; justify-content: center; z-index: 1;
+    .case-split .case-half.tri-up   { clip-path: polygon(50% 0, 100% 100%, 0 100%); }
+    .case-split .case-half.tri-down { clip-path: polygon(0 0, 100% 0, 50% 100%); }
+    .case-split .case-half.tri-shift { transform: translateX(50%); z-index: 0; }
+    .case-split .case-half.tri-shift:hover { transform: translateX(50%); }
+    .case-split .case-half:hover { z-index: 3; }
+    .case-split .case-half:hover .case-tooltip { opacity: 1; }
+    .case-split .case-half.dragging { opacity: 0.4; }
+    .case-split .case-half.drag-over { filter: brightness(1.25); }
+    .tri-abbr {
+      position: absolute; left: 0; right: 0; text-align: center;
+      font-size: 0.4rem; font-weight: 600; color: #fff;
+      pointer-events: none; letter-spacing: 0.03em;
     }
-    .case-split .case-half.arriere {
-      clip-path: polygon(8% 8%, 92% 8%, 50% 92%);
-      align-items: flex-start; justify-content: center;
-      transform: translateX(50%); z-index: 0;
-    }
-    .case-split .case-half.avant:hover   { transform: none;               z-index: 3; box-shadow: none; }
-    .case-split .case-half.arriere:hover { transform: translateX(50%);    z-index: 3; box-shadow: none; }
-    .case-split .case-half span { font-size: 0.4rem; padding: 1px 2px; line-height: 1; }
+    .tri-up .tri-abbr   { bottom: 4px; }
+    .tri-down .tri-abbr { top: 4px; }
     .casier-label-row {
       width: 28px; font-size: 0.62rem; color: var(--muted);
       text-align: right; padding-right: 4px; flex-shrink: 0;
@@ -829,26 +829,60 @@ function construireCase(m, c, r, niveau, half) {
   const empl = trouverEmplacement(m.id, c, r, niveau);
   const bouteille = empl?.bouteilles;
   const div = document.createElement('div');
-  div.className = 'case' + (half ? ' case-half ' + (niveau === 2 ? 'arriere' : 'avant') : '');
   div.dataset.meubleId = m.id;
   div.dataset.col = c;
   div.dataset.row = r;
   div.dataset.niveau = niveau;
 
+  // ── Profondeur 1 : case carrée classique ──
+  if (!half) {
+    div.className = 'case';
+    if (bouteille) {
+      div.classList.add(COULEURS[bouteille.couleur] || 'autre');
+      div.setAttribute('draggable', 'true');
+      const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase();
+      div.innerHTML = `<span>${abbr}</span>
+        <div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}</div>`;
+      div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
+      div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r, niveau));
+      div.addEventListener('dragend',   e => finDrag(e));
+    } else {
+      div.classList.add('vide');
+      div.innerHTML = '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
+      div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r, niveau));
+      div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
+      div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
+      div.addEventListener('drop',      e => deposeCase(e, m.id, c, r, niveau));
+    }
+    return div;
+  }
+
+  // ── Profondeur 2 : triangle emboîté (SVG pour le contour plein/pointillé) ──
+  // Rôle stable : niveau 2 (arrière) est toujours le triangle décalé d'une demi-case.
+  // L'orientation s'inverse une rangée sur deux → le rendu alterne réellement.
+  const rowInverse = (r % 2 === 0);
+  const shifted = (niveau === 2);
+  const isUp = shifted ? rowInverse : !rowInverse;
+  div.className = 'case-half ' + (isUp ? 'tri-up' : 'tri-down') + (shifted ? ' tri-shift' : '');
+
+  // Points du triangle (repère 0..44), légèrement rentrés pour créer l'espace entre triangles.
+  const pts = isUp ? '22,5 39,39 5,39' : '5,5 39,5 22,39';
+  const fill = bouteille ? (COULEURS_HEX[bouteille.couleur] || '#8a8a8a') : 'var(--vide)';
+  const dash = bouteille ? '' : 'stroke-dasharray="3 2"';
+  const svg = `<svg viewBox="0 0 44 44" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible">`
+    + `<polygon points="${pts}" fill="${fill}" stroke="var(--ink)" stroke-width="1.5" stroke-linejoin="round" ${dash}/></svg>`;
+
   if (bouteille) {
-    const cls = COULEURS[bouteille.couleur] || 'autre';
-    div.classList.add(cls);
     div.setAttribute('draggable', 'true');
     const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase();
-    const profTip = (m.profondeur === 2) ? (niveau === 2 ? ' · arrière' : ' · avant') : '';
-    div.innerHTML = `<span>${abbr}</span>
-      <div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}${profTip}</div>`;
+    const profTip = niveau === 2 ? ' · arrière' : ' · avant';
+    div.innerHTML = svg + `<span class="tri-abbr">${abbr}</span>`
+      + `<div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}${profTip}</div>`;
     div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
     div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r, niveau));
     div.addEventListener('dragend',   e => finDrag(e));
   } else {
-    div.classList.add('vide');
-    div.innerHTML = '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
+    div.innerHTML = svg + '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
     div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r, niveau));
     div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
     div.addEventListener('dragleave', () => div.classList.remove('drag-over'));

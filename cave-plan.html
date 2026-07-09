@@ -148,17 +148,17 @@
       display: flex; margin-left: 32px; margin-bottom: 4px;
     }
     .casier-label-col {
-      width: 44px; text-align: center;
+      width: 58px; text-align: center;
       font-size: 0.62rem; color: var(--muted); letter-spacing: 0.05em;
     }
     .casier-row { display: flex; align-items: center; margin-bottom: 4px; }
     /* Quinconce : rangées paires calées dans les creux (décalage demi-case) */
-    .case-groove { margin-left: 26px !important; }
-    /* Profondeur 2 : triangles emboîtés (contour SVG plein si rempli, pointillé si vide).
-       Orientation alternée par rangée ; le triangle "pointe en bas" est décalé pour s'emboîter. */
+    .case-groove { margin-left: 33px !important; }
+    /* Profondeur 2 : bouteilles emboîtées.
+       Orientation alternée par rangée ; la bouteille "goulot en bas" est décalée pour s'emboîter. */
     .case-split {
       position: relative;
-      width: 44px; height: 44px; margin: 2px; box-sizing: border-box;
+      width: 58px; height: 58px; margin: 2px; box-sizing: border-box;
       overflow: visible;
     }
     .case-split .case-half {
@@ -176,17 +176,12 @@
     /* Surbrillance au survol : contour doré + fond léger pour les bouteilles vides */
     .case-split .case-half:hover svg path { stroke: var(--gold); stroke-width: 2.4; }
     .case-split .case-half:hover svg path[fill="none"] { fill: rgba(201,168,76,0.20); }
-
-    /* Profondeur 2 : cases (et numéros de colonnes) agrandies pour des bouteilles plus grandes */
-    .casier-wrap.prof2 .case-split { width: 58px; height: 58px; }
-    .casier-wrap.prof2 .casier-label-col { width: 58px; }
-    .casier-wrap.prof2 .case-groove { margin-left: 33px !important; }
     .casier-label-row {
       width: 28px; font-size: 0.62rem; color: var(--muted);
       text-align: right; padding-right: 4px; flex-shrink: 0;
     }
     .case {
-      width: 44px; height: 44px;
+      width: 58px; height: 58px;
       border-radius: 3px;
       margin: 2px;
       cursor: pointer;
@@ -369,13 +364,10 @@
 
     @media (max-width: 600px) {
       main { padding: 0.75rem; }
-      .case { width: 32px; height: 32px; font-size: 0.45rem; }
-      .case-groove { margin-left: 20px !important; }
-      .case-split { width: 32px; height: 32px; }
-      .casier-wrap.prof2 .case-split { width: 44px; height: 44px; }
-      .casier-wrap.prof2 .casier-label-col { width: 44px; }
-      .casier-wrap.prof2 .case-groove { margin-left: 26px !important; }
-      .casier-label-col { width: 32px; }
+      .case { width: 44px; height: 44px; font-size: 0.45rem; }
+      .case-groove { margin-left: 26px !important; }
+      .case-split { width: 44px; height: 44px; }
+      .casier-label-col { width: 44px; }
       .casier-label-row { width: 22px; font-size: 0.55rem; }
       .meuble-body { padding: 0.75rem 0.5rem; overflow-x: auto; }
       .meuble-header { padding: 0.75rem 1rem; flex-wrap: wrap; gap: 0.5rem; }

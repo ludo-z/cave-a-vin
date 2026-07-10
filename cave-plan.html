@@ -206,6 +206,19 @@
     .case.petillant { background: var(--petillant); color: white; }
     .case.autre     { background: var(--muted); color: white; }
 
+    /* Carte d'info au survol d'une bouteille */
+    .hover-info {
+      position: fixed; z-index: 9999; pointer-events: none;
+      background: var(--ink); color: #F7F3ED;
+      border: 1px solid rgba(201,168,76,0.45); border-radius: 4px;
+      padding: 8px 11px; max-width: 220px;
+      font-family: 'Inter', sans-serif; font-size: 0.75rem; line-height: 1.35;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+    }
+    .hover-info .hi-title { font-family: 'Cormorant Garamond', serif; font-size: 1.02rem; color: var(--gold); margin-bottom: 2px; }
+    .hover-info .hi-line { color: rgba(247,243,237,0.85); }
+    .hover-info .hi-tag { margin-top: 4px; font-size: 0.62rem; text-transform: uppercase; letter-spacing: 0.08em; color: rgba(247,243,237,0.6); }
+
     /* Drag & drop */
     .case.drag-over { border: 2px solid var(--gold) !important; transform: scale(1.1); }
     .case.dragging  { opacity: 0.4; }
@@ -828,9 +841,9 @@ function normDisposition(d) {
   return d || 'grille';
 }
 
-// Silhouette de bouteille goulot en haut (repère 0..44), pivotée à 180° pour goulot en bas.
-const BOTTLE_PATH = 'M19.5,6 L24.5,6 L24.5,9 L23,10 L23,17 C23,20 29,20 29,25 L29,34 '
-  + 'Q29,37.5 25.5,37.5 L18.5,37.5 Q15,37.5 15,34 L15,25 C15,20 21,20 21,17 L21,10 L19.5,9 Z';
+// Silhouette de bouteille de Bourgogne (épaules tombantes), repère 0..44, pivotée 180° pour goulot en bas.
+const BOTTLE_PATH = 'M19.5,4.5 L24.5,4.5 L24.5,7 L24,8 L24,17 C24,21 30,22 30,28 L30,35 '
+  + 'Q30,39 26,39 L18,39 Q14,39 14,35 L14,28 C14,22 20,21 20,17 L20,8 L19.5,7 Z';
 function svgBouteille(isUp, bouteille) {
   const rot  = isUp ? '' : 'transform="rotate(180 22 22)"';
   const fill = bouteille ? (COULEURS_HEX[bouteille.couleur] || '#8a8a8a') : 'none';
@@ -839,13 +852,61 @@ function svgBouteille(isUp, bouteille) {
   if (bouteille) {
     const abbr = (bouteille.nom || '').slice(0, 3).toUpperCase()
       .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    const ty = isUp ? 31 : 15; // initiales sur le corps (bas si goulot haut, haut si goulot bas)
+    const ty = isUp ? 32 : 12; // initiales sur le corps (bas si goulot haut, haut si goulot bas)
     txt = `<text x="22" y="${ty}" text-anchor="middle" dominant-baseline="central" `
       + `font-family="Inter,sans-serif" font-size="7" font-weight="700" fill="#fff" style="pointer-events:none">${abbr}</text>`;
   }
   return `<svg viewBox="0 0 44 44" style="position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible">`
     + `<path d="${BOTTLE_PATH}" ${rot} fill="${fill}" stroke="var(--ink)" stroke-width="1.4" stroke-linejoin="round" ${dash}/>`
     + txt + `</svg>`;
+}
+
+// ── Carte d'info au survol (flottante, non rognée par le découpage des cases) ──
+const COULEUR_LABEL = { rouge:'Rouge', blanc:'Blanc', 'rosé':'Rosé', 'pétillant':'Pétillant', autre:'Autre' };
+function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function infoBouteilleHTML(b, niveau, profondeur) {
+  const l2 = [b.millesime, COULEUR_LABEL[b.couleur] || ''].filter(Boolean).join(' · ');
+  const region = b.region || b.appellation || b.pays || '';
+  const parts = [`<div class="hi-title">${escHtml(b.nom || 'Sans nom')}</div>`];
+  if (l2)          parts.push(`<div class="hi-line">${escHtml(l2)}</div>`);
+  if (region)      parts.push(`<div class="hi-line">${escHtml(region)}</div>`);
+  if (b.cepage)    parts.push(`<div class="hi-line">${escHtml(b.cepage)}</div>`);
+  if (profondeur === 2) parts.push(`<div class="hi-tag">${niveau === 2 ? 'Arrière' : 'Avant'}</div>`);
+  return parts.join('');
+}
+let hoverInfoEl = null;
+function getHoverInfoEl() {
+  if (!hoverInfoEl) {
+    hoverInfoEl = document.createElement('div');
+    hoverInfoEl.className = 'hover-info';
+    hoverInfoEl.style.display = 'none';
+    document.body.appendChild(hoverInfoEl);
+  }
+  return hoverInfoEl;
+}
+function positionnerInfoSurvol(e) {
+  const el = getHoverInfoEl();
+  const pad = 14;
+  const rect = el.getBoundingClientRect();
+  let x = e.clientX + pad, y = e.clientY + pad;
+  if (x + rect.width  > window.innerWidth  - 8) x = e.clientX - rect.width  - pad;
+  if (y + rect.height > window.innerHeight - 8) y = e.clientY - rect.height - pad;
+  el.style.left = Math.max(8, x) + 'px';
+  el.style.top  = Math.max(8, y) + 'px';
+}
+function afficherInfoSurvol(e, html) {
+  const el = getHoverInfoEl();
+  el.innerHTML = html;
+  el.style.display = 'block';
+  positionnerInfoSurvol(e);
+}
+function masquerInfoSurvol() { if (hoverInfoEl) hoverInfoEl.style.display = 'none'; }
+
+// Attache le survol d'info à une case (bouteille ou vide).
+function attacherSurvol(div, contenu) {
+  div.addEventListener('mouseenter', e => afficherInfoSurvol(e, contenu));
+  div.addEventListener('mousemove', positionnerInfoSurvol);
+  div.addEventListener('mouseleave', masquerInfoSurvol);
 }
 
 // Construit une case (un emplacement) entièrement câblée. niveau : 1 = avant, 2 = arrière.
@@ -858,51 +919,31 @@ function construireCase(m, c, r, niveau, half) {
   div.dataset.row = r;
   div.dataset.niveau = niveau;
 
-  // ── Profondeur 1 : une bouteille droite (goulot en haut) par case ──
-  if (!half) {
+  // Orientation : profondeur 1 = bouteille droite ; profondeur 2 = paire emboîtée alternée.
+  let isUp = true;
+  if (half) {
+    const rowInverse = (r % 2 === 0);
+    const shifted = (niveau === 2);
+    isUp = shifted ? rowInverse : !rowInverse;
+    div.className = 'case-half ' + (isUp ? 'tri-up' : 'tri-down') + (shifted ? ' tri-shift' : '');
+  } else {
     div.className = 'case bottle-cell';
-    const svg = svgBouteille(true, bouteille);
-    if (bouteille) {
-      div.setAttribute('draggable', 'true');
-      div.innerHTML = svg
-        + `<div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}</div>`;
-      div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
-      div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r, niveau));
-      div.addEventListener('dragend',   e => finDrag(e));
-    } else {
-      div.innerHTML = svg + '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
-      div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r, niveau));
-      div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
-      div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
-      div.addEventListener('drop',      e => deposeCase(e, m.id, c, r, niveau));
-    }
-    return div;
   }
 
-  // ── Profondeur 2 : deux bouteilles emboîtées (avant + arrière décalée) ──
-  // Rôle stable : niveau 2 (arrière) est toujours la bouteille décalée d'une demi-case.
-  // L'orientation (goulot haut / bas) s'inverse une rangée sur deux → emboîtement goulot/corps.
-  const rowInverse = (r % 2 === 0);
-  const shifted = (niveau === 2);
-  const isUp = shifted ? rowInverse : !rowInverse;
-  div.className = 'case-half ' + (isUp ? 'tri-up' : 'tri-down') + (shifted ? ' tri-shift' : '');
-
-  const svg = svgBouteille(isUp, bouteille);
+  div.innerHTML = svgBouteille(isUp, bouteille);
 
   if (bouteille) {
     div.setAttribute('draggable', 'true');
-    const profTip = niveau === 2 ? ' · arrière' : ' · avant';
-    div.innerHTML = svg
-      + `<div class="case-tooltip">${bouteille.nom}${bouteille.millesime ? ' '+bouteille.millesime : ''}${profTip}</div>`;
+    attacherSurvol(div, infoBouteilleHTML(bouteille, niveau, m.profondeur));
     div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
-    div.addEventListener('dragstart', e => demarrerDrag(e, m.id, c, r, niveau));
+    div.addEventListener('dragstart', e => { masquerInfoSurvol(); demarrerDrag(e, m.id, c, r, niveau); });
     div.addEventListener('dragend',   e => finDrag(e));
   } else {
-    div.innerHTML = svg + '<div class="case-tooltip">Case vide — cliquer pour placer</div>';
+    attacherSurvol(div, '<div class="hi-line">Emplacement vide — cliquer pour placer</div>');
     div.addEventListener('click', () => ouvrirChoisirVin(m.id, c, r, niveau));
     div.addEventListener('dragover',  e => { e.preventDefault(); div.classList.add('drag-over'); });
     div.addEventListener('dragleave', () => div.classList.remove('drag-over'));
-    div.addEventListener('drop',      e => deposeCase(e, m.id, c, r, niveau));
+    div.addEventListener('drop',      e => { masquerInfoSurvol(); deposeCase(e, m.id, c, r, niveau); });
   }
   return div;
 }

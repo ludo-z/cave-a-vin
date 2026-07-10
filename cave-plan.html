@@ -871,7 +871,7 @@ function infoBouteilleHTML(b, niveau, profondeur) {
   if (l2)          parts.push(`<div class="hi-line">${escHtml(l2)}</div>`);
   if (region)      parts.push(`<div class="hi-line">${escHtml(region)}</div>`);
   if (b.cepage)    parts.push(`<div class="hi-line">${escHtml(b.cepage)}</div>`);
-  if (profondeur === 2) parts.push(`<div class="hi-tag">${niveau === 2 ? 'Arrière' : 'Avant'}</div>`);
+  if (profondeur === 2) parts.push(`<div class="hi-tag">${niveau === 2 ? 'Avant' : 'Arrière'}</div>`);
   return parts.join('');
 }
 let hoverInfoEl = null;
@@ -1093,7 +1093,7 @@ function ouvrirDetailCase(meubleId, col, row, niveau, empl) {
   const b = empl?.bouteilles;
   if (!b) return;
   const m = meubles.find(x => x.id === meubleId);
-  const profTxt = (m && m.profondeur === 2) ? (niveau === 2 ? ' · arrière' : ' · avant') : '';
+  const profTxt = (m && m.profondeur === 2) ? (niveau === 2 ? ' · avant' : ' · arrière') : '';
 
   document.getElementById('detail-case-titre').textContent = b.nom || 'Bouteille';
   const hex = COULEURS_HEX[b.couleur] || '#999';

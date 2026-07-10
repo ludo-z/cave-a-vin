@@ -864,14 +864,14 @@ function svgBouteille(isUp, bouteille) {
 // ── Carte d'info au survol (flottante, non rognée par le découpage des cases) ──
 const COULEUR_LABEL = { rouge:'Rouge', blanc:'Blanc', 'rosé':'Rosé', 'pétillant':'Pétillant', autre:'Autre' };
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function infoBouteilleHTML(b, niveau, profondeur) {
+function infoBouteilleHTML(b, isUp, profondeur) {
   const l2 = [b.millesime, COULEUR_LABEL[b.couleur] || ''].filter(Boolean).join(' · ');
   const region = b.region || b.appellation || b.pays || '';
   const parts = [`<div class="hi-title">${escHtml(b.nom || 'Sans nom')}</div>`];
   if (l2)          parts.push(`<div class="hi-line">${escHtml(l2)}</div>`);
   if (region)      parts.push(`<div class="hi-line">${escHtml(region)}</div>`);
   if (b.cepage)    parts.push(`<div class="hi-line">${escHtml(b.cepage)}</div>`);
-  if (profondeur === 2) parts.push(`<div class="hi-tag">${niveau === 2 ? 'Avant' : 'Arrière'}</div>`);
+  if (profondeur === 2) parts.push(`<div class="hi-tag">${isUp ? 'Devant' : 'Arrière'}</div>`);
   return parts.join('');
 }
 let hoverInfoEl = null;
@@ -934,7 +934,7 @@ function construireCase(m, c, r, niveau, half) {
 
   if (bouteille) {
     div.setAttribute('draggable', 'true');
-    attacherSurvol(div, infoBouteilleHTML(bouteille, niveau, m.profondeur));
+    attacherSurvol(div, infoBouteilleHTML(bouteille, isUp, m.profondeur));
     div.addEventListener('click', () => ouvrirDetailCase(m.id, c, r, niveau, empl));
     div.addEventListener('dragstart', e => { masquerInfoSurvol(); demarrerDrag(e, m.id, c, r, niveau); });
     div.addEventListener('dragend',   e => finDrag(e));
@@ -1093,7 +1093,9 @@ function ouvrirDetailCase(meubleId, col, row, niveau, empl) {
   const b = empl?.bouteilles;
   if (!b) return;
   const m = meubles.find(x => x.id === meubleId);
-  const profTxt = (m && m.profondeur === 2) ? (niveau === 2 ? ' · avant' : ' · arrière') : '';
+  // Orientation (comme au rendu) : goulot en haut = devant, goulot en bas = arrière.
+  const isUp = (niveau === 2) ? (row % 2 === 0) : !(row % 2 === 0);
+  const profTxt = (m && m.profondeur === 2) ? (isUp ? ' · devant' : ' · arrière') : '';
 
   document.getElementById('detail-case-titre').textContent = b.nom || 'Bouteille';
   const hex = COULEURS_HEX[b.couleur] || '#999';

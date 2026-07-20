@@ -1580,6 +1580,81 @@ async function regenererMiniatures(limite, opts) {
 }
 window.regenererMiniatures = regenererMiniatures;
 
+// ── Recompresse les photos DÉJÀ en base pour réduire le stockage ET l'egress ──
+// À lancer une fois depuis la console (F12) sur la page cave :  compresserPhotos()
+// Par lots pour limiter l'egress ponctuel :                     compresserPhotos(20)
+// Relançable sans risque : les fichiers déjà légers (<500 Ko) sont ignorés sans être téléchargés.
+async function compresserPhotos(limite) {
+  limite = limite || 9999;
+  const SEUIL = 500 * 1024; // ne recompresse que les fichiers au-dessus de 500 Ko
+  const { data: { session } } = await sb.auth.getSession();
+  const dossier = session.user.id;
+
+  // 1) Lire les tailles SANS télécharger (une simple liste du bucket)
+  const tailleParNom = {};
+  const { data: fichiers } = await sb.storage.from('photos-etiquettes').list(dossier, { limit: 2000 });
+  (fichiers || []).forEach(f => { tailleParNom[f.name] = (f.metadata && f.metadata.size) || 0; });
+
+  // 2) Ne garder que les bouteilles dont l'original est lourd (taille inconnue = on traite par prudence)
+  const aTraiter = toutesLesBouteilles.filter(b => {
+    if (!b.photo_url) return false;
+    const nom = extraireStoragePath(b.photo_url).split('/').pop();
+    const taille = tailleParNom[nom];
+    return taille === undefined || taille >= SEUIL;
+  }).slice(0, limite);
+
+  console.log(`🗜️ ${aTraiter.length} photo(s) lourde(s) à recompresser…`);
+  let ok = 0, ko = 0, gagne = 0;
+  for (const b of aTraiter) {
+    try {
+      const ancienPath = extraireStoragePath(b.photo_url);
+      // Télécharge l'original (coût egress ponctuel, une seule fois par photo)
+      const { data: blob, error: dlErr } = await sb.storage.from('photos-etiquettes').download(ancienPath);
+      if (dlErr) throw dlErr;
+      if (blob.size < SEUIL) { console.log(`· ${b.nom || b.id} déjà légère`); continue; }
+
+      const tailleAvant = blob.size;
+      const base = ancienPath.replace(/(_thumb)?\.[^.\/]+$/, '');
+      const fullPath  = base + '.jpg';
+      const thumbPath = base + '_thumb.jpg';
+
+      const [full, thumb] = await Promise.all([
+        redimensionnerImage(blob, 1400, 0.82),
+        redimensionnerImage(blob, 800, 0.72),
+      ]);
+      const [u1, u2] = await Promise.all([
+        sb.storage.from('photos-etiquettes').upload(fullPath,  full,  { upsert: true, contentType: 'image/jpeg' }),
+        sb.storage.from('photos-etiquettes').upload(thumbPath, thumb, { upsert: true, contentType: 'image/jpeg' }),
+      ]);
+      if (u1.error || u2.error) throw (u1.error || u2.error);
+
+      if (b.photo_url !== fullPath) {
+        const { error: updErr } = await sb.from('bouteilles').update({ photo_url: fullPath }).eq('id', b.id);
+        if (updErr) throw updErr;
+      }
+      // Supprime l'ancien original s'il portait un autre nom (ex. .png) → libère le stockage
+      if (ancienPath !== fullPath) {
+        await sb.storage.from('photos-etiquettes').remove([ancienPath]);
+      }
+
+      b.photo_url  = fullPath;
+      b._signedUrl = null;
+      b._thumbUrl  = await getPhotoUrl(fullPath, { thumb: true });
+      gagne += Math.max(0, tailleAvant - full.size);
+      ok++;
+      console.log(`✓ ${b.nom || b.id}  ${(tailleAvant/1024/1024).toFixed(1)} Mo → ${(full.size/1024).toFixed(0)} Ko (${ok}/${aTraiter.length})`);
+    } catch (e) {
+      ko++;
+      console.warn(`✗ ${b.nom || b.id} :`, e.message || e);
+    }
+    await new Promise(r => setTimeout(r, 150)); // throttle léger
+  }
+  console.log(`✅ Terminé — ${ok} recompressée(s), ${ko} échec(s). Stockage économisé ≈ ${(gagne/1024/1024).toFixed(1)} Mo.`);
+  if (ok) filtrer();
+  return { ok, ko };
+}
+window.compresserPhotos = compresserPhotos;
+
 function mettreAJourStats() {
   const total  = toutesLesBouteilles.reduce((s, b) => s + (b.quantite || 1), 0);
   const rouges = toutesLesBouteilles.filter(b => b.couleur === 'rouge').reduce((s, b) => s + (b.quantite || 1), 0);

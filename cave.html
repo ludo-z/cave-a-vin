@@ -1802,6 +1802,23 @@ async function voirDetail(id) {
   const maturite = b.annee_maturite_debut && b.annee_maturite_fin
     ? `${b.annee_maturite_debut} – ${b.annee_maturite_fin}` : '—';
   const fullUrl = await getFullUrl(b);
+
+  // Emplacement(s) dans le plan de cave
+  let emplacementTxt = '—';
+  try {
+    const { data: empls } = await sb.from('cave_emplacements')
+      .select('colonne, rangee, niveau, cave_meubles(nom, profondeur)')
+      .eq('bouteille_id', b.id);
+    if (empls && empls.length) {
+      emplacementTxt = empls.map(e => {
+        const meuble = e.cave_meubles?.nom || 'Meuble';
+        const prof = (e.cave_meubles?.profondeur === 2)
+          ? (e.niveau === 2 ? ' · derrière' : ' · devant') : '';
+        return `📍 ${meuble} — Col. ${e.colonne}, Rng. ${e.rangee}${prof}`;
+      }).join('<br>');
+    }
+  } catch (err) { console.error('Emplacement:', err); }
+
   body.innerHTML = `
     ${fullUrl ? `<img class="detail-img" src="${fullUrl}" alt="${b.nom}"/>` : ''}
     <div class="detail-grid">
@@ -1817,6 +1834,7 @@ async function voirDetail(id) {
       <div class="detail-section"><div class="detail-label">Fenêtre de maturité</div><div class="detail-value">${maturite}</div></div>
       <div class="detail-section"><div class="detail-label">Accords mets</div><div class="detail-value">${b.plats_accords || '—'}</div></div>
     </div>
+    <div class="detail-section" style="margin-top:0.75rem"><div class="detail-label">Emplacement dans la cave</div><div class="detail-value" style="line-height:1.6">${emplacementTxt}</div></div>
     ${b.note_perso ? `<div class="detail-section" style="margin-top:0.75rem"><div class="detail-label">Notes personnelles</div><div class="detail-value" style="white-space:pre-wrap">${b.note_perso}</div></div>` : ''}
     ${maturiteBar(b)}
   `;
@@ -2601,8 +2619,7 @@ async function enregistrerDegustation() {
   await chargerBouteilles();
 }
 
-async function supprimerDegustation(id) {
-  if (!confirm('Supprimer cette dégustation ?')) return;
+async function supprimerDegustation(id) {  if (!confirm('Supprimer cette dégustation ?')) return;
   const { error } = await sb.from('degustations').delete().eq('id', id);
   if (!error && bouteilleEnDegustation) {
     await chargerHistorique(bouteilleEnDegustation.id);

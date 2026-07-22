@@ -388,39 +388,36 @@
       color: var(--muted); margin: 6px 0 2px;
     }
     .bande-strip { display: flex; gap: 2px; overflow-x: auto; padding: 2px 0 6px; }
-    .bande-strip .btl + .btl { margin-left: -8px; }
-    .bande-strip.strip-decale { margin-left: 66px; }
+    .bande-strip .btl + .btl { margin-left: -6px; }
+    .bande-strip.strip-decale { margin-left: 55px; }
 
-    /* Grande bouteille étiquetée (corps large) */
-    .btl { position: relative; flex: 0 0 auto; width: 128px; height: 176px; cursor: pointer; }
+    /* Grande bouteille réaliste (verre foncé + capsule colorée) */
+    .btl { position: relative; flex: 0 0 auto; width: 112px; height: 246px; cursor: pointer; }
     .btl:hover { z-index: 5; }
     .btl-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-    .btl:hover .btl-svg path { stroke-width: 2.4; }
-    .btl.vide:hover .btl-svg path { stroke: var(--gold); }
-    .btl.drag-over .btl-svg path { stroke: var(--gold); stroke-width: 2.8; }
+    .btl:hover .btl-svg path { stroke: var(--gold); }
+    .btl.drag-over .btl-svg path { stroke: var(--gold); stroke-width: 2.6; }
     .btl.dragging { opacity: 0.4; }
     .btl-txt {
-      position: absolute; left: 0; right: 0; top: 54%; bottom: 4%;
+      position: absolute; left: 0; right: 0; top: 62%; bottom: 3%;
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      text-align: center; padding: 0 15px; pointer-events: none;
+      text-align: center; padding: 0 16px; pointer-events: none;
     }
     /* Bouteille goulot en bas (arrière) : corps en haut → texte en haut */
-    .btl.neck-down .btl-txt { top: 4%; bottom: 54%; justify-content: flex-end; }
+    .btl.neck-down .btl-txt { top: 3%; bottom: 62%; justify-content: flex-end; }
     .btl-nom {
-      font-weight: 600; font-size: 0.7rem; line-height: 1.15; color: #fff;
+      font-weight: 600; font-size: 0.72rem; line-height: 1.15; color: #F7F3ED;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
     }
     .btl-dom {
-      font-size: 0.62rem; line-height: 1.2; color: rgba(255,255,255,0.9); margin-top: 2px;
+      font-size: 0.64rem; line-height: 1.2; color: rgba(247,243,237,0.82); margin-top: 3px;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
     }
-    .btl-app { font-size: 0.58rem; color: rgba(255,255,255,0.8); margin-top: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
-    .btl-an { font-size: 0.72rem; font-weight: 700; color: var(--gold); margin-top: 3px; text-shadow: 0 1px 3px rgba(0,0,0,0.55); }
-    .btl.vide .btl-txt { top: 46%; bottom: 8%; justify-content: center; }
-    .btl.vide.neck-down .btl-txt { top: 8%; bottom: 46%; }
-    .btl-plus { font-size: 1.7rem; color: var(--muted); font-weight: 300; }
+    .btl-app { font-size: 0.6rem; color: rgba(247,243,237,0.7); margin-top: 1px; }
+    .btl-an { font-size: 0.74rem; font-weight: 700; color: #CE7B90; margin-top: 5px; letter-spacing: 0.03em; }
+    .btl.vide .btl-txt { top: 40%; bottom: auto; justify-content: center; }
+    .btl.vide.neck-down .btl-txt { top: auto; bottom: 40%; }
+    .btl-plus { font-size: 1.8rem; color: var(--muted); font-weight: 300; }
 
     @media (max-width: 600px) {
       main { padding: 0.75rem; }
@@ -936,11 +933,23 @@ function attacherSurvol(div, contenu) {
   div.addEventListener('mouseleave', masquerInfoSurvol);
 }
 
-// Grande bouteille de Bourgogne (corps large), repère 0..72 x 0..100.
-const TALL_BOTTLE = 'M30,4 L42,4 L42,8 L41,10 L41,34 C41,45 64,48 64,62 L64,90 '
-  + 'Q64,96 58,96 L14,96 Q8,96 8,90 L8,62 C8,48 31,45 31,34 L31,10 L30,8 Z';
+// Grande bouteille réaliste : verre foncé, col fin, capsule (coiffe) colorée. Repère 0..60 x 0..135.
+const BODY_PATH = 'M25,5 L35,5 L35,9 L34,11 L34,50 C34,62 52,65 52,85 L52,127 '
+  + 'Q52,133 45,133 L15,133 Q8,133 8,127 L8,85 C8,65 26,62 26,50 L26,11 L25,9 Z';
+function svgBouteilleGrande(couleurHex, neckDown, vide) {
+  const rot = neckDown ? 'transform="rotate(180 30 67.5)"' : '';
+  if (vide) {
+    return `<svg class="btl-svg" viewBox="0 0 60 135" preserveAspectRatio="xMidYMid meet" aria-hidden="true">`
+      + `<path d="${BODY_PATH}" ${rot} fill="none" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="4 3" stroke-linejoin="round"/></svg>`;
+  }
+  return `<svg class="btl-svg" viewBox="0 0 60 135" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g ${rot}>`
+    + `<path d="${BODY_PATH}" fill="#241417" stroke="var(--ink)" stroke-width="1.1" stroke-linejoin="round"/>`
+    + `<rect x="24.3" y="8" width="11.4" height="31" rx="1.6" fill="${couleurHex}"/>`
+    + `<rect x="24.3" y="36" width="11.4" height="2.4" fill="rgba(0,0,0,0.28)"/>`
+    + `</g></svg>`;
+}
 
-// Évite d'afficher deux fois la même chose quand nom ≈ château (ex. "La Tour Carnet" / "Château La Tour Carnet").
+// Évite d'afficher deux fois la même chose quand nom ≈ château.
 function nomEtDomaine(b) {
   const nom = (b.nom || '').trim();
   const dom = (b.chateau || '').trim();
@@ -963,11 +972,8 @@ function construireBouteille(m, c, r, niveau, neckDown) {
   div.dataset.row = r;
   div.dataset.niveau = niveau;
 
-  const fill = b ? (COULEURS_HEX[b.couleur] || '#8a8a8a') : 'none';
-  const dash = b ? '' : 'stroke-dasharray="4 3"';
-  const rot  = neckDown ? 'transform="rotate(180 36 50)"' : '';
-  const svg = `<svg class="btl-svg" viewBox="0 0 72 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">`
-    + `<path d="${TALL_BOTTLE}" ${rot} fill="${fill}" stroke="var(--ink)" stroke-width="1.4" stroke-linejoin="round" ${dash}/></svg>`;
+  const couleurHex = b ? (COULEURS_HEX[b.couleur] || '#8a8a8a') : '';
+  const svg = svgBouteilleGrande(couleurHex, neckDown, !b);
 
   let overlay;
   if (b) {

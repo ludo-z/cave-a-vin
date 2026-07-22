@@ -700,6 +700,7 @@
     <div class="modal-body" id="detail-case-body"></div>
     <div class="modal-footer">
       <button class="btn-danger" id="btn-retirer" data-t="plan_btn_retirer" onclick="retirerBouteille()">🗑 Retirer de la case</button>
+      <button class="btn-secondary" onclick="degusterDepuisPlan()">🍷 Déguster</button>
       <button class="btn-secondary" data-t="plan_btn_deplacer" onclick="deplacerBouteille()">↔ Déplacer</button>
       <button class="btn-primary" data-t="plan_btn_fermer" onclick="fermerModal('modal-detail-case')">Fermer</button>
     </div>
@@ -1145,7 +1146,35 @@ async function syncStockApresDegustation(bouteilleId, nouvelleQte) {
 }
 
 // ── DÉTAIL CASE ──
-function ouvrirDetailCase(meubleId, col, row, niveau, empl) {
+// Signe l'URL d'une photo (chemin brut ou ancienne URL signée) pour l'afficher. Miniature de préférence.
+async function signerPhotoPlan(path) {
+  if (!path) return null;
+  if (path.includes('token=')) {
+    try {
+      const token = new URL(path).searchParams.get('token');
+      if (token) {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        if (payload.exp && (payload.exp - Date.now() / 1000) > 3600) return path;
+      }
+    } catch (e) {}
+  }
+  let storagePath = path;
+  if (path.includes('/object/sign/photos-etiquettes/'))
+    storagePath = decodeURIComponent(path.split('/object/sign/photos-etiquettes/')[1].split('?')[0]);
+  else if (path.includes('/object/public/photos-etiquettes/'))
+    storagePath = decodeURIComponent(path.split('/object/public/photos-etiquettes/')[1]);
+  const estNouvelle = !path.includes('http');
+  const essais = [];
+  if (estNouvelle) essais.push(storagePath.replace(/(\.[^.\/]+)$/, '_thumb.jpg')); // miniature légère
+  essais.push(storagePath); // pleine taille en repli
+  for (const p of essais) {
+    const { data } = await sb.storage.from('photos-etiquettes').createSignedUrl(p, 60 * 60 * 24 * 365);
+    if (data?.signedUrl) return data.signedUrl;
+  }
+  return null;
+}
+
+async function ouvrirDetailCase(meubleId, col, row, niveau, empl) {
   emplacementEnCours = empl;
   const b = empl?.bouteilles;
   if (!b) return;
@@ -1163,9 +1192,10 @@ function ouvrirDetailCase(meubleId, col, row, niveau, empl) {
     else if (annee <= b.annee_maturite_fin) etat = '✅ En maturité';
     else etat = '⚠️ En déclin';
   }
+  const photoUrl = await signerPhotoPlan(b.photo_url);
 
   document.getElementById('detail-case-body').innerHTML = `
-    ${b.photo_url ? `<img src="${b.photo_url}" style="width:100%;max-height:160px;object-fit:cover;border-radius:2px;margin-bottom:0.75rem"/>` : ''}
+    ${photoUrl ? `<img src="${photoUrl}" style="width:100%;max-height:160px;object-fit:cover;border-radius:2px;margin-bottom:0.75rem" onerror="this.style.display='none'"/>` : ''}
     <div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem">
       <div style="width:12px;height:12px;border-radius:50%;background:${hex};flex-shrink:0"></div>
       <strong style="font-family:'Cormorant Garamond',serif;font-size:1.15rem">${b.nom}</strong>
@@ -1190,6 +1220,35 @@ async function retirerBouteille() {
   await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', emplacementEnCours.id);
   fermerModal('modal-detail-case');
   await chargerTout();
+}
+
+// Déguster depuis le plan : enregistre la dégustation, décrémente le stock, libère cette case.
+async function degusterDepuisPlan() {
+  if (!emplacementEnCours) return;
+  const b = emplacementEnCours.bouteilles;
+  if (!b) return;
+  if (!confirm(`Déguster une bouteille de « ${b.nom || 'ce vin'} » ?\nElle sera retirée de la cave et du stock, et ajoutée à l'historique de dégustation.`)) return;
+
+  const { data: { session } } = await sb.auth.getSession();
+  const today = new Date().toISOString().split('T')[0];
+
+  const { error } = await sb.from('degustations').insert({
+    user_id:            session.user.id,
+    bouteille_id:       b.id,
+    date_degustation:   today,
+    nb_bouteilles_bues: 1,
+    note_globale: null, note_robe: null, note_nez: null, note_bouche: null, note_finale: null,
+    commentaire: null,
+  });
+  if (error) { alert('Erreur : ' + error.message); return; }
+
+  const nvQte = Math.max(0, (b.quantite ?? 1) - 1);
+  await sb.from('bouteilles').update({ quantite: nvQte }).eq('id', b.id);
+  await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', emplacementEnCours.id);
+
+  fermerModal('modal-detail-case');
+  await chargerTout();
+  alert(`🍷 Dégustation enregistrée. Il reste ${nvQte} bouteille${nvQte > 1 ? 's' : ''}.`);
 }
 
 function deplacerBouteille() {

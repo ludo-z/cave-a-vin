@@ -934,8 +934,8 @@ function attacherSurvol(div, contenu) {
 }
 
 // Grande bouteille réaliste : verre foncé, col fin, capsule (coiffe) colorée. Repère 0..60 x 0..135.
-const BODY_PATH = 'M25,5 L35,5 L35,9 L34,11 L34,50 C34,62 52,65 52,85 L52,127 '
-  + 'Q52,133 45,133 L15,133 Q8,133 8,127 L8,85 C8,65 26,62 26,50 L26,11 L25,9 Z';
+const BODY_PATH = 'M23,5 L37,5 L37,9 L36,11 L36,50 C36,62 52,65 52,85 L52,127 '
+  + 'Q52,133 45,133 L15,133 Q8,133 8,127 L8,85 C8,65 24,62 24,50 L24,11 L23,9 Z';
 function svgBouteilleGrande(couleurHex, neckDown, vide) {
   const rot = neckDown ? 'transform="rotate(180 30 67.5)"' : '';
   if (vide) {
@@ -944,8 +944,8 @@ function svgBouteilleGrande(couleurHex, neckDown, vide) {
   }
   return `<svg class="btl-svg" viewBox="0 0 60 135" preserveAspectRatio="xMidYMid meet" aria-hidden="true"><g ${rot}>`
     + `<path d="${BODY_PATH}" fill="#241417" stroke="var(--ink)" stroke-width="1.1" stroke-linejoin="round"/>`
-    + `<rect x="23.2" y="8" width="13.6" height="31" rx="1.8" fill="${couleurHex}"/>`
-    + `<rect x="23.2" y="36" width="13.6" height="2.4" fill="rgba(0,0,0,0.28)"/>`
+    + `<rect x="22" y="8" width="16" height="31" rx="1.8" fill="${couleurHex}"/>`
+    + `<rect x="22" y="36" width="16" height="2.4" fill="rgba(0,0,0,0.28)"/>`
     + `</g></svg>`;
 }
 

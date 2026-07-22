@@ -1834,11 +1834,15 @@ async function voirDetail(id) {
       <div class="detail-section"><div class="detail-label">Fenêtre de maturité</div><div class="detail-value">${maturite}</div></div>
       <div class="detail-section"><div class="detail-label">Accords mets</div><div class="detail-value">${b.plats_accords || '—'}</div></div>
     </div>
-    <div class="detail-section" style="margin-top:0.75rem"><div class="detail-label">Emplacement dans la cave</div><div class="detail-value" style="line-height:1.6">${emplacementTxt}</div></div>
+    <div class="detail-section" style="margin-top:0.75rem"><div class="detail-label">Emplacement dans la cave</div><div class="detail-value" style="line-height:1.6">${emplacementTxt}</div>${emplacementTxt !== '—' ? `<button class="btn-secondary" style="margin-top:0.6rem;font-size:0.8rem" onclick="voirDansLaCave('${b.id}')">📍 Voir dans le plan de cave</button>` : ''}</div>
     ${b.note_perso ? `<div class="detail-section" style="margin-top:0.75rem"><div class="detail-label">Notes personnelles</div><div class="detail-value" style="white-space:pre-wrap">${b.note_perso}</div></div>` : ''}
     ${maturiteBar(b)}
   `;
   ouvrirModal('modal-detail');
+}
+
+function voirDansLaCave(id) {
+  window.location.href = 'cave-plan.html?vin=' + encodeURIComponent(id);
 }
 
 function editerDepuisDetail() {

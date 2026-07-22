@@ -1757,7 +1757,7 @@ function rendreTableau() {
       <td>${b.region || '—'}</td>
       <td>${b.contenance ? b.contenance + ' cl' : '75 cl'}</td>
       <td><strong>${b.quantite ?? 1}</strong></td>
-      <td>${b.prix_achat ? b.prix_achat.toFixed(2) + ' €' : '—'}</td>
+      <td>${b.prix_achat ? b.prix_achat.toFixed(2) + ' CHF' : '—'}</td>
       <td>${b.annee_maturite_debut && b.annee_maturite_fin ? `${b.annee_maturite_debut}–${b.annee_maturite_fin}` : '—'}</td>
       <td>
         <div class="td-actions">
@@ -1798,7 +1798,7 @@ async function voirDetail(id) {
   detailEnCours = b;
   document.getElementById('detail-titre').textContent = b.nom || 'Détail';
   const body = document.getElementById('detail-body');
-  const prix = b.prix_achat ? `${b.prix_achat.toFixed(2)} €` : '—';
+  const prix = b.prix_achat ? `${b.prix_achat.toFixed(2)} CHF` : '—';
   const maturite = b.annee_maturite_debut && b.annee_maturite_fin
     ? `${b.annee_maturite_debut} – ${b.annee_maturite_fin}` : '—';
   const fullUrl = await getFullUrl(b);

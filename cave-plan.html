@@ -567,6 +567,22 @@
       }
     }
 
+    /* ── DÉGUSTATIONS (porté depuis l'inventaire) ── */
+    .deg-stars { display: flex; gap: 0.25rem; align-items: center; }
+    .deg-star { font-size: 1.3rem; cursor: pointer; opacity: 0.25; transition: opacity 0.15s, transform 0.1s; user-select: none; color: var(--gold); }
+    .deg-star.actif, .deg-star:hover { opacity: 1; transform: scale(1.15); }
+    .deg-star-group { margin-bottom: 1rem; }
+    .deg-star-label { font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); margin-bottom: 0.3rem; }
+    .deg-history-item { background: var(--bg); border-radius: 2px; padding: 1rem; margin-bottom: 0.75rem; border-left: 3px solid var(--bordeaux); }
+    .deg-history-date { font-size: 0.72rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .deg-history-notes { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 0.5rem; }
+    .deg-note-mini { font-size: 0.78rem; color: var(--ink); }
+    .deg-note-mini span { color: var(--bordeaux); font-weight: 600; }
+    .deg-history-comment { font-size: 0.82rem; color: var(--muted); font-style: italic; margin-top: 0.4rem; white-space: pre-wrap; }
+    .deg-btn-suppr { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 0.8rem; padding: 0.1rem 0.3rem; border-radius: 2px; transition: all 0.15s; }
+    .deg-btn-suppr:hover { color: #B94040; background: #fdf0f0; }
+    .deg-empty { text-align: center; padding: 1.5rem; color: var(--muted); font-size: 0.85rem; font-style: italic; }
+    .deg-moyenne { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.78rem; color: var(--bordeaux); background: rgba(107,26,42,0.06); padding: 0.2rem 0.5rem; border-radius: 20px; }
   </style>
   <script src="lang.js"></script>
 </head>
@@ -703,6 +719,80 @@
       <button class="btn-secondary" onclick="degusterDepuisPlan()">🍷 Déguster</button>
       <button class="btn-secondary" data-t="plan_btn_deplacer" onclick="deplacerBouteille()">↔ Déplacer</button>
       <button class="btn-primary" data-t="plan_btn_fermer" onclick="fermerModal('modal-detail-case')">Fermer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ MODAL DÉGUSTATION ═══ -->
+<div class="overlay" id="modal-degustation">
+  <div class="modal" style="max-width:560px">
+    <div class="modal-header">
+      <div class="modal-title" id="deg-titre">Dégustation</div>
+      <button class="btn-close" onclick="fermerModal('modal-degustation')">✕</button>
+    </div>
+    <div class="modal-body" style="max-height:75vh;overflow-y:auto;-webkit-overflow-scrolling:touch">
+      <div style="background:rgba(107,26,42,0.03);border-radius:2px;padding:1.25rem;margin-bottom:1.5rem;border:1px solid var(--stone)">
+        <div style="font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--bordeaux);margin-bottom:1rem">🍷 Enregistrer une dégustation</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem">
+          <div class="form-group" style="margin-bottom:0">
+            <label>Date</label>
+            <input type="date" id="deg-date" style="padding:0.6rem 0.75rem;border:1px solid var(--stone);border-radius:1px;width:100%;font-family:Inter,sans-serif;font-size:0.88rem;outline:none"/>
+          </div>
+          <div class="form-group" style="margin-bottom:0">
+            <label>Bouteilles bues</label>
+            <input type="number" id="deg-nb" value="1" min="1" max="99" style="padding:0.6rem 0.75rem;border:1px solid var(--stone);border-radius:1px;width:100%;font-family:Inter,sans-serif;font-size:0.88rem;outline:none"/>
+          </div>
+        </div>
+        <div class="deg-star-group">
+          <div class="deg-star-label">Note globale</div>
+          <div class="deg-stars" id="stars-globale">
+            <span class="deg-star" data-val="1" onclick="setNote('globale',1)">★</span>
+            <span class="deg-star" data-val="2" onclick="setNote('globale',2)">★</span>
+            <span class="deg-star" data-val="3" onclick="setNote('globale',3)">★</span>
+            <span class="deg-star" data-val="4" onclick="setNote('globale',4)">★</span>
+            <span class="deg-star" data-val="5" onclick="setNote('globale',5)">★</span>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;margin-bottom:1rem">
+          <div class="deg-star-group" style="margin-bottom:0">
+            <div class="deg-star-label">Robe</div>
+            <div class="deg-stars" id="stars-robe">
+              <span class="deg-star" data-val="1" onclick="setNote('robe',1)">★</span><span class="deg-star" data-val="2" onclick="setNote('robe',2)">★</span><span class="deg-star" data-val="3" onclick="setNote('robe',3)">★</span><span class="deg-star" data-val="4" onclick="setNote('robe',4)">★</span><span class="deg-star" data-val="5" onclick="setNote('robe',5)">★</span>
+            </div>
+          </div>
+          <div class="deg-star-group" style="margin-bottom:0">
+            <div class="deg-star-label">Nez</div>
+            <div class="deg-stars" id="stars-nez">
+              <span class="deg-star" data-val="1" onclick="setNote('nez',1)">★</span><span class="deg-star" data-val="2" onclick="setNote('nez',2)">★</span><span class="deg-star" data-val="3" onclick="setNote('nez',3)">★</span><span class="deg-star" data-val="4" onclick="setNote('nez',4)">★</span><span class="deg-star" data-val="5" onclick="setNote('nez',5)">★</span>
+            </div>
+          </div>
+          <div class="deg-star-group" style="margin-bottom:0">
+            <div class="deg-star-label">Bouche</div>
+            <div class="deg-stars" id="stars-bouche">
+              <span class="deg-star" data-val="1" onclick="setNote('bouche',1)">★</span><span class="deg-star" data-val="2" onclick="setNote('bouche',2)">★</span><span class="deg-star" data-val="3" onclick="setNote('bouche',3)">★</span><span class="deg-star" data-val="4" onclick="setNote('bouche',4)">★</span><span class="deg-star" data-val="5" onclick="setNote('bouche',5)">★</span>
+            </div>
+          </div>
+          <div class="deg-star-group" style="margin-bottom:0">
+            <div class="deg-star-label">Finale</div>
+            <div class="deg-stars" id="stars-finale">
+              <span class="deg-star" data-val="1" onclick="setNote('finale',1)">★</span><span class="deg-star" data-val="2" onclick="setNote('finale',2)">★</span><span class="deg-star" data-val="3" onclick="setNote('finale',3)">★</span><span class="deg-star" data-val="4" onclick="setNote('finale',4)">★</span><span class="deg-star" data-val="5" onclick="setNote('finale',5)">★</span>
+            </div>
+          </div>
+        </div>
+        <div class="form-group" style="margin-bottom:0.75rem">
+          <label>Commentaire</label>
+          <textarea id="deg-commentaire" rows="3" placeholder="Impressions, accords, occasion..." style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:1px;font-family:Inter,sans-serif;font-size:0.88rem;resize:vertical;outline:none"></textarea>
+        </div>
+        <button class="btn-primary" onclick="enregistrerDegustation()" style="width:100%">Enregistrer</button>
+        <div id="deg-msg" style="display:none;margin-top:0.5rem;font-size:0.82rem;padding:0.5rem 0.75rem;border-radius:1px"></div>
+      </div>
+      <div>
+        <div style="font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin-bottom:0.75rem">📋 Historique des dégustations</div>
+        <div id="deg-historique"><div class="deg-empty">Aucune dégustation enregistrée</div></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-secondary" onclick="fermerModal('modal-degustation')">Fermer</button>
     </div>
   </div>
 </div>
@@ -1222,33 +1312,112 @@ async function retirerBouteille() {
   await chargerTout();
 }
 
-// Déguster depuis le plan : enregistre la dégustation, décrémente le stock, libère cette case.
-async function degusterDepuisPlan() {
-  if (!emplacementEnCours) return;
+// ── DÉGUSTATION (formulaire complet, comme dans l'inventaire) ──
+let bouteilleEnDegustation = null;
+let notesEnCours = { globale: 0, robe: 0, nez: 0, bouche: 0, finale: 0 };
+
+function degusterDepuisPlan() {
+  if (!emplacementEnCours || !emplacementEnCours.bouteilles) return;
   const b = emplacementEnCours.bouteilles;
-  if (!b) return;
-  if (!confirm(`Déguster une bouteille de « ${b.nom || 'ce vin'} » ?\nElle sera retirée de la cave et du stock, et ajoutée à l'historique de dégustation.`)) return;
+  bouteilleEnDegustation = b;
+  fermerModal('modal-detail-case');
+  document.getElementById('deg-titre').textContent = `🍷 ${b.nom || 'Bouteille'}${b.millesime ? ' ' + b.millesime : ''}`;
+  notesEnCours = { globale: 0, robe: 0, nez: 0, bouche: 0, finale: 0 };
+  ['globale','robe','nez','bouche','finale'].forEach(k => renderStars(k, 0));
+  document.getElementById('deg-date').value = new Date().toISOString().split('T')[0];
+  document.getElementById('deg-nb').value = 1;
+  document.getElementById('deg-commentaire').value = '';
+  document.getElementById('deg-msg').style.display = 'none';
+  chargerHistorique(b.id);
+  ouvrirModal('modal-degustation');
+}
+
+function setNote(categorie, val) { notesEnCours[categorie] = val; renderStars(categorie, val); }
+function renderStars(categorie, val) {
+  const container = document.getElementById(`stars-${categorie}`);
+  if (!container) return;
+  container.querySelectorAll('.deg-star').forEach(s => s.classList.toggle('actif', parseInt(s.dataset.val) <= val));
+}
+
+async function chargerHistorique(bouteilleId) {
+  const { data, error } = await sb.from('degustations').select('*')
+    .eq('bouteille_id', bouteilleId).order('date_degustation', { ascending: false });
+  const container = document.getElementById('deg-historique');
+  if (error || !data || data.length === 0) {
+    container.innerHTML = '<div class="deg-empty">Aucune dégustation enregistrée</div>';
+    return;
+  }
+  const fmt = d => new Date(d).toLocaleDateString('fr-CH', { day: '2-digit', month: 'long', year: 'numeric' });
+  const stars = n => n ? '★'.repeat(n) + '☆'.repeat(5 - n) : '—';
+  container.innerHTML = data.map(d => {
+    const noteGlobale = d.note_globale ? `<span class="deg-moyenne">★ ${d.note_globale}/5</span>` : '';
+    const notes = [
+      d.note_robe   ? `Robe: <span>${stars(d.note_robe)}</span>` : null,
+      d.note_nez    ? `Nez: <span>${stars(d.note_nez)}</span>` : null,
+      d.note_bouche ? `Bouche: <span>${stars(d.note_bouche)}</span>` : null,
+      d.note_finale ? `Finale: <span>${stars(d.note_finale)}</span>` : null,
+    ].filter(Boolean);
+    return `<div class="deg-history-item">
+      <div class="deg-history-date">
+        <span>${fmt(d.date_degustation)} · ${d.nb_bouteilles_bues} btl bue${d.nb_bouteilles_bues > 1 ? 's' : ''}</span>
+        <div style="display:flex;align-items:center;gap:0.5rem">${noteGlobale}
+          <button class="deg-btn-suppr" onclick="supprimerDegustation('${d.id}')" title="Supprimer">✕</button>
+        </div>
+      </div>
+      ${notes.length > 0 ? `<div class="deg-history-notes">${notes.map(n => `<div class="deg-note-mini">${n}</div>`).join('')}</div>` : ''}
+      ${d.commentaire ? `<div class="deg-history-comment">${d.commentaire}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+async function enregistrerDegustation() {
+  if (!bouteilleEnDegustation) return;
+  const b = bouteilleEnDegustation;
+  const date = document.getElementById('deg-date').value;
+  const nb   = parseInt(document.getElementById('deg-nb').value) || 1;
+  const comm = document.getElementById('deg-commentaire').value.trim();
+  const msg  = document.getElementById('deg-msg');
+  const errStyle = 'display:block;background:#fdf0f0;color:#B94040;border-left:3px solid #B94040;padding:0.5rem 0.75rem;border-radius:1px;font-size:0.82rem;margin-top:0.5rem';
+  if (!date) { msg.textContent = 'Merci de saisir une date.'; msg.style.cssText = errStyle; return; }
 
   const { data: { session } } = await sb.auth.getSession();
-  const today = new Date().toISOString().split('T')[0];
-
   const { error } = await sb.from('degustations').insert({
-    user_id:            session.user.id,
-    bouteille_id:       b.id,
-    date_degustation:   today,
-    nb_bouteilles_bues: 1,
-    note_globale: null, note_robe: null, note_nez: null, note_bouche: null, note_finale: null,
-    commentaire: null,
+    user_id: session.user.id, bouteille_id: b.id,
+    date_degustation: date, nb_bouteilles_bues: nb,
+    note_globale: notesEnCours.globale || null, note_robe: notesEnCours.robe || null,
+    note_nez: notesEnCours.nez || null, note_bouche: notesEnCours.bouche || null,
+    note_finale: notesEnCours.finale || null, commentaire: comm || null,
   });
-  if (error) { alert('Erreur : ' + error.message); return; }
+  if (error) { msg.textContent = 'Erreur : ' + error.message; msg.style.cssText = errStyle; return; }
 
-  const nvQte = Math.max(0, (b.quantite ?? 1) - 1);
+  const nvQte = Math.max(0, (b.quantite ?? 1) - nb);
   await sb.from('bouteilles').update({ quantite: nvQte }).eq('id', b.id);
-  await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', emplacementEnCours.id);
 
-  fermerModal('modal-detail-case');
+  // Libérer la case d'où on a dégusté, puis ajuster s'il reste trop de cases par rapport au stock
+  if (emplacementEnCours) await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', emplacementEnCours.id);
+  const { data: empl } = await sb.from('cave_emplacements').select('id')
+    .eq('bouteille_id', b.id).order('id', { ascending: false });
+  if (empl && empl.length > nvQte) {
+    for (const e of empl.slice(0, empl.length - nvQte)) {
+      await sb.from('cave_emplacements').update({ bouteille_id: null }).eq('id', e.id);
+    }
+  }
+
+  msg.textContent = `✅ Dégustation enregistrée ! Quantité restante : ${nvQte} bouteille${nvQte > 1 ? 's' : ''}`;
+  msg.style.cssText = 'display:block;background:#f0fdf4;color:#2d6a4f;border-left:3px solid #52b788;padding:0.5rem 0.75rem;border-radius:1px;font-size:0.82rem;margin-top:0.5rem';
+  notesEnCours = { globale: 0, robe: 0, nez: 0, bouche: 0, finale: 0 };
+  ['globale','robe','nez','bouche','finale'].forEach(k => renderStars(k, 0));
+  document.getElementById('deg-commentaire').value = '';
+  document.getElementById('deg-nb').value = 1;
+  b.quantite = nvQte;
+  await chargerHistorique(b.id);
   await chargerTout();
-  alert(`🍷 Dégustation enregistrée. Il reste ${nvQte} bouteille${nvQte > 1 ? 's' : ''}.`);
+}
+
+async function supprimerDegustation(id) {
+  if (!confirm('Supprimer cette dégustation ?')) return;
+  const { error } = await sb.from('degustations').delete().eq('id', id);
+  if (!error && bouteilleEnDegustation) await chargerHistorique(bouteilleEnDegustation.id);
 }
 
 function deplacerBouteille() {

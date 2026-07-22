@@ -388,10 +388,11 @@
       color: var(--muted); margin: 6px 0 2px;
     }
     .bande-strip { display: flex; gap: 2px; overflow-x: auto; padding: 2px 0 6px; }
-    .bande-strip .btl + .btl { margin-left: -6px; }
+    .bande-strip .btl + .btl { margin-left: -8px; }
+    .bande-strip.strip-decale { margin-left: 66px; }
 
-    /* Grande bouteille étiquetée */
-    .btl { position: relative; flex: 0 0 auto; width: 122px; height: 168px; cursor: pointer; }
+    /* Grande bouteille étiquetée (corps large) */
+    .btl { position: relative; flex: 0 0 auto; width: 128px; height: 176px; cursor: pointer; }
     .btl:hover { z-index: 5; }
     .btl-svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
     .btl:hover .btl-svg path { stroke-width: 2.4; }
@@ -399,23 +400,26 @@
     .btl.drag-over .btl-svg path { stroke: var(--gold); stroke-width: 2.8; }
     .btl.dragging { opacity: 0.4; }
     .btl-txt {
-      position: absolute; left: 0; right: 0; top: 52%; bottom: 5%;
+      position: absolute; left: 0; right: 0; top: 54%; bottom: 4%;
       display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
-      text-align: center; padding: 0 16px; pointer-events: none;
+      text-align: center; padding: 0 15px; pointer-events: none;
     }
+    /* Bouteille goulot en bas (arrière) : corps en haut → texte en haut */
+    .btl.neck-down .btl-txt { top: 4%; bottom: 54%; justify-content: flex-end; }
     .btl-nom {
-      font-weight: 600; font-size: 0.72rem; line-height: 1.15; color: #fff;
+      font-weight: 600; font-size: 0.7rem; line-height: 1.15; color: #fff;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
     }
     .btl-dom {
-      font-size: 0.66rem; line-height: 1.2; color: rgba(255,255,255,0.92); margin-top: 2px;
+      font-size: 0.62rem; line-height: 1.2; color: rgba(255,255,255,0.9); margin-top: 2px;
       display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
-      text-shadow: 0 1px 2px rgba(0,0,0,0.4);
+      text-shadow: 0 1px 2px rgba(0,0,0,0.45);
     }
-    .btl-app { font-size: 0.6rem; color: rgba(255,255,255,0.82); margin-top: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.4); }
-    .btl-an { font-size: 0.72rem; font-weight: 700; color: var(--gold); margin-top: 3px; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
-    .btl.vide .btl-txt { top: 44%; justify-content: center; }
+    .btl-app { font-size: 0.58rem; color: rgba(255,255,255,0.8); margin-top: 1px; text-shadow: 0 1px 2px rgba(0,0,0,0.45); }
+    .btl-an { font-size: 0.72rem; font-weight: 700; color: var(--gold); margin-top: 3px; text-shadow: 0 1px 3px rgba(0,0,0,0.55); }
+    .btl.vide .btl-txt { top: 46%; bottom: 8%; justify-content: center; }
+    .btl.vide.neck-down .btl-txt { top: 8%; bottom: 46%; }
     .btl-plus { font-size: 1.7rem; color: var(--muted); font-weight: 300; }
 
     @media (max-width: 600px) {
@@ -830,26 +834,27 @@ function rendreMeuble(m) {
     titre.textContent = `${t('plan_rng') || 'Rangée'} ${r}`;
     bande.appendChild(titre);
 
-    const faireStrip = (niveau) => {
+    const faireStrip = (niveau, neckDown, decale) => {
       const strip = document.createElement('div');
-      strip.className = 'bande-strip';
-      for (let c = 1; c <= m.colonnes; c++) strip.appendChild(construireBouteille(m, c, r, niveau));
+      strip.className = 'bande-strip' + (decale ? ' strip-decale' : '');
+      for (let c = 1; c <= m.colonnes; c++) strip.appendChild(construireBouteille(m, c, r, niveau, neckDown));
       return strip;
     };
 
     if (profondeur === 2) {
-      [['Devant', 1], ['Derrière', 2]].forEach(([lbl, niv]) => {
+      // Derrière d'abord (goulot en bas, décalée d'une demi-place), puis Devant.
+      [['Derrière', 2, true, true], ['Devant', 1, false, false]].forEach(([lbl, niv, neckDown, decale]) => {
         const ssb = document.createElement('div');
         ssb.className = 'sous-bande';
         const st = document.createElement('div');
         st.className = 'sous-titre';
         st.textContent = lbl;
         ssb.appendChild(st);
-        ssb.appendChild(faireStrip(niv));
+        ssb.appendChild(faireStrip(niv, neckDown, decale));
         bande.appendChild(ssb);
       });
     } else {
-      bande.appendChild(faireStrip(1));
+      bande.appendChild(faireStrip(1, false, false));
     }
     body.appendChild(bande);
   }
@@ -886,10 +891,11 @@ function svgBouteille(isUp, bouteille) {
 const COULEUR_LABEL = { rouge:'Rouge', blanc:'Blanc', 'rosé':'Rosé', 'pétillant':'Pétillant', autre:'Autre' };
 function escHtml(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function infoBouteilleHTML(b, niveau, profondeur) {
+  const { titre, sousTitre } = nomEtDomaine(b);
   const l2 = [b.millesime, COULEUR_LABEL[b.couleur] || ''].filter(Boolean).join(' · ');
   const region = b.appellation || b.region || b.pays || '';
-  const parts = [`<div class="hi-title">${escHtml(b.nom || 'Sans nom')}</div>`];
-  if (b.chateau)   parts.push(`<div class="hi-line">${escHtml(b.chateau)}</div>`);
+  const parts = [`<div class="hi-title">${escHtml(titre)}</div>`];
+  if (sousTitre)   parts.push(`<div class="hi-line">${escHtml(sousTitre)}</div>`);
   if (l2)          parts.push(`<div class="hi-line">${escHtml(l2)}</div>`);
   if (region)      parts.push(`<div class="hi-line">${escHtml(region)}</div>`);
   if (profondeur === 2) parts.push(`<div class="hi-tag">${niveau === 2 ? 'Derrière' : 'Devant'}</div>`);
@@ -930,16 +936,28 @@ function attacherSurvol(div, contenu) {
   div.addEventListener('mouseleave', masquerInfoSurvol);
 }
 
-// Grande bouteille couchée verticalement, goulot en haut, corps large (repère 0..60 x 0..150).
-const TALL_BOTTLE = 'M25,6 L35,6 L35,11 L34,13 L34,54 C34,66 48,70 48,90 L48,138 '
-  + 'Q48,146 40,146 L20,146 Q12,146 12,138 L12,90 C12,70 26,66 26,54 L26,13 L25,11 Z';
+// Grande bouteille de Bourgogne (corps large), repère 0..72 x 0..100.
+const TALL_BOTTLE = 'M30,4 L42,4 L42,8 L41,10 L41,34 C41,45 64,48 64,62 L64,90 '
+  + 'Q64,96 58,96 L14,96 Q8,96 8,90 L8,62 C8,48 31,45 31,34 L31,10 L30,8 Z';
 
-// Construit une grande bouteille étiquetée pour un emplacement. niveau : 1 = devant, 2 = derrière.
-function construireBouteille(m, c, r, niveau) {
+// Évite d'afficher deux fois la même chose quand nom ≈ château (ex. "La Tour Carnet" / "Château La Tour Carnet").
+function nomEtDomaine(b) {
+  const nom = (b.nom || '').trim();
+  const dom = (b.chateau || '').trim();
+  const norm = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const n = norm(nom), d = norm(dom);
+  if (n && d && (n.includes(d) || d.includes(n))) {
+    return { titre: (dom.length >= nom.length ? dom : nom) || 'Sans nom', sousTitre: '' };
+  }
+  return { titre: nom || dom || 'Sans nom', sousTitre: nom ? dom : '' };
+}
+
+// Construit une grande bouteille étiquetée. niveau : 1 = devant, 2 = derrière. neckDown = goulot en bas.
+function construireBouteille(m, c, r, niveau, neckDown) {
   const empl = trouverEmplacement(m.id, c, r, niveau);
   const b = empl?.bouteilles;
   const div = document.createElement('div');
-  div.className = 'btl' + (b ? '' : ' vide');
+  div.className = 'btl' + (b ? '' : ' vide') + (neckDown ? ' neck-down' : '');
   div.dataset.meubleId = m.id;
   div.dataset.col = c;
   div.dataset.row = r;
@@ -947,15 +965,17 @@ function construireBouteille(m, c, r, niveau) {
 
   const fill = b ? (COULEURS_HEX[b.couleur] || '#8a8a8a') : 'none';
   const dash = b ? '' : 'stroke-dasharray="4 3"';
-  const svg = `<svg class="btl-svg" viewBox="0 0 60 150" preserveAspectRatio="xMidYMid meet" aria-hidden="true">`
-    + `<path d="${TALL_BOTTLE}" fill="${fill}" stroke="var(--ink)" stroke-width="1.6" stroke-linejoin="round" ${dash}/></svg>`;
+  const rot  = neckDown ? 'transform="rotate(180 36 50)"' : '';
+  const svg = `<svg class="btl-svg" viewBox="0 0 72 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">`
+    + `<path d="${TALL_BOTTLE}" ${rot} fill="${fill}" stroke="var(--ink)" stroke-width="1.4" stroke-linejoin="round" ${dash}/></svg>`;
 
   let overlay;
   if (b) {
+    const { titre, sousTitre } = nomEtDomaine(b);
     const app = b.appellation || b.region || '';
     overlay = `<div class="btl-txt">`
-      + `<div class="btl-nom">${escHtml(b.nom || 'Sans nom')}</div>`
-      + (b.chateau ? `<div class="btl-dom">${escHtml(b.chateau)}</div>` : '')
+      + `<div class="btl-nom">${escHtml(titre)}</div>`
+      + (sousTitre ? `<div class="btl-dom">${escHtml(sousTitre)}</div>` : '')
       + (app ? `<div class="btl-app">${escHtml(app)}</div>` : '')
       + (b.millesime ? `<div class="btl-an">${escHtml(b.millesime)}</div>` : '')
       + `</div>`;

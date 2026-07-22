@@ -960,6 +960,13 @@
       <option value="pétillant">Pétillant</option>
       <option value="autre">Autre</option>
     </select>
+    <select id="filtre-maturite" onchange="filtrer()">
+      <option value="">🍇 Toute maturité</option>
+      <option value="jeune">⏳ Trop jeune</option>
+      <option value="maturite">✅ À l'apogée</option>
+      <option value="declin">⚠️ En déclin</option>
+      <option value="inconnu">— Non renseignée</option>
+    </select>
     <select id="filtre-tri" onchange="filtrer()">
       <option value="nom" data-t="cave_sort_nom">Trier par nom</option>
       <option value="millesime" data-t="cave_sort_millesime">Trier par millésime</option>
@@ -1667,10 +1674,20 @@ function mettreAJourStats() {
 }
 
 // ── FILTRES ──
+// Statut de maturité d'un vin selon l'année courante.
+function statutMaturite(b) {
+  if (!b.annee_maturite_debut || !b.annee_maturite_fin) return 'inconnu';
+  const annee = new Date().getFullYear();
+  if (annee < b.annee_maturite_debut) return 'jeune';
+  if (annee > b.annee_maturite_fin)   return 'declin';
+  return 'maturite';
+}
+
 function filtrer() {
   const recherche = document.getElementById('recherche').value.toLowerCase();
   const pays      = document.getElementById('filtre-pays').value;
   const couleur   = document.getElementById('filtre-couleur').value;
+  const maturite  = document.getElementById('filtre-maturite').value;
   const tri       = document.getElementById('filtre-tri').value;
 
   bouteillesFiltrees = toutesLesBouteilles.filter(b => {
@@ -1681,8 +1698,9 @@ function filtrer() {
       (b.pays||'').toLowerCase().includes(recherche) ||
       (b.region||'').toLowerCase().includes(recherche) ||
       (b.appellation||'').toLowerCase().includes(recherche);
-    const matchCouleur = !couleur || b.couleur === couleur;
-    return matchRecherche && matchCouleur;
+    const matchCouleur  = !couleur  || b.couleur === couleur;
+    const matchMaturite = !maturite || statutMaturite(b) === maturite;
+    return matchRecherche && matchCouleur && matchMaturite;
   });
 
   bouteillesFiltrees.sort((a, b) => {

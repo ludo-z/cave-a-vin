@@ -679,6 +679,13 @@
             <option value="decale" data-t="plan_disp_decale">Quinconce décalé (même nombre, décalé)</option>
           </select>
         </div>
+        <div class="form-group" id="grp-arriere" style="display:none">
+          <label>Bouteilles derrière</label>
+          <select id="m-arriere" onchange="mettreAJourCapacite()" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
+            <option value="0">Autant que devant (6 / 6)</option>
+            <option value="1">Une de moins, dans les creux (6 / 5)</option>
+          </select>
+        </div>
         <div class="form-group">
           <label data-t="plan_profondeur">Profondeur</label>
           <select id="m-profondeur" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
@@ -890,27 +897,27 @@ function surlignerDepuisURL() {
   setTimeout(() => cibles.forEach(el => el.classList.remove('btl-surligne')), 4500);
 }
 
-// Capacité selon disposition et profondeur.
-function capaciteMeuble(colonnes, rangees, disposition, profondeur) {
+// Capacité : calculée rangée par rangée (le motif et la profondeur font varier chaque rangée).
+function capaciteMeuble(colonnes, rangees, disposition, profondeur, arriereMoins) {
   disposition = normDisposition(disposition);
   profondeur = profondeur || 1;
-  let base;
-  if (disposition === 'pyramide') {
-    const pleines = Math.ceil(rangees / 2);
-    const creuses = Math.floor(rangees / 2);
-    base = pleines * colonnes + creuses * Math.max(colonnes - 1, 0);
-  } else {
-    base = colonnes * rangees; // grille et décalé
+  let total = 0;
+  for (let r = 1; r <= rangees; r++) {
+    const depuisBas = rangees - r;
+    const creuse = (disposition !== 'grille') && (depuisBas % 2 === 1);
+    const devant = (creuse && disposition === 'pyramide') ? Math.max(colonnes - 1, 0) : colonnes;
+    total += devant;
+    if (profondeur === 2) total += arriereMoins ? Math.max(devant - 1, 0) : devant;
   }
-  return base * profondeur;
+  return total;
 }
 
 function rendreMeuble(m) {
   const empl = emplacements.filter(e => e.meuble_id === m.id);
   const occupees = empl.filter(e => e.bouteilles).length;
-  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition, m.profondeur);
+  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition, m.profondeur, !!m.arriere_moins);
   const dispNom = { pyramide: 'pyramide', decale: 'décalé' }[normDisposition(m.disposition)] || '';
-  const tags = [dispNom, (m.profondeur === 2) ? '2 de profondeur' : ''].filter(Boolean).join(' · ');
+  const tags = [dispNom, (m.profondeur === 2) ? ('2 de profondeur' + (m.arriere_moins ? ' · arrière −1' : '')) : ''].filter(Boolean).join(' · ');
 
   const card = document.createElement('div');
   card.className = 'meuble-card';
@@ -938,6 +945,7 @@ function rendreMeuble(m) {
   const body = card.querySelector(`#body-${m.id}`);
   const profondeur  = m.profondeur || 1;
   const disposition = normDisposition(m.disposition);
+  const arriereMoins = !!m.arriere_moins;
   for (let r = 1; r <= m.rangees; r++) {
     const bande = document.createElement('div');
     bande.className = 'bande-rangee';
@@ -953,30 +961,35 @@ function rendreMeuble(m) {
     // En pyramide la rangée creuse a une bouteille de moins ; en décalé, le même nombre.
     const nbCol = (creuse && disposition === 'pyramide') ? Math.max(m.colonnes - 1, 0) : m.colonnes;
 
-    const faireStrip = (niveau, neckDown, decale) => {
+    const faireStrip = (niveau, neckDown, decale, nb) => {
       const strip = document.createElement('div');
       // En profondeur 2, le décalage du motif est porté par la sous-bande (voir plus bas),
       // pour éviter qu'il ne se cumule avec le décalage « Derrière ».
       const creuseIci = creuse && profondeur === 1;
       strip.className = 'bande-strip' + (decale ? ' strip-decale' : '') + (creuseIci ? ' strip-creuse' : '');
-      for (let c = 1; c <= nbCol; c++) strip.appendChild(construireBouteille(m, c, r, niveau, neckDown));
+      for (let c = 1; c <= nb; c++) strip.appendChild(construireBouteille(m, c, r, niveau, neckDown));
       return strip;
     };
 
     if (profondeur === 2) {
-      // Derrière d'abord (goulot en bas, décalée d'une demi-place), puis Devant.
-      [['Derrière', 2, true, true], ['Devant', 1, false, false]].forEach(([lbl, niv, neckDown, decale]) => {
-        const ssb = document.createElement('div');
-        ssb.className = 'sous-bande' + (creuse ? ' sous-bande-creuse' : '');
-        const st = document.createElement('div');
-        st.className = 'sous-titre';
-        st.textContent = lbl;
-        ssb.appendChild(st);
-        ssb.appendChild(faireStrip(niv, neckDown, decale));
-        bande.appendChild(ssb);
-      });
+      // Derrière : autant que devant, ou une de moins si elles se logent dans les creux.
+      const nbArriere = arriereMoins ? Math.max(nbCol - 1, 0) : nbCol;
+      // Derrière d'abord (goulot en bas), puis Devant.
+      // Derrière : retournée + décalée seulement quand elle se loge dans les creux (6/5).
+      // En aligné (6/6), même orientation et même position que devant.
+      [['Derrière', 2, arriereMoins, arriereMoins, nbArriere], ['Devant', 1, false, false, nbCol]]
+        .forEach(([lbl, niv, neckDown, decale, nb]) => {
+          const ssb = document.createElement('div');
+          ssb.className = 'sous-bande' + (creuse ? ' sous-bande-creuse' : '');
+          const st = document.createElement('div');
+          st.className = 'sous-titre';
+          st.textContent = lbl;
+          ssb.appendChild(st);
+          ssb.appendChild(faireStrip(niv, neckDown, decale, nb));
+          bande.appendChild(ssb);
+        });
     } else {
-      bande.appendChild(faireStrip(1, false, false));
+      bande.appendChild(faireStrip(1, false, false, nbCol));
     }
     body.appendChild(bande);
   }
@@ -1493,6 +1506,7 @@ function ouvrirModalMeuble(id = null) {
     document.getElementById('m-rangees').value  = m.rangees;
     document.getElementById('m-disposition').value = normDisposition(m.disposition);
     document.getElementById('m-profondeur').value  = String(m.profondeur || 1);
+    document.getElementById('m-arriere').value     = m.arriere_moins ? '1' : '0';
     mettreAJourCapacite();
   } else {
     document.getElementById('modal-meuble-titre').textContent = t('plan_modal_new');
@@ -1501,6 +1515,7 @@ function ouvrirModalMeuble(id = null) {
     document.getElementById('m-rangees').value  = 8;
     document.getElementById('m-disposition').value = 'grille';
     document.getElementById('m-profondeur').value  = '1';
+    document.getElementById('m-arriere').value     = '0';
     mettreAJourCapacite();
   }
   appliquerTraductionsPlan(); ouvrirModal('modal-meuble');
@@ -1511,7 +1526,9 @@ function mettreAJourCapacite() {
   const r = parseInt(document.getElementById('m-rangees').value)  || 0;
   const disp = document.getElementById('m-disposition').value;
   const prof = parseInt(document.getElementById('m-profondeur').value) || 1;
-  document.getElementById('capacite-preview').textContent = capaciteMeuble(c, r, disp, prof);
+  const arr  = document.getElementById('m-arriere').value === '1';
+  document.getElementById('grp-arriere').style.display = (prof === 2) ? '' : 'none';
+  document.getElementById('capacite-preview').textContent = capaciteMeuble(c, r, disp, prof, arr);
 }
 
 document.getElementById('m-colonnes').addEventListener('input', mettreAJourCapacite);
@@ -1525,13 +1542,14 @@ async function sauvegarderMeuble() {
   const rangees  = parseInt(document.getElementById('m-rangees').value);
   const disposition = document.getElementById('m-disposition').value;
   const profondeur  = parseInt(document.getElementById('m-profondeur').value) || 1;
+  const arriere_moins = document.getElementById('m-arriere').value === '1';
   if (!nom || !colonnes || !rangees) return alert('Merci de remplir tous les champs.');
 
   if (meubleEnEdition) {
-    await sb.from('cave_meubles').update({ nom, colonnes, rangees, disposition, profondeur }).eq('id', meubleEnEdition);
+    await sb.from('cave_meubles').update({ nom, colonnes, rangees, disposition, profondeur, arriere_moins }).eq('id', meubleEnEdition);
   } else {
     const { data: { session } } = await sb.auth.getSession();
-    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, disposition, profondeur, ordre: meubles.length });
+    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, disposition, profondeur, arriere_moins, ordre: meubles.length });
   }
 
   fermerModal('modal-meuble');

@@ -231,6 +231,7 @@
       padding: 0.2rem 0.55rem; border-radius: 20px; font-weight: 500;
     }
     .badge-jeune    { background: #fef9ec; color: #b08020; }
+    .badge-buvable  { background: #f2f7ec; color: #5a7a35; }
     .badge-maturite { background: #edfaf3; color: #2d7a52; }
     .badge-apogee   { background: #eaf4fb; color: #2a6080; }
     .badge-declin   { background: #fef0f0; color: #a03030; }
@@ -309,6 +310,8 @@
     }
     @keyframes spin { to { transform: rotate(360deg); } }
     #loading p { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--muted); }
+
+
 
     .hamburger {
       display: none;
@@ -735,32 +738,54 @@ function renderCouleurs(b) {
 }
 
 // ── PHASES DE MATURITÉ ──
+// ── PHASE DE MATURITÉ (logique commune, partagée avec la vue cave) ──
+// La fenêtre de garde est découpée en trois tiers : le vin est d'abord buvable
+// mais encore jeune, puis il monte en maturité, puis il atteint son apogée.
+// Renvoie : 'inconnu' | 'jeune' | 'buvable' | 'maturite' | 'apogee' | 'declin'
+function phaseMaturite(x, annee) {
+  annee = annee || new Date().getFullYear();
+  const debut = x.annee_maturite_debut || null;
+  const fin   = x.annee_maturite_fin   || null;
+  if (!debut && !fin) return 'inconnu';
+  const d = debut || fin;
+  const f = fin   || debut;
+  if (annee < d) return 'jeune';
+  if (annee > f) return 'declin';
+  const duree = f - d;
+  const t1 = d + duree / 3;
+  const t2 = d + (2 * duree) / 3;
+  if (annee <= t1) return 'buvable';
+  if (annee <= t2) return 'maturite';
+  return 'apogee';
+}
+
 function renderPhases(b) {
   const annee = new Date().getFullYear();
-  let jeune = 0, maturite = 0, apogee = 0, declin = 0, sansInfo = 0;
+  let jeune = 0, buvable = 0, maturite = 0, apogee = 0, declin = 0, sansInfo = 0;
 
   b.forEach(x => {
     const qty = x.quantite || 1;
-    if (!x.annee_maturite_debut && !x.annee_maturite_fin) { sansInfo += qty; return; }
-    const debut = x.annee_maturite_debut || annee;
-    const fin   = x.annee_maturite_fin   || annee;
-    const mid   = debut + Math.floor((fin - debut) / 2);
-    if (annee < debut)       jeune    += qty;
-    else if (annee <= mid)   maturite += qty;
-    else if (annee <= fin)   apogee   += qty;
-    else                     declin   += qty;
+    switch (phaseMaturite(x, annee)) {
+      case 'jeune':    jeune    += qty; break;
+      case 'buvable':  buvable  += qty; break;
+      case 'maturite': maturite += qty; break;
+      case 'apogee':   apogee   += qty; break;
+      case 'declin':   declin   += qty; break;
+      default:         sansInfo += qty;
+    }
   });
 
-  const total = jeune + maturite + apogee + declin + sansInfo;
+  const total = jeune + buvable + maturite + apogee + declin + sansInfo;
   const phases = [
-    { label: t('dash_trop_jeune'),  val: jeune,    color: '#C8A84B', emoji: '⏳' },
-    { label: t('dash_en_maturite'), val: maturite, color: '#52b788', emoji: '✅' },
-    { label: t('dash_apogee'),       val: apogee,   color: '#5B8FA8', emoji: '🌟' },
+    { label: t('dash_trop_jeune'),    val: jeune,    color: '#C8A84B', emoji: '⏳' },
+    { label: t('dash_jeune_buvable'), val: buvable,  color: '#8FAF6B', emoji: '🌱' },
+    { label: t('dash_en_maturite'),   val: maturite, color: '#52b788', emoji: '✅' },
+    { label: t('dash_apogee'),        val: apogee,   color: '#5B8FA8', emoji: '🌟' },
     { label: t('dash_declin'),        val: declin,   color: '#B94040', emoji: '⚠️' },
   ];
 
   document.getElementById('phases-wrap').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:1rem">
       ${phases.map(p => `
         <div style="text-align:center;padding:0.75rem;background:var(--bg);border-radius:2px">
           <div style="font-size:1.4rem;margin-bottom:0.3rem">${p.emoji}</div>
@@ -939,13 +964,10 @@ function renderMaturite(b) {
   document.getElementById('maturite-tbody').innerHTML = avecInfo.map(x => {
     const debut = x.annee_maturite_debut;
     const fin   = x.annee_maturite_fin;
-    const mid   = debut && fin ? debut + Math.floor((fin - debut) / 2) : null;
-    let badge = '';
-    if (!debut && !fin) badge = '';
-    else if (annee < debut) badge = `<span class="badge badge-jeune">${t('dash_trop_jeune')}</span>`;
-    else if (mid && annee <= mid) badge = `<span class="badge badge-maturite">${t('dash_en_maturite')}</span>`;
-    else if (fin && annee <= fin) badge = `<span class="badge badge-apogee">${t('dash_apogee')}</span>`;
-    else badge = `<span class="badge badge-declin">${t('dash_declin')}</span>`;
+    const cls = { jeune:'badge-jeune', buvable:'badge-buvable', maturite:'badge-maturite', apogee:'badge-apogee', declin:'badge-declin' };
+    const lib = { jeune:'dash_trop_jeune', buvable:'dash_jeune_buvable', maturite:'dash_en_maturite', apogee:'dash_apogee', declin:'dash_declin' };
+    const ph = phaseMaturite(x, annee);
+    const badge = ph === 'inconnu' ? '' : `<span class="badge ${cls[ph]}">${t(lib[ph])}</span>`;
 
     return `<tr>
       <td><strong>${x.nom}</strong>${x.chateau ? `<br><small style="color:var(--muted)">${x.chateau}</small>` : ''}</td>
@@ -1105,5 +1127,61 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
+<!-- ☕ Buy Me a Coffee -->
+<div id="bmc-btn" style="
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.4rem;
+">
+  <div id="bmc-tooltip" style="
+    background: var(--ink);
+    color: var(--cream);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.75rem;
+    border-radius: 20px;
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateY(4px);
+    transition: opacity 0.2s, transform 0.2s;
+    pointer-events: none;
+  ">Soutenir le projet ☕</div>
+  <a href="https://buymeacoffee.com/ludoz" target="_blank" rel="noopener"
+    style="
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #FFDD00;
+      color: #000;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 600;
+      padding: 0.6rem 1.1rem;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+      transition: transform 0.2s, box-shadow 0.2s;
+    "
+    onmouseenter="
+      this.style.transform='scale(1.05)';
+      this.style.boxShadow='0 6px 20px rgba(0,0,0,0.2)';
+      document.getElementById('bmc-tooltip').style.opacity='1';
+      document.getElementById('bmc-tooltip').style.transform='translateY(0)';
+    "
+    onmouseleave="
+      this.style.transform='scale(1)';
+      this.style.boxShadow='0 4px 16px rgba(0,0,0,0.15)';
+      document.getElementById('bmc-tooltip').style.opacity='0';
+      document.getElementById('bmc-tooltip').style.transform='translateY(4px)';
+    "
+  >
+    ☕ <span>Buy me a coffee</span>
+  </a>
+</div>
 </body>
 </html>

@@ -963,7 +963,9 @@
     <select id="filtre-maturite" onchange="filtrer()">
       <option value="">🍇 Toute maturité</option>
       <option value="jeune">⏳ Trop jeune</option>
-      <option value="maturite">✅ À l'apogée</option>
+      <option value="buvable">🌱 Jeune mais buvable</option>
+      <option value="maturite">✅ En maturité</option>
+      <option value="apogee">🌟 À l'apogée</option>
       <option value="declin">⚠️ En déclin</option>
       <option value="inconnu">— Non renseignée</option>
     </select>
@@ -1674,13 +1676,23 @@ function mettreAJourStats() {
 }
 
 // ── FILTRES ──
-// Statut de maturité d'un vin selon l'année courante.
+// Statut de maturité — MÊME logique que le tableau de bord (fenêtre découpée en trois tiers).
+// 'inconnu' | 'jeune' | 'buvable' | 'maturite' | 'apogee' | 'declin'
 function statutMaturite(b) {
-  if (!b.annee_maturite_debut || !b.annee_maturite_fin) return 'inconnu';
   const annee = new Date().getFullYear();
-  if (annee < b.annee_maturite_debut) return 'jeune';
-  if (annee > b.annee_maturite_fin)   return 'declin';
-  return 'maturite';
+  const debut = b.annee_maturite_debut || null;
+  const fin   = b.annee_maturite_fin   || null;
+  if (!debut && !fin) return 'inconnu';
+  const d = debut || fin;
+  const f = fin   || debut;
+  if (annee < d) return 'jeune';
+  if (annee > f) return 'declin';
+  const duree = f - d;
+  const t1 = d + duree / 3;
+  const t2 = d + (2 * duree) / 3;
+  if (annee <= t1) return 'buvable';
+  if (annee <= t2) return 'maturite';
+  return 'apogee';
 }
 
 function filtrer() {

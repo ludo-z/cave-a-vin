@@ -647,7 +647,22 @@ sb.auth.onAuthStateChange(async (event, session) => {
 
   initCarte();
   await chargerBouteilles();
+  // L'écran de chargement (hérité de la coquille commune) doit être retiré,
+  // sinon il recouvre la carte.
+  const load = document.getElementById('loading');
+  if (load) load.style.display = 'none';
+  // La carte a été initialisée alors qu'elle était masquée : on force le recalcul des tuiles.
+  setTimeout(() => { if (map) map.invalidateSize(); }, 60);
 });
+
+// Filet de sécurité : si quoi que ce soit bloque, on ne laisse pas l'écran de chargement figé.
+setTimeout(() => {
+  const load = document.getElementById('loading');
+  if (load && load.style.display !== 'none') {
+    load.style.display = 'none';
+    if (map) map.invalidateSize();
+  }
+}, 8000);
 
 async function seDeconnecter() {
   await sb.auth.signOut();

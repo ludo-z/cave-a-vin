@@ -680,10 +680,10 @@
           </select>
         </div>
         <div class="form-group" id="grp-arriere" style="display:none">
-          <label>Bouteilles derrière</label>
+          <label>Bouteilles derrière (toujours en quinconce)</label>
           <select id="m-arriere" onchange="mettreAJourCapacite()" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
             <option value="0">Autant que devant (6 / 6)</option>
-            <option value="1">Une de moins, dans les creux (6 / 5)</option>
+            <option value="1">Une de moins (6 / 5)</option>
           </select>
         </div>
         <div class="form-group">
@@ -975,9 +975,9 @@ function rendreMeuble(m) {
       // Derrière : autant que devant, ou une de moins si elles se logent dans les creux.
       const nbArriere = arriereMoins ? Math.max(nbCol - 1, 0) : nbCol;
       // Derrière d'abord (goulot en bas), puis Devant.
-      // Derrière : retournée + décalée seulement quand elle se loge dans les creux (6/5).
-      // En aligné (6/6), même orientation et même position que devant.
-      [['Derrière', 2, arriereMoins, arriereMoins, nbArriere], ['Devant', 1, false, false, nbCol]]
+      // Derrière : TOUJOURS retournée et décalée d'une demi-place (elles se logent dans les creux).
+      // Le réglage ne change que le NOMBRE : autant que devant (6/6) ou une de moins (6/5).
+      [['Derrière', 2, true, true, nbArriere], ['Devant', 1, false, false, nbCol]]
         .forEach(([lbl, niv, neckDown, decale, nb]) => {
           const ssb = document.createElement('div');
           ssb.className = 'sous-bande' + (creuse ? ' sous-bande-creuse' : '');

@@ -390,6 +390,8 @@
     .bande-strip { display: flex; gap: 2px; overflow-x: auto; padding: 2px 0 6px; }
     .bande-strip .btl + .btl { margin-left: -6px; }
     .bande-strip.strip-decale { margin-left: 55px; }
+    /* Rangée « creuse » (pyramide / décalé) : calée d'une demi-bouteille dans les creux */
+    .bande-strip.strip-creuse { padding-left: 53px; }
 
     /* Grande bouteille réaliste (verre foncé + capsule colorée) */
     .btl { position: relative; flex: 0 0 auto; width: 112px; height: 246px; cursor: pointer; }
@@ -905,8 +907,9 @@ function capaciteMeuble(colonnes, rangees, disposition, profondeur) {
 function rendreMeuble(m) {
   const empl = emplacements.filter(e => e.meuble_id === m.id);
   const occupees = empl.filter(e => e.bouteilles).length;
-  const capacite = m.colonnes * m.rangees * (m.profondeur || 1);
-  const tags = (m.profondeur === 2) ? '2 de profondeur' : '';
+  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition, m.profondeur);
+  const dispNom = { pyramide: 'pyramide', decale: 'décalé' }[normDisposition(m.disposition)] || '';
+  const tags = [dispNom, (m.profondeur === 2) ? '2 de profondeur' : ''].filter(Boolean).join(' · ');
 
   const card = document.createElement('div');
   card.className = 'meuble-card';
@@ -932,7 +935,8 @@ function rendreMeuble(m) {
 
   // Rendu en bandes : une bande par rangée. En profondeur 2, sous-bandes Devant / Derrière.
   const body = card.querySelector(`#body-${m.id}`);
-  const profondeur = m.profondeur || 1;
+  const profondeur  = m.profondeur || 1;
+  const disposition = normDisposition(m.disposition);
   for (let r = 1; r <= m.rangees; r++) {
     const bande = document.createElement('div');
     bande.className = 'bande-rangee';
@@ -941,10 +945,17 @@ function rendreMeuble(m) {
     titre.textContent = `${t('plan_rng') || 'Rangée'} ${r}`;
     bande.appendChild(titre);
 
+    // Motif calculé DEPUIS LE BAS : la rangée du bas est toujours pleine.
+    // Les rangées « creuses » (à distance impaire du bas) se calent dans les creux.
+    const depuisBas = m.rangees - r;
+    const creuse = (disposition !== 'grille') && (depuisBas % 2 === 1);
+    // En pyramide la rangée creuse a une bouteille de moins ; en décalé, le même nombre.
+    const nbCol = (creuse && disposition === 'pyramide') ? Math.max(m.colonnes - 1, 0) : m.colonnes;
+
     const faireStrip = (niveau, neckDown, decale) => {
       const strip = document.createElement('div');
-      strip.className = 'bande-strip' + (decale ? ' strip-decale' : '');
-      for (let c = 1; c <= m.colonnes; c++) strip.appendChild(construireBouteille(m, c, r, niveau, neckDown));
+      strip.className = 'bande-strip' + (decale ? ' strip-decale' : '') + (creuse ? ' strip-creuse' : '');
+      for (let c = 1; c <= nbCol; c++) strip.appendChild(construireBouteille(m, c, r, niveau, neckDown));
       return strip;
     };
 

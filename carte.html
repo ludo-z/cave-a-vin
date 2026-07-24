@@ -1,0 +1,839 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Carte du monde — VINUP</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bordeaux:   #6B1A2A;
+      --bordeaux-dk:#4A1020;
+      --gold:       #C9A84C;
+      --cream:      #F7F3ED;
+      --stone:      #E8E0D5;
+      --ink:        #1C1410;
+      --muted:      #7A6E66;
+      --bg:         #F2EDE6;
+      --white:      #FFFFFF;
+      --rouge:      #8B2635;
+      --blanc:      #C8A84B;
+      --rose:       #D4788A;
+      --petillant:  #5B8FA8;
+      --vert:       #52b788;
+      --orange:     #e07b39;
+    }
+
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* ── HEADER ── */
+    header {
+      background: var(--bordeaux-dk);
+      padding: 0 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 64px;
+      position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+    }
+    .header-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 300;
+      color: var(--cream); letter-spacing: 0.05em;
+    }
+    .header-logo span { color: var(--gold); font-style: italic; }
+
+    /* Navigation */
+    nav { display: flex; gap: 0.5rem; }
+    .nav-btn {
+      background: none;
+      border: none;
+      color: rgba(247,243,237,0.6);
+      font-family: 'Inter', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 0.5rem 1rem;
+      cursor: pointer;
+      border-radius: 1px;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .nav-btn:hover { color: var(--cream); background: rgba(255,255,255,0.08); }
+    .nav-btn.active { color: var(--gold); border-bottom: 2px solid var(--gold); }
+
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    #user-prenom { font-size: 0.8rem; color: rgba(247,243,237,0.7); }
+    .btn-deconnexion {
+      background: none; border: 1px solid rgba(201,168,76,0.4);
+      color: var(--gold); padding: 0.4rem 1rem;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem;
+      letter-spacing: 0.1em; text-transform: uppercase;
+      cursor: pointer; border-radius: 1px; transition: all 0.2s;
+    }
+    .btn-deconnexion:hover { background: rgba(201,168,76,0.1); }
+
+    /* ── MAIN ── */
+    main { max-width: 1300px; margin: 0 auto; padding: 2rem; }
+
+    .page-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 2rem; font-weight: 300;
+      color: var(--ink); margin-bottom: 0.3rem;
+    }
+    .page-subtitle { font-size: 0.82rem; color: var(--muted); margin-bottom: 2rem; letter-spacing: 0.05em; }
+
+    /* ── GRILLE DE SECTIONS ── */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 1.25rem;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: 2px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+      padding: 1.5rem;
+    }
+    .card-title {
+      font-size: 0.72rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 1.25rem;
+      display: flex; align-items: center; gap: 0.5rem;
+    }
+    .card-title::after {
+      content: ''; flex: 1; height: 1px; background: var(--stone);
+    }
+
+    /* Colonnes */
+    .col-4  { grid-column: span 4; }
+    .col-6  { grid-column: span 6; }
+    .col-8  { grid-column: span 8; }
+    .col-12 { grid-column: span 12; }
+
+    @media (max-width: 900px) {
+      .col-4, .col-6, .col-8 { grid-column: span 12; }
+      main { padding: 0.75rem; }
+      .page-title { font-size: 1.5rem; }
+    }
+    @media (max-width: 600px) {
+      .col-4, .col-6, .col-8, .col-12 { grid-column: span 12; }
+      main { padding: 0.75rem; }
+      .kpi-row { flex-wrap: wrap; gap: 0.75rem; }
+      .kpi-small { min-width: 80px; }
+      .dashboard-grid { gap: 0.75rem; }
+      .card { padding: 1rem; }
+      table { font-size: 0.78rem; }
+      th, td { padding: 0.5rem 0.4rem; }
+      .overlay {
+        padding: 0 !important;
+        align-items: flex-start !important;
+        overflow-y: auto !important;
+      }
+      .modal {
+        max-width: 100% !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        min-height: 100dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      .modal-body {
+        padding: 1rem !important;
+        flex: 1;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .modal-footer {
+        padding: 0.75rem 1rem 1.5rem !important;
+        position: sticky;
+        bottom: 0;
+        background: var(--cream);
+        border-top: 1px solid var(--stone);
+      }
+    }
+    @media (min-width: 901px) and (max-width: 1100px) {
+      .col-4 { grid-column: span 6; }
+    }
+
+    /* ── KPI VALEUR ── */
+    .kpi-principale {
+      text-align: center;
+      padding: 1rem 0 0.5rem;
+    }
+    .kpi-principale .montant {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 3rem; font-weight: 600;
+      color: var(--bordeaux); line-height: 1;
+    }
+    .kpi-principale .label {
+      font-size: 0.72rem; letter-spacing: 0.1em;
+      text-transform: uppercase; color: var(--muted);
+      margin-top: 0.3rem;
+    }
+    .kpi-row {
+      display: flex; gap: 1rem;
+      margin-top: 1.25rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--stone);
+    }
+    .kpi-small { flex: 1; text-align: center; }
+    .kpi-small .val {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.5rem; font-weight: 600; color: var(--ink);
+    }
+    .kpi-small .lbl {
+      font-size: 0.68rem; letter-spacing: 0.08em;
+      text-transform: uppercase; color: var(--muted); margin-top: 0.2rem;
+    }
+
+    /* ── BARRES COULEUR ── */
+    .couleur-list { display: flex; flex-direction: column; gap: 0.9rem; }
+    .couleur-row { display: flex; flex-direction: column; gap: 0.3rem; }
+    .couleur-header { display: flex; justify-content: space-between; align-items: center; }
+    .couleur-nom { font-size: 0.85rem; color: var(--ink); display: flex; align-items: center; gap: 0.5rem; }
+    .couleur-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .couleur-vals { font-size: 0.8rem; color: var(--muted); }
+    .barre-track { height: 6px; background: var(--stone); border-radius: 3px; overflow: hidden; }
+    .barre-fill { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
+
+    /* ── DONUT ── */
+    .donut-wrap { display: flex; align-items: center; gap: 1.5rem; }
+    .donut-svg { flex-shrink: 0; }
+    .donut-legende { display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+    .legende-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; }
+    .legende-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+    .legende-label { flex: 1; color: var(--ink); }
+    .legende-val { color: var(--muted); font-size: 0.78rem; }
+
+    /* ── TABLEAU MATURITÉ ── */
+    .maturite-table { width: 100%; border-collapse: collapse; }
+    .maturite-table th {
+      font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--muted); padding: 0 0.75rem 0.6rem; text-align: left;
+      border-bottom: 1px solid var(--stone);
+    }
+    .maturite-table td {
+      padding: 0.7rem 0.75rem; font-size: 0.84rem;
+      border-bottom: 1px solid var(--stone);
+    }
+    .maturite-table tr:last-child td { border-bottom: none; }
+    .badge {
+      display: inline-flex; align-items: center; gap: 0.3rem;
+      font-size: 0.68rem; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.2rem 0.55rem; border-radius: 20px; font-weight: 500;
+    }
+    .badge-jeune    { background: #fef9ec; color: #b08020; }
+    .badge-buvable  { background: #f2f7ec; color: #5a7a35; }
+    /* Éléments cliquables menant à la liste des vins filtrée */
+    .lien-filtre { cursor: pointer; transition: background 0.15s, transform 0.1s, box-shadow 0.15s; }
+    .lien-filtre:hover { background: rgba(201,168,76,0.10); box-shadow: inset 0 0 0 1px rgba(201,168,76,0.45); }
+    .couleur-row.lien-filtre { border-radius: 3px; padding: 0.25rem 0.4rem; margin: 0 -0.4rem; }
+    .lien-millesime { border-bottom: 1px dotted var(--gold); padding: 0 2px; border-radius: 2px; }
+    .badge-maturite { background: #edfaf3; color: #2d7a52; }
+    .badge-apogee   { background: #eaf4fb; color: #2a6080; }
+    .badge-declin   { background: #fef0f0; color: #a03030; }
+
+    /* ── TIMELINE DEGUSTATION ── */
+    .timeline-years { display: flex; flex-direction: column; gap: 0; }
+    .timeline-row {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.65rem 0; border-bottom: 1px solid var(--stone);
+    }
+    .timeline-row:last-child { border-bottom: none; }
+    .timeline-annee {
+      width: 48px; font-family: 'Cormorant Garamond', serif;
+      font-size: 1rem; font-weight: 600; color: var(--bordeaux);
+      flex-shrink: 0;
+    }
+    .timeline-annee.past { color: var(--muted); font-size: 0.85rem; font-family: 'Inter', sans-serif; font-weight: 400; }
+    .timeline-bar-wrap { flex: 1; }
+    .timeline-bar-track { height: 8px; background: var(--stone); border-radius: 4px; overflow: hidden; }
+    .timeline-bar-fill { height: 100%; border-radius: 4px; background: linear-gradient(90deg, var(--bordeaux), var(--gold)); }
+    .timeline-count { width: 60px; text-align: right; font-size: 0.82rem; color: var(--muted); }
+    .timeline-now { background: rgba(107,26,42,0.04); border-radius: 2px; }
+
+    /* ── DERNIERS MOUVEMENTS ── */
+    .mouvement-list { display: flex; flex-direction: column; gap: 0; }
+    .mouvement-item {
+      display: flex; align-items: center; gap: 1rem;
+      padding: 0.75rem 0; border-bottom: 1px solid var(--stone);
+    }
+    .mouvement-item:last-child { border-bottom: none; }
+    .mouvement-icon {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem; flex-shrink: 0;
+    }
+    .icon-entree { background: #edfaf3; }
+    .icon-sortie { background: #fef0f0; }
+    .mouvement-info { flex: 1; min-width: 0; }
+    .mouvement-nom { font-size: 0.88rem; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mouvement-date { font-size: 0.72rem; color: var(--muted); margin-top: 0.1rem; }
+    .mouvement-qty {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.1rem; font-weight: 600;
+      flex-shrink: 0;
+    }
+    .qty-plus  { color: var(--vert); }
+    .qty-minus { color: #B94040; }
+
+    /* ── REGIONS ── */
+    .region-list { display: flex; flex-direction: column; gap: 0.6rem; max-height: 280px; overflow-y: auto; }
+    .region-row { display: flex; align-items: center; gap: 0.75rem; }
+    .region-nom { font-size: 0.84rem; color: var(--ink); width: 130px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .region-bar-wrap { flex: 1; }
+    .region-bar-track { height: 5px; background: var(--stone); border-radius: 3px; overflow: hidden; }
+    .region-bar-fill { height: 100%; border-radius: 3px; background: var(--bordeaux); opacity: 0.6; }
+    .region-count { font-size: 0.78rem; color: var(--muted); width: 30px; text-align: right; flex-shrink: 0; }
+
+    /* ── EMPTY ── */
+    .empty { text-align: center; padding: 2rem; color: var(--muted); font-size: 0.85rem; }
+    .empty .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+
+    /* ── CHARGEMENT ── */
+    #loading {
+      position: fixed; inset: 0;
+      background: var(--cream);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 500; gap: 1rem;
+    }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid var(--stone);
+      border-top-color: var(--bordeaux);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { font-family: 'Cormorant Garamond', serif; font-size: 1.2rem; color: var(--muted); }
+
+
+
+    .hamburger {
+      display: none;
+      flex-direction: column;
+      justify-content: space-between;
+      width: 24px;
+      height: 18px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      padding: 0;
+      z-index: 201;
+    }
+    .hamburger span {
+      display: block;
+      height: 2px;
+      background: var(--cream);
+      border-radius: 2px;
+      transition: all 0.3s ease;
+    }
+    .hamburger.open span:nth-child(1) { transform: translateY(8px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
+
+    /* Menu mobile overlay */
+    .mobile-nav {
+      position: fixed;
+      top: 64px;
+      left: 0; right: 0;
+      background: var(--bordeaux-dk);
+      z-index: 9999;
+      padding: 0.5rem 0;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+      border-top: 1px solid rgba(201,168,76,0.2);
+      visibility: hidden;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+    .mobile-nav.open {
+      visibility: visible;
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .mobile-nav a, .mobile-nav .mobile-nav-deconnexion {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.9rem 1.5rem;
+      color: rgba(247,243,237,0.8);
+      text-decoration: none;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.9rem;
+      letter-spacing: 0.05em;
+      transition: background 0.15s, color 0.15s;
+      border: none;
+      background: none;
+      width: 100%;
+      cursor: pointer;
+    }
+    .mobile-nav a:hover, .mobile-nav .mobile-nav-deconnexion:hover {
+      background: rgba(255,255,255,0.06);
+      color: var(--cream);
+    }
+    .mobile-nav a.active { color: var(--gold); }
+    .mobile-nav .mobile-nav-separator {
+      height: 1px;
+      background: rgba(201,168,76,0.15);
+      margin: 0.25rem 1rem;
+    }
+    .mobile-nav .mobile-nav-prenom {
+      padding: 0.6rem 1.5rem;
+      font-size: 0.75rem;
+      color: rgba(247,243,237,0.4);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+    }
+    .mobile-nav-lang {
+      display: flex;
+      gap: 0.5rem;
+      padding: 0.6rem 1.5rem;
+    }
+    .mobile-nav-lang button {
+      background: none; border: none;
+      font-size: 1.2rem; cursor: pointer;
+      opacity: 0.4; transition: opacity 0.2s;
+    }
+    .mobile-nav-lang button.active-lang { opacity: 1; }
+
+    @media (max-width: 768px) {
+      nav { display: none !important; }
+      .header-right > #lang-selector { display: none !important; }
+      .header-right > span#user-prenom { display: none !important; }
+      .header-right > #btn-profil { display: none !important; }
+      .header-right > #btn-deconnexion { display: none !important; }
+      .hamburger { display: flex; }
+      header { padding: 0 1rem; }
+    }
+    @media (min-width: 769px) {
+      .hamburger { display: none !important; }
+      .mobile-nav {
+        visibility: hidden !important;
+        opacity: 0 !important;
+        pointer-events: none !important;
+      }
+    }
+
+
+    /* ── CARTE ── */
+    .carte-toolbar {
+      display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center;
+      background: var(--white); border: 1px solid var(--stone); border-radius: 2px;
+      padding: 0.85rem 1rem; margin-bottom: 1rem;
+    }
+    .carte-toolbar select, .carte-toolbar button {
+      font-family: 'Inter', sans-serif; font-size: 0.85rem;
+      padding: 0.55rem 0.9rem; border: 1px solid var(--stone);
+      border-radius: 1px; background: var(--white); color: var(--ink); outline: none; cursor: pointer;
+    }
+    .btn-geo {
+      background: var(--bordeaux) !important; color: var(--cream) !important;
+      border-color: var(--bordeaux) !important; letter-spacing: 0.06em;
+    }
+    .btn-geo:disabled { opacity: 0.55; cursor: not-allowed; }
+    .geo-status { font-size: 0.8rem; color: var(--muted); flex: 1 1 220px; }
+    #map { height: 68vh; min-height: 420px; border: 1px solid var(--stone); border-radius: 2px; background: var(--stone); }
+    .carte-legende {
+      display: flex; flex-wrap: wrap; gap: 1rem; margin-top: 0.9rem;
+      font-size: 0.78rem; color: var(--muted); align-items: center;
+    }
+    .lg-item { display: flex; align-items: center; gap: 0.4rem; }
+    .lg-dot { width: 12px; height: 12px; border-radius: 50%; border: 1.5px solid rgba(0,0,0,0.25); }
+    .pin {
+      display: flex; align-items: center; justify-content: center;
+      width: 30px; height: 30px; border-radius: 50%;
+      color: #fff; font-size: 0.72rem; font-weight: 700;
+      border: 2px solid #fff; box-shadow: 0 1px 5px rgba(0,0,0,0.4);
+    }
+    .pop-titre { font-family: 'Cormorant Garamond', serif; font-size: 1.15rem; color: var(--bordeaux); margin-bottom: 0.15rem; }
+    .pop-sub { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .pop-vin { font-size: 0.82rem; padding: 0.25rem 0; border-top: 1px solid var(--stone); }
+    .pop-vin small { color: var(--muted); }
+    .pop-lien {
+      display: inline-block; margin-top: 0.6rem; font-size: 0.78rem;
+      color: var(--bordeaux); text-decoration: none; border-bottom: 1px dotted var(--bordeaux);
+    }
+    .precision-tag { font-size: 0.62rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+  </style>
+  <script src="lang.js"></script>
+</head>
+<body>
+
+<!-- Écran de chargement -->
+<div id="loading">
+  <div class="spinner"></div>
+  <p>Analyse de votre cave…</p>
+</div>
+
+<header>
+  <div class="header-logo"><span>VINUP</span></div>
+  <nav>
+    <a class="nav-btn" href="cave.html" id="nav-mes-vins">🍾 Mes vins</a>
+    <a class="nav-btn" href="cave-plan.html" id="nav-plan">🗺️ Plan de cave</a>
+    <a class="nav-btn" href="dashboard.html" id="nav-dashboard">📊 Tableau de bord</a>
+    <a class="nav-btn active" href="carte.html" id="nav-carte">🌍 Carte</a>
+    <a class="nav-btn" href="sommelier.html" id="nav-sommelier">🧑‍🍳 Sommelier</a>
+    <a class="nav-btn" href="contact.html" id="nav-contact">✉️ Contact</a>
+  </nav>
+  <div class="header-right">
+    <div id="lang-selector"></div>
+    <span id="user-prenom"></span>
+    <a href="profil.html" id="btn-profil" title="Mon profil" style="background:none;border:1px solid rgba(201,168,76,0.4);color:var(--gold);padding:0.4rem 0.7rem;border-radius:1px;text-decoration:none;font-size:0.9rem;transition:all 0.2s;display:inline-flex;align-items:center" onmouseover="this.style.background='rgba(201,168,76,0.1)'" onmouseout="this.style.background='none'">👤</a>
+    <button class="btn-deconnexion" id="btn-deconnexion" onclick="seDeconnecter()">Déconnexion</button>
+  </div>
+</header>
+
+<main>
+  <div class="page-title">Carte du monde</div>
+  <div class="page-subtitle" id="carte-sous-titre">Vos vins situés à travers le monde</div>
+
+  <div class="carte-toolbar">
+    <select id="f-couleur" onchange="rafraichirCarte()">
+      <option value="">Toutes les couleurs</option>
+      <option value="rouge">Rouge</option>
+      <option value="blanc">Blanc</option>
+      <option value="rosé">Rosé</option>
+      <option value="pétillant">Pétillant</option>
+      <option value="autre">Autre</option>
+    </select>
+    <select id="f-groupe" onchange="rafraichirCarte()">
+      <option value="domaine">Grouper par domaine</option>
+      <option value="region">Grouper par région</option>
+      <option value="pays">Grouper par pays</option>
+    </select>
+    <button class="btn-geo" id="btn-geo" onclick="lancerGeocodage()">📍 Localiser mes domaines</button>
+    <div class="geo-status" id="geo-status">—</div>
+  </div>
+
+  <div id="map"></div>
+
+  <div class="carte-legende">
+    <div class="lg-item"><span class="lg-dot" style="background:#8B2635"></span> Rouge</div>
+    <div class="lg-item"><span class="lg-dot" style="background:#C8A84B"></span> Blanc</div>
+    <div class="lg-item"><span class="lg-dot" style="background:#D4788A"></span> Rosé</div>
+    <div class="lg-item"><span class="lg-dot" style="background:#5B8FA8"></span> Pétillant</div>
+    <div class="lg-item"><span class="lg-dot" style="background:#7A6E66"></span> Autre / mixte</div>
+    <div class="lg-item" style="margin-left:auto">Le chiffre indique le nombre de bouteilles.</div>
+  </div>
+</main>
+
+<div class="mobile-nav" id="mobile-nav">
+    <div class="mobile-nav-prenom" id="mobile-prenom"></div>
+    <div class="mobile-nav-separator"></div>
+    <a href="cave.html" id="mobile-nav-mes-vins">🍾 Mes vins</a>
+    <a href="cave-plan.html" id="mobile-nav-plan">🗺️ Plan de cave</a>
+    <a href="dashboard.html" id="mobile-nav-dashboard">📊 Tableau de bord</a>
+    <a href="carte.html" id="mobile-nav-carte" class="active">🌍 Carte</a>
+    <a href="sommelier.html" id="mobile-nav-sommelier">🧑‍🍳 Sommelier</a>
+    <a href="contact.html" id="mobile-nav-contact">✉️ Contact</a>
+    <a href="profil.html" id="mobile-nav-profil">👤 Mon profil</a>
+    <div class="mobile-nav-separator"></div>
+    <div class="mobile-nav-lang" id="mobile-lang-selector"></div>
+    <div class="mobile-nav-separator"></div>
+    <button class="mobile-nav-deconnexion" id="mobile-btn-deconnexion" onclick="seDeconnecter()">🚪 Déconnexion</button>
+  </div>
+
+<script>
+// ── MENU HAMBURGER MOBILE ──
+document.addEventListener('DOMContentLoaded', function() {
+  var hamburger = document.createElement('button');
+  hamburger.className = 'hamburger';
+  hamburger.id = 'hamburger';
+  hamburger.setAttribute('aria-label', 'Menu');
+  hamburger.innerHTML = '<span></span><span></span><span></span>';
+  document.querySelector('header').appendChild(hamburger);
+
+  var mobileNav = document.getElementById('mobile-nav');
+
+  hamburger.addEventListener('click', function(e) {
+    e.stopPropagation();
+    hamburger.classList.toggle('open');
+    mobileNav.classList.toggle('open');
+  });
+
+  document.addEventListener('click', function(e) {
+    if (!hamburger.contains(e.target) && !mobileNav.contains(e.target)) {
+      hamburger.classList.remove('open');
+      mobileNav.classList.remove('open');
+    }
+  });
+
+  window.updateMobileNav = function(prenom) {
+    var el = document.getElementById('mobile-prenom');
+    if (el && prenom) el.textContent = 'Bonjour, ' + prenom;
+    var mobileLang = document.getElementById('mobile-lang-selector');
+    if (mobileLang) {
+      var flags = { fr: '🇫🇷', en: '🇬🇧', de: '🇩🇪' };
+      var lang = getLang();
+      mobileLang.innerHTML = '';
+      ['fr','en','de'].forEach(function(l) {
+        var btn = document.createElement('button');
+        btn.textContent = flags[l];
+        btn.title = l.toUpperCase();
+        if (lang === l) btn.classList.add('active-lang');
+        btn.addEventListener('click', function() { setLang(l); });
+        mobileLang.appendChild(btn);
+      });
+    }
+  };
+
+  window.updateMobileNavLang = function() {
+    var mesVins = document.getElementById('mobile-nav-mes-vins');
+    var plan    = document.getElementById('mobile-nav-plan');
+    var dash    = document.getElementById('mobile-nav-dashboard');
+    var sommelier = document.getElementById('mobile-nav-sommelier');
+    var contact = document.getElementById('mobile-nav-contact');
+    var profil  = document.getElementById('mobile-nav-profil');
+    var deconn  = document.getElementById('mobile-btn-deconnexion');
+    if (mesVins) mesVins.textContent = '🍾 ' + (t('nav_mes_vins')||'').replace(/^🍾 ?/,'');
+    if (plan)    plan.textContent    = '🗺️ ' + (t('nav_plan_cave')||'').replace(/^🗺️ ?/,'');
+    if (dash)    dash.textContent    = '📊 ' + (t('nav_dashboard')||'').replace(/^📊 ?/,'');
+    if (sommelier) sommelier.textContent = '🧑‍🍳 ' + (t('nav_sommelier')||'Sommelier');
+    if (contact) contact.textContent = '✉️ Contact';
+    if (profil)  profil.textContent  = '👤 ' + (t('nav_profil')||'Mon profil').replace(/^👤 ?/,'');
+    if (deconn)  deconn.textContent  = '🚪 ' + (t('nav_deconnexion')||'Déconnexion');
+  };
+});
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="lang.js"></script>
+<script>
+const SUPABASE_URL = 'https://sdvvnutzwoorazugtddo.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkdnZudXR6d29vcmF6dWd0ZGRvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODE4NzA4ODEsImV4cCI6MjA5NzQ0Njg4MX0.KWICsTDGlDLIkEkwAZsLF2-qXZvRqbKeOvRFfJjCgMo';
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const COULEURS_HEX = {
+  rouge: '#8B2635', blanc: '#C8A84B', 'rosé': '#D4788A',
+  'pétillant': '#5B8FA8', autre: '#7A6E66',
+};
+
+let bouteilles = [];
+let map = null;
+let couche = null;
+let geocodageEnCours = false;
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+// ── INIT ──
+let appInitialise = false;
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (appInitialise) return;
+  if (event !== 'INITIAL_SESSION') return;
+  if (!session) { window.location.href = 'index.html'; return; }
+  appInitialise = true;
+
+  const prenom = session.user.user_metadata?.prenom || session.user.email.split('@')[0];
+  document.getElementById('user-prenom').textContent = `Bonjour, ${prenom}`;
+  if (window.updateMobileNav) updateMobileNav(prenom);
+  try { document.getElementById('lang-selector').appendChild(injecterSelecteurLang()); } catch (e) {}
+  try { document.getElementById('btn-deconnexion').textContent = t('nav_deconnexion'); } catch (e) {}
+
+  initCarte();
+  await chargerBouteilles();
+});
+
+async function seDeconnecter() {
+  await sb.auth.signOut();
+  window.location.href = 'index.html';
+}
+
+function initCarte() {
+  map = L.map('map', { scrollWheelZoom: true }).setView([46.8, 8.2], 4);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 18,
+    attribution: '&copy; OpenStreetMap',
+  }).addTo(map);
+  couche = L.layerGroup().addTo(map);
+}
+
+async function chargerBouteilles() {
+  // On ne charge que les champs utiles (léger pour l'egress).
+  const { data, error } = await sb.from('bouteilles')
+    .select('id,nom,chateau,couleur,millesime,quantite,pays,region,appellation,latitude,longitude,geo_precision');
+  if (error) {
+    document.getElementById('geo-status').textContent = 'Erreur : ' + error.message
+      + ' — les colonnes latitude/longitude/geo_precision existent-elles ?';
+    return;
+  }
+  bouteilles = data || [];
+  rafraichirCarte();
+  majStatut();
+}
+
+function majStatut() {
+  const total = bouteilles.length;
+  const situes = bouteilles.filter(b => b.latitude && b.longitude).length;
+  const reste = total - situes;
+  document.getElementById('geo-status').textContent = reste === 0
+    ? `${situes} vin${situes > 1 ? 's' : ''} situé${situes > 1 ? 's' : ''} sur la carte.`
+    : `${situes}/${total} vins situés — ${reste} à localiser.`;
+  const btn = document.getElementById('btn-geo');
+  btn.disabled = geocodageEnCours || reste === 0;
+}
+
+// Clé de regroupement selon le mode choisi.
+function cleGroupe(b, mode) {
+  if (mode === 'pays')   return b.pays || '—';
+  if (mode === 'region') return [b.region || b.appellation || '—', b.pays || ''].join(' · ');
+  return [b.chateau || b.nom || '—', b.appellation || b.region || '', b.pays || ''].join(' · ');
+}
+
+function rafraichirCarte() {
+  if (!map) return;
+  const fCouleur = document.getElementById('f-couleur').value;
+  const mode     = document.getElementById('f-groupe').value;
+  couche.clearLayers();
+
+  const liste = bouteilles.filter(b => b.latitude && b.longitude && (!fCouleur || b.couleur === fCouleur));
+  const groupes = {};
+  liste.forEach(b => {
+    const k = cleGroupe(b, mode);
+    if (!groupes[k]) groupes[k] = { vins: [], lat: 0, lng: 0, n: 0, qte: 0, couleurs: {} };
+    const g = groupes[k];
+    g.vins.push(b);
+    g.lat += Number(b.latitude); g.lng += Number(b.longitude); g.n++;
+    g.qte += (b.quantite || 1);
+    const c = b.couleur || 'autre';
+    g.couleurs[c] = (g.couleurs[c] || 0) + (b.quantite || 1);
+  });
+
+  const points = [];
+  Object.entries(groupes).forEach(([k, g]) => {
+    const lat = g.lat / g.n, lng = g.lng / g.n;
+    points.push([lat, lng]);
+    // Couleur dominante du groupe
+    const dom = Object.entries(g.couleurs).sort((a, b) => b[1] - a[1])[0];
+    const plusieurs = Object.keys(g.couleurs).length > 1;
+    const hex = plusieurs ? '#7A6E66' : (COULEURS_HEX[dom[0]] || '#7A6E66');
+    const taille = Math.min(46, 26 + String(g.qte).length * 6);
+
+    const icone = L.divIcon({
+      className: '',
+      html: `<div class="pin" style="background:${hex};width:${taille}px;height:${taille}px">${g.qte}</div>`,
+      iconSize: [taille, taille],
+      iconAnchor: [taille / 2, taille / 2],
+    });
+
+    const prec = g.vins[0].geo_precision || '';
+    const precLabel = { domaine: 'Position du domaine', appellation: 'Position de l\'appellation',
+                        region: 'Position de la région', pays: 'Position du pays' }[prec] || '';
+
+    const vinsHtml = g.vins.slice(0, 12).map(v => `
+      <div class="pop-vin">${esc(v.nom || 'Sans nom')}${v.millesime ? ' <small>' + esc(v.millesime) + '</small>' : ''}
+        ${v.quantite > 1 ? `<small> · ${v.quantite} btl</small>` : ''}</div>`).join('');
+    const reste = g.vins.length > 12 ? `<div class="pop-vin"><small>+ ${g.vins.length - 12} autre(s)…</small></div>` : '';
+
+    const lienParams = mode === 'pays'
+      ? `pays=${encodeURIComponent(g.vins[0].pays || '')}`
+      : `q=${encodeURIComponent(mode === 'region' ? (g.vins[0].region || g.vins[0].appellation || '') : (g.vins[0].chateau || g.vins[0].nom || ''))}`;
+
+    const popup = `
+      <div class="pop-titre">${esc(k.split(' · ')[0])}</div>
+      <div class="pop-sub">${esc([g.vins[0].appellation || g.vins[0].region, g.vins[0].pays].filter(Boolean).join(' · '))}</div>
+      ${vinsHtml}${reste}
+      ${precLabel ? `<div class="precision-tag" style="margin-top:0.5rem">${precLabel}</div>` : ''}
+      <a class="pop-lien" href="cave.html?${lienParams}">Voir ces vins →</a>`;
+
+    L.marker([lat, lng], { icon: icone }).bindPopup(popup).addTo(couche);
+  });
+
+  if (points.length) {
+    map.fitBounds(L.latLngBounds(points).pad(0.2), { maxZoom: 9 });
+  }
+  document.getElementById('carte-sous-titre').textContent =
+    `${liste.length} vin${liste.length > 1 ? 's' : ''} situé${liste.length > 1 ? 's' : ''} · ${Object.keys(groupes).length} emplacement(s)`;
+}
+
+// ── GÉOCODAGE (Nominatim / OpenStreetMap) ──
+// Repli progressif : domaine → appellation → région → pays.
+function requetesPour(b) {
+  const r = [];
+  const dom = b.chateau || b.nom;
+  if (dom && b.pays) r.push({ q: [dom, b.appellation || b.region, b.pays].filter(Boolean).join(', '), p: 'domaine' });
+  if (dom && b.pays) r.push({ q: [dom, b.pays].join(', '), p: 'domaine' });
+  if (b.appellation && b.pays) r.push({ q: [b.appellation, b.pays].join(', '), p: 'appellation' });
+  if (b.region && b.pays) r.push({ q: [b.region, b.pays].join(', '), p: 'region' });
+  if (b.pays) r.push({ q: b.pays, p: 'pays' });
+  return r;
+}
+
+async function nominatim(q) {
+  const url = 'https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q);
+  const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!res.ok) throw new Error('Nominatim ' + res.status);
+  const j = await res.json();
+  if (!j || !j.length) return null;
+  return { lat: parseFloat(j[0].lat), lng: parseFloat(j[0].lon) };
+}
+
+const pause = ms => new Promise(r => setTimeout(r, ms));
+
+async function lancerGeocodage() {
+  if (geocodageEnCours) return;
+  const aFaire = bouteilles.filter(b => !b.latitude || !b.longitude);
+  if (!aFaire.length) return;
+  if (!confirm(`Localiser ${aFaire.length} vin(s) ?\n\nLa recherche interroge OpenStreetMap (~1 seconde par domaine).\nLes positions sont enregistrées : ce sera fait une seule fois.`)) return;
+
+  geocodageEnCours = true;
+  const btn = document.getElementById('btn-geo');
+  const stat = document.getElementById('geo-status');
+  btn.disabled = true;
+
+  // On dédoublonne : un même domaine n'est cherché qu'une fois.
+  const cache = {};
+  let ok = 0, ko = 0, i = 0;
+
+  for (const b of aFaire) {
+    i++;
+    const cle = [b.chateau || b.nom, b.appellation || b.region, b.pays].filter(Boolean).join('|').toLowerCase();
+    stat.textContent = `Localisation ${i}/${aFaire.length} — ${b.chateau || b.nom || ''}…`;
+    try {
+      let trouve = cache[cle];
+      if (!trouve) {
+        for (const essai of requetesPour(b)) {
+          const res = await nominatim(essai.q);
+          await pause(1100); // respect de la limite d'OpenStreetMap : 1 requête/seconde
+          if (res) { trouve = { ...res, precision: essai.p }; break; }
+        }
+        if (trouve) cache[cle] = trouve;
+      }
+      if (!trouve) { ko++; continue; }
+      const { error } = await sb.from('bouteilles')
+        .update({ latitude: trouve.lat, longitude: trouve.lng, geo_precision: trouve.precision })
+        .eq('id', b.id);
+      if (error) throw error;
+      b.latitude = trouve.lat; b.longitude = trouve.lng; b.geo_precision = trouve.precision;
+      ok++;
+      if (ok % 5 === 0) rafraichirCarte();
+    } catch (e) {
+      console.warn('Géocodage', b.nom, e.message || e);
+      ko++;
+    }
+  }
+
+  geocodageEnCours = false;
+  rafraichirCarte();
+  majStatut();
+  stat.textContent = `Terminé — ${ok} localisé(s)` + (ko ? `, ${ko} introuvable(s).` : '.');
+}
+
+</script>
+</body>
+</html>

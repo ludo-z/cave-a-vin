@@ -775,17 +775,19 @@ function renderPhases(b) {
     }
   });
 
+  // Traduction avec repli : évite d'afficher la clé brute si elle manque dans lang.js
+  const tr = (k, fb) => { const v = t(k); return (!v || v === k) ? fb : v; };
+
   const total = jeune + buvable + maturite + apogee + declin + sansInfo;
   const phases = [
-    { label: t('dash_trop_jeune'),    val: jeune,    color: '#C8A84B', emoji: '⏳' },
-    { label: t('dash_jeune_buvable'), val: buvable,  color: '#8FAF6B', emoji: '🌱' },
-    { label: t('dash_en_maturite'),   val: maturite, color: '#52b788', emoji: '✅' },
-    { label: t('dash_apogee'),        val: apogee,   color: '#5B8FA8', emoji: '🌟' },
-    { label: t('dash_declin'),        val: declin,   color: '#B94040', emoji: '⚠️' },
+    { label: tr('dash_jeune', '🌱 Jeune'),      val: jeune + buvable, color: '#C8A84B', emoji: '🌱' },
+    { label: tr('dash_en_maturite', '✅ En maturité'), val: maturite, color: '#52b788', emoji: '✅' },
+    { label: tr('dash_apogee', "🌟 À l'apogée"),       val: apogee,   color: '#5B8FA8', emoji: '🌟' },
+    { label: tr('dash_declin', '⚠️ En déclin'),        val: declin,   color: '#B94040', emoji: '⚠️' },
   ];
 
   document.getElementById('phases-wrap').innerHTML = `
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:1rem">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
       ${phases.map(p => `
         <div style="text-align:center;padding:0.75rem;background:var(--bg);border-radius:2px">
           <div style="font-size:1.4rem;margin-bottom:0.3rem">${p.emoji}</div>
@@ -965,9 +967,11 @@ function renderMaturite(b) {
     const debut = x.annee_maturite_debut;
     const fin   = x.annee_maturite_fin;
     const cls = { jeune:'badge-jeune', buvable:'badge-buvable', maturite:'badge-maturite', apogee:'badge-apogee', declin:'badge-declin' };
-    const lib = { jeune:'dash_trop_jeune', buvable:'dash_jeune_buvable', maturite:'dash_en_maturite', apogee:'dash_apogee', declin:'dash_declin' };
+    const lib = { jeune:['dash_trop_jeune','⏳ Trop jeune'], buvable:['dash_jeune_buvable','🌱 Jeune mais buvable'],
+                  maturite:['dash_en_maturite','✅ En maturité'], apogee:['dash_apogee',"🌟 À l'apogée"], declin:['dash_declin','⚠️ En déclin'] };
     const ph = phaseMaturite(x, annee);
-    const badge = ph === 'inconnu' ? '' : `<span class="badge ${cls[ph]}">${t(lib[ph])}</span>`;
+    const lab = ph === 'inconnu' ? '' : (() => { const v = t(lib[ph][0]); return (!v || v === lib[ph][0]) ? lib[ph][1] : v; })();
+    const badge = ph === 'inconnu' ? '' : `<span class="badge ${cls[ph]}">${lab}</span>`;
 
     return `<tr>
       <td><strong>${x.nom}</strong>${x.chateau ? `<br><small style="color:var(--muted)">${x.chateau}</small>` : ''}</td>

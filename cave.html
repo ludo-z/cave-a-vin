@@ -960,6 +960,9 @@
       <option value="pétillant">Pétillant</option>
       <option value="autre">Autre</option>
     </select>
+    <select id="filtre-millesime" onchange="filtrer()">
+      <option value="">🗓 Tous les millésimes</option>
+    </select>
     <select id="filtre-maturite" onchange="filtrer()">
       <option value="">🍇 Toute maturité</option>
       <option value="jeune">⏳ Trop jeune</option>
@@ -1529,8 +1532,37 @@ async function chargerBouteilles() {
     }
     return b;
   }));
+  peuplerFiltreMillesime();
+  appliquerFiltresURL();
   filtrer();
   mettreAJourStats();
+}
+
+// Remplit la liste des millésimes à partir des vins présents en cave.
+function peuplerFiltreMillesime() {
+  const sel = document.getElementById('filtre-millesime');
+  if (!sel) return;
+  const actuel = sel.value;
+  const annees = [...new Set(toutesLesBouteilles.map(b => b.millesime).filter(Boolean))]
+    .sort((a, b) => b - a);
+  sel.innerHTML = '<option value="">🗓 Tous les millésimes</option>'
+    + annees.map(a => `<option value="${a}">${a}</option>`).join('');
+  sel.value = actuel;
+}
+
+// Applique les filtres passés dans l'URL (depuis le tableau de bord) : ?couleur=…&maturite=…&millesime=…
+let filtresURLappliques = false;
+function appliquerFiltresURL() {
+  if (filtresURLappliques) return;
+  filtresURLappliques = true;
+  const p = new URLSearchParams(location.search);
+  const set = (id, val) => { const el = document.getElementById(id); if (el && val) el.value = val; };
+  set('filtre-couleur',   p.get('couleur'));
+  set('filtre-maturite',  p.get('maturite'));
+  set('filtre-millesime', p.get('millesime'));
+  set('filtre-pays',      p.get('pays'));
+  const q = p.get('q');
+  if (q) { const r = document.getElementById('recherche'); if (r) r.value = q; }
 }
 
 // Signe la photo pleine taille à la demande (vue détail / édition), avec cache.
@@ -1700,6 +1732,7 @@ function filtrer() {
   const pays      = document.getElementById('filtre-pays').value;
   const couleur   = document.getElementById('filtre-couleur').value;
   const maturite  = document.getElementById('filtre-maturite').value;
+  const millesime = document.getElementById('filtre-millesime') ? document.getElementById('filtre-millesime').value : '';
   const tri       = document.getElementById('filtre-tri').value;
 
   bouteillesFiltrees = toutesLesBouteilles.filter(b => {
@@ -1710,9 +1743,10 @@ function filtrer() {
       (b.pays||'').toLowerCase().includes(recherche) ||
       (b.region||'').toLowerCase().includes(recherche) ||
       (b.appellation||'').toLowerCase().includes(recherche);
-    const matchCouleur  = !couleur  || b.couleur === couleur;
-    const matchMaturite = !maturite || statutMaturite(b) === maturite;
-    return matchRecherche && matchCouleur && matchMaturite;
+    const matCouleur  = !couleur  || b.couleur === couleur;
+    const matMaturite = !maturite || statutMaturite(b) === maturite;
+    const matMillesime = !millesime || String(b.millesime) === String(millesime);
+    return matchRecherche && matCouleur && matMaturite && matMillesime;
   });
 
   bouteillesFiltrees.sort((a, b) => {

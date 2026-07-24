@@ -232,6 +232,11 @@
     }
     .badge-jeune    { background: #fef9ec; color: #b08020; }
     .badge-buvable  { background: #f2f7ec; color: #5a7a35; }
+    /* Éléments cliquables menant à la liste des vins filtrée */
+    .lien-filtre { cursor: pointer; transition: background 0.15s, transform 0.1s, box-shadow 0.15s; }
+    .lien-filtre:hover { background: rgba(201,168,76,0.10); box-shadow: inset 0 0 0 1px rgba(201,168,76,0.45); }
+    .couleur-row.lien-filtre { border-radius: 3px; padding: 0.25rem 0.4rem; margin: 0 -0.4rem; }
+    .lien-millesime { border-bottom: 1px dotted var(--gold); padding: 0 2px; border-radius: 2px; }
     .badge-maturite { background: #edfaf3; color: #2d7a52; }
     .badge-apogee   { background: #eaf4fb; color: #2a6080; }
     .badge-declin   { background: #fef0f0; color: #a03030; }
@@ -722,7 +727,7 @@ function renderCouleurs(b) {
     const cfg = COULEURS_CONFIG[c] || { label: c, color: '#999' };
     const pct = totalQty > 0 ? Math.round((groups[c].qty / totalQty) * 100) : 0;
     return `
-    <div class="couleur-row">
+    <div class="couleur-row lien-filtre" title="Voir ces vins" onclick="allerVersCave({couleur:'${c}'})">
       <div class="couleur-header">
         <div class="couleur-nom">
           <div class="couleur-dot" style="background:${cfg.color}"></div>
@@ -738,6 +743,13 @@ function renderCouleurs(b) {
 }
 
 // ── PHASES DE MATURITÉ ──
+// Ouvre la liste des vins avec les filtres pré-appliqués (couleur, maturité, millésime…).
+function allerVersCave(filtres) {
+  const p = new URLSearchParams();
+  Object.entries(filtres || {}).forEach(([k, v]) => { if (v) p.set(k, v); });
+  window.location.href = 'cave.html' + (p.toString() ? '?' + p.toString() : '');
+}
+
 // ── PHASE DE MATURITÉ (logique commune, partagée avec la vue cave) ──
 // La fenêtre de garde est découpée en trois tiers : le vin est d'abord buvable
 // mais encore jeune, puis il monte en maturité, puis il atteint son apogée.
@@ -780,16 +792,16 @@ function renderPhases(b) {
 
   const total = jeune + buvable + maturite + apogee + declin + sansInfo;
   const phases = [
-    { label: tr('dash_jeune', '🌱 Jeune'),      val: jeune + buvable, color: '#C8A84B', emoji: '🌱' },
-    { label: tr('dash_en_maturite', '✅ En maturité'), val: maturite, color: '#52b788', emoji: '✅' },
-    { label: tr('dash_apogee', "🌟 À l'apogée"),       val: apogee,   color: '#5B8FA8', emoji: '🌟' },
-    { label: tr('dash_declin', '⚠️ En déclin'),        val: declin,   color: '#B94040', emoji: '⚠️' },
+    { key:'jeune',    label: tr('dash_jeune', '🌱 Jeune'),      val: jeune + buvable, color: '#C8A84B', emoji: '🌱' },
+    { key:'maturite', label: tr('dash_en_maturite', '✅ En maturité'), val: maturite, color: '#52b788', emoji: '✅' },
+    { key:'apogee',   label: tr('dash_apogee', "🌟 À l'apogée"),       val: apogee,   color: '#5B8FA8', emoji: '🌟' },
+    { key:'declin',   label: tr('dash_declin', '⚠️ En déclin'),        val: declin,   color: '#B94040', emoji: '⚠️' },
   ];
 
   document.getElementById('phases-wrap').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem">
       ${phases.map(p => `
-        <div style="text-align:center;padding:0.75rem;background:var(--bg);border-radius:2px">
+        <div class="lien-filtre" style="text-align:center;padding:0.75rem;background:var(--bg);border-radius:2px" title="Voir ces vins" onclick="allerVersCave({maturite:'${p.key}'})">
           <div style="font-size:1.4rem;margin-bottom:0.3rem">${p.emoji}</div>
           <div style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:600;color:${p.color}">${p.val}</div>
           <div style="font-size:0.68rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin-top:0.2rem">${p.label}</div>
@@ -975,7 +987,7 @@ function renderMaturite(b) {
 
     return `<tr>
       <td><strong>${x.nom}</strong>${x.chateau ? `<br><small style="color:var(--muted)">${x.chateau}</small>` : ''}</td>
-      <td>${x.millesime || '—'}</td>
+      <td>${x.millesime ? `<span class="lien-filtre lien-millesime" title="Voir ce millésime" onclick="allerVersCave({millesime:'${x.millesime}'})">${x.millesime}</span>` : '—'}</td>
       <td>${x.quantite ?? 1}</td>
       <td>${badge}</td>
       <td style="font-size:0.78rem;color:var(--muted)">${debut && fin ? `${debut}–${fin}` : debut || fin || '—'}</td>
@@ -1002,7 +1014,7 @@ function renderBientot(b) {
   document.getElementById('bientot-tbody').innerHTML = bientot.map(x => `
     <tr>
       <td><strong>${x.nom}</strong></td>
-      <td>${x.millesime || '—'}</td>
+      <td>${x.millesime ? `<span class="lien-filtre lien-millesime" title="Voir ce millésime" onclick="allerVersCave({millesime:'${x.millesime}'})">${x.millesime}</span>` : '—'}</td>
       <td>${x.quantite ?? 1}</td>
       <td>${x.annee_maturite_fin}</td>
       <td style="font-size:0.78rem;color:var(--muted)">${x.plats_accords || '—'}</td>
@@ -1025,7 +1037,7 @@ function renderDepasse(b) {
     const depasseDepuis = annee - x.annee_maturite_fin;
     return `<tr>
       <td><strong>${x.nom}</strong>${x.chateau ? `<br><small style="color:var(--muted)">${x.chateau}</small>` : ''}</td>
-      <td>${x.millesime || '—'}</td>
+      <td>${x.millesime ? `<span class="lien-filtre lien-millesime" title="Voir ce millésime" onclick="allerVersCave({millesime:'${x.millesime}'})">${x.millesime}</span>` : '—'}</td>
       <td>${x.quantite ?? 1}</td>
       <td><span class="badge badge-declin">Depuis ${x.annee_maturite_fin} (${depasseDepuis} an${depasseDepuis>1?'s':''})</span></td>
     </tr>`;
@@ -1041,7 +1053,7 @@ function renderEntrees(b) {
       <td><strong>${x.nom}</strong></td>
       <td>${x.chateau || '—'}</td>
       <td><span style="display:inline-flex;align-items:center;gap:0.4rem"><span style="width:8px;height:8px;border-radius:50%;background:${cfg.color};flex-shrink:0;display:inline-block"></span>${x.couleur || '—'}</span></td>
-      <td>${x.millesime || '—'}</td>
+      <td>${x.millesime ? `<span class="lien-filtre lien-millesime" title="Voir ce millésime" onclick="allerVersCave({millesime:'${x.millesime}'})">${x.millesime}</span>` : '—'}</td>
       <td>${x.region || '—'}</td>
       <td>${x.quantite ?? 1} btl</td>
       <td>${x.prix_achat ? CHF(x.prix_achat) : '—'}</td>

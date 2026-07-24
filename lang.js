@@ -49,6 +49,12 @@ const TRANSLATIONS = {
     index_err_pwd:    'Le mot de passe doit faire au moins 8 caractères.',
     index_err_login:  'Email ou mot de passe incorrect.',
     index_ok_register:'✅ Compte créé ! Vérifiez votre e-mail pour confirmer votre inscription.',
+    index_confirm_titre:'Vérifiez votre boîte mail',
+    index_confirm_sub:'Nous venons d\'envoyer un lien de confirmation à cette adresse. Cliquez dessus pour activer votre compte.',
+    index_confirm_spam:'Vous ne voyez rien ? Pensez à regarder dans vos spams ou courriers indésirables.',
+    index_deja_inscrit:'Cette adresse est déjà inscrite',
+    index_deja_inscrit_sub:'Connectez-vous, ou utilisez « mot de passe oublié » si besoin.',
+    index_retour_connexion:'Aller à la connexion',
 
     // Cave — Toolbar
     cave_search_placeholder: 'Rechercher un vin, château, région…',
@@ -412,6 +418,12 @@ const TRANSLATIONS = {
     index_err_pwd:    'Password must be at least 8 characters.',
     index_err_login:  'Incorrect email or password.',
     index_ok_register:'✅ Account created! Check your email to confirm your registration.',
+    index_confirm_titre:'Check your inbox',
+    index_confirm_sub:'We have just sent a confirmation link to this address. Click it to activate your account.',
+    index_confirm_spam:'Nothing there? Remember to check your spam or junk folder.',
+    index_deja_inscrit:'This address is already registered',
+    index_deja_inscrit_sub:'Sign in, or use "forgot password" if needed.',
+    index_retour_connexion:'Go to sign in',
 
     cave_search_placeholder: 'Search wine, château, region…',
     cave_filter_all_colors:  'All colors',
@@ -757,6 +769,12 @@ const TRANSLATIONS = {
     index_err_pwd:    'Das Passwort muss mindestens 8 Zeichen lang sein.',
     index_err_login:  'Falsche E-Mail oder falsches Passwort.',
     index_ok_register:'✅ Konto erstellt! Prüfen Sie Ihre E-Mail zur Bestätigung.',
+    index_confirm_titre:'Prüfen Sie Ihr Postfach',
+    index_confirm_sub:'Wir haben soeben einen Bestätigungslink an diese Adresse gesendet. Klicken Sie darauf, um Ihr Konto zu aktivieren.',
+    index_confirm_spam:'Nichts erhalten? Schauen Sie bitte im Spam-Ordner nach.',
+    index_deja_inscrit:'Diese Adresse ist bereits registriert',
+    index_deja_inscrit_sub:'Melden Sie sich an oder nutzen Sie « Passwort vergessen ».',
+    index_retour_connexion:'Zur Anmeldung',
 
     cave_search_placeholder: 'Wein, Château, Region suchen…',
     cave_filter_all_colors:  'Alle Farben',

@@ -356,6 +356,7 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
     }
 
     async function sInscrire() {
+      if (!document.getElementById('reg-nom')) return; // formulaire déjà remplacé par la confirmation
       const nom   = document.getElementById('reg-nom').value.trim();
       const email = document.getElementById('reg-email').value.trim();
       const pwd   = document.getElementById('reg-pwd').value;
@@ -365,18 +366,49 @@ const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZ
       const btn = document.querySelector('#panel-inscription .btn-primary');
       btn.disabled = true; btn.textContent = t('index_creation');
 
-      const { error } = await sb.auth.signUp({
+      const { data, error } = await sb.auth.signUp({
         email, password: pwd,
         options: { data: { prenom: nom } }
       });
 
+      btn.disabled = false; btn.textContent = t('index_btn_register');
+
       if (error) {
         showMsg('msg-inscription', error.message, 'error');
-        btn.disabled = false; btn.textContent = t('index_btn_register');
-      } else {
-        showMsg('msg-inscription', t('index_ok_register'), 'success');
-        btn.disabled = false; btn.textContent = t('index_btn_register');
+        return;
       }
+
+      // Compte déjà existant : Supabase renvoie un utilisateur sans identité.
+      const dejaInscrit = data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0;
+      afficherConfirmationEmail(email, dejaInscrit);
+    }
+
+    // Remplace le formulaire par un bloc de confirmation bien visible.
+    function afficherConfirmationEmail(email, dejaInscrit) {
+      const tr = (k, fb) => { const v = t(k); return (!v || v === k) ? fb : v; };
+      const titre = dejaInscrit
+        ? tr('index_deja_inscrit', 'Cette adresse est déjà inscrite')
+        : tr('index_confirm_titre', 'Vérifiez votre boîte mail');
+      const texte = dejaInscrit
+        ? tr('index_deja_inscrit_sub', 'Connectez-vous, ou utilisez « mot de passe oublié » si besoin.')
+        : tr('index_confirm_sub', 'Nous venons d\'envoyer un lien de confirmation à cette adresse. Cliquez dessus pour activer votre compte.');
+      const spam = dejaInscrit ? '' :
+        `<div style="font-size:0.78rem;color:var(--muted);margin-top:0.9rem;line-height:1.5">
+           ${tr('index_confirm_spam', 'Vous ne voyez rien ? Pensez à regarder dans vos spams ou courriers indésirables.')}
+         </div>`;
+
+      document.getElementById('panel-inscription').innerHTML = `
+        <div style="text-align:center;padding:1.5rem 0.5rem">
+          <div style="font-size:2.6rem;line-height:1;margin-bottom:0.9rem">📧</div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:1.45rem;color:var(--ink);margin-bottom:0.6rem">${titre}</div>
+          <div style="font-size:0.9rem;color:var(--muted);line-height:1.6">${texte}</div>
+          <div style="margin-top:1rem;padding:0.7rem 1rem;background:#f0fdf4;border-left:3px solid #52b788;border-radius:1px;font-size:0.9rem;color:#2d6a4f;word-break:break-all">${email}</div>
+          ${spam}
+          <button class="btn-primary" style="margin-top:1.4rem" onclick="switchTab('connexion')">
+            ${tr('index_retour_connexion', 'Aller à la connexion')}
+          </button>
+        </div>`;
+      document.getElementById('panel-inscription').scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
 
     // Touche Entrée pour valider

@@ -910,19 +910,20 @@ function layoutRangee(m, r) {
     return [{ niveau: 1, nb: plein ? col : Math.max(col - 1, 0), offset: !plein, neckDown: false }];
   }
 
-  // Profondeur 2 : derrière toujours décalée d'une demi-place (quinconce) et retournée.
+  // Profondeur 2 : derrière toujours retournée. Le décalage s'inverse d'un rang à l'autre
+  // (rang 1 commence par devant, rang 2 commence par derrière…) pour l'emboîtement vertical.
   if (disp === 'base_paire') {
     return [
-      { niveau: 2, nb: col, offset: true,  neckDown: true  },
-      { niveau: 1, nb: col, offset: false, neckDown: false },
+      { niveau: 2, nb: col, offset: plein,  neckDown: true  },
+      { niveau: 1, nb: col, offset: !plein, neckDown: false },
     ];
   }
-  // base_impaire : rang plein = devant+1 ; rang suivant inversé (derrière+1)
+  // base_impaire : la couche pleine démarre à gauche (non décalée), l'autre est décalée d'une demi-place.
   const devant   = plein ? col : Math.max(col - 1, 0);
   const derriere = plein ? Math.max(col - 1, 0) : col;
   return [
-    { niveau: 2, nb: derriere, offset: true,  neckDown: true  },
-    { niveau: 1, nb: devant,   offset: false, neckDown: false },
+    { niveau: 2, nb: derriere, offset: plein,  neckDown: true  },
+    { niveau: 1, nb: devant,   offset: !plein, neckDown: false },
   ];
 }
 

@@ -672,25 +672,15 @@
       </div>
       <div class="form-row">
         <div class="form-group">
-          <label data-t="plan_disposition">Disposition</label>
-          <select id="m-disposition" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
-            <option value="grille" data-t="plan_disp_grille">Grille droite (colonnes alignées)</option>
-            <option value="pyramide" data-t="plan_disp_pyramide">Pyramide (5-4-5-4, depuis le bas)</option>
-            <option value="decale" data-t="plan_disp_decale">Quinconce décalé (même nombre, décalé)</option>
-          </select>
-        </div>
-        <div class="form-group" id="grp-arriere" style="display:none">
-          <label>Bouteilles derrière (toujours en quinconce)</label>
-          <select id="m-arriere" onchange="mettreAJourCapacite()" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
-            <option value="0">Autant que devant (6 / 6)</option>
-            <option value="1">Une de moins (6 / 5)</option>
+          <label data-t="plan_profondeur">Profondeur</label>
+          <select id="m-profondeur" onchange="majDispositions()" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
+            <option value="1">1 bouteille (support, casier)</option>
+            <option value="2">2 bouteilles (avant + arrière)</option>
           </select>
         </div>
         <div class="form-group">
-          <label data-t="plan_profondeur">Profondeur</label>
-          <select id="m-profondeur" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
-            <option value="1" data-t="plan_prof_1">1 niveau (support, casier)</option>
-            <option value="2" data-t="plan_prof_2">2 niveaux (frigo : avant + arrière)</option>
+          <label data-t="plan_disposition">Disposition</label>
+          <select id="m-disposition" onchange="mettreAJourCapacite()" style="width:100%;padding:0.65rem 0.9rem;border:1px solid var(--stone);border-radius:2px;font-family:Inter,sans-serif;font-size:0.9rem;background:white;outline:none">
           </select>
         </div>
       </div>
@@ -897,27 +887,63 @@ function surlignerDepuisURL() {
   setTimeout(() => cibles.forEach(el => el.classList.remove('btl-surligne')), 4500);
 }
 
-// Capacité : calculée rangée par rangée (le motif et la profondeur font varier chaque rangée).
-function capaciteMeuble(colonnes, rangees, disposition, profondeur, arriereMoins) {
-  disposition = normDisposition(disposition);
-  profondeur = profondeur || 1;
-  let total = 0;
-  for (let r = 1; r <= rangees; r++) {
-    const depuisBas = rangees - r;
-    const creuse = (disposition !== 'grille') && (depuisBas % 2 === 1);
-    const devant = (creuse && disposition === 'pyramide') ? Math.max(colonnes - 1, 0) : colonnes;
-    total += devant;
-    if (profondeur === 2) total += arriereMoins ? Math.max(devant - 1, 0) : devant;
+// Normalise la disposition selon la profondeur (avec rétro-compatibilité des anciens noms).
+function normDisp(m) {
+  const p = m.profondeur || 1;
+  let d = m.disposition;
+  const map = { grille: 'droit', pyramide: 'decale_inegal', decale: 'decale_egal' };
+  if (map[d]) d = map[d];
+  if (p === 2) return (d === 'base_impaire') ? 'base_impaire' : 'base_paire';
+  return ['droit', 'decale_inegal', 'decale_egal'].includes(d) ? d : 'droit';
+}
+
+// Agencement d'une rangée r (r = 1 = base, en bas). Renvoie les couches à dessiner.
+// Chaque couche : { niveau (1=devant, 2=derrière), nb, offset (demi-place), neckDown }.
+function layoutRangee(m, r) {
+  const disp = normDisp(m), col = m.colonnes, p = m.profondeur || 1;
+  const plein = (r % 2 === 1); // rangs 1,3,5 = pleins ; 2,4 = décalés / inversés
+
+  if (p === 1) {
+    if (disp === 'droit')       return [{ niveau: 1, nb: col, offset: false, neckDown: false }];
+    if (disp === 'decale_egal') return [{ niveau: 1, nb: col, offset: !plein, neckDown: false }];
+    // decale_inegal : rang plein, puis une de moins, en alternance
+    return [{ niveau: 1, nb: plein ? col : Math.max(col - 1, 0), offset: !plein, neckDown: false }];
   }
+
+  // Profondeur 2 : derrière toujours décalée d'une demi-place (quinconce) et retournée.
+  if (disp === 'base_paire') {
+    return [
+      { niveau: 2, nb: col, offset: true,  neckDown: true  },
+      { niveau: 1, nb: col, offset: false, neckDown: false },
+    ];
+  }
+  // base_impaire : rang plein = devant+1 ; rang suivant inversé (derrière+1)
+  const devant   = plein ? col : Math.max(col - 1, 0);
+  const derriere = plein ? Math.max(col - 1, 0) : col;
+  return [
+    { niveau: 2, nb: derriere, offset: true,  neckDown: true  },
+    { niveau: 1, nb: devant,   offset: false, neckDown: false },
+  ];
+}
+
+// Capacité totale : somme des bouteilles de chaque rangée.
+function capaciteMeuble(colonnes, rangees, disposition, profondeur) {
+  const m = { colonnes, rangees, disposition, profondeur };
+  let total = 0;
+  for (let r = 1; r <= rangees; r++) layoutRangee(m, r).forEach(l => total += l.nb);
   return total;
 }
+
 
 function rendreMeuble(m) {
   const empl = emplacements.filter(e => e.meuble_id === m.id);
   const occupees = empl.filter(e => e.bouteilles).length;
-  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition, m.profondeur, !!m.arriere_moins);
-  const dispNom = { pyramide: 'pyramide', decale: 'décalé' }[normDisposition(m.disposition)] || '';
-  const tags = [dispNom, (m.profondeur === 2) ? ('2 de profondeur' + (m.arriere_moins ? ' · arrière −1' : '')) : ''].filter(Boolean).join(' · ');
+  const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition, m.profondeur);
+  const dispNom = {
+    droit: 'droit', decale_inegal: 'décalé inégal', decale_egal: 'décalé égal',
+    base_paire: 'base paire', base_impaire: 'base impaire',
+  }[normDisp(m)] || '';
+  const tags = [dispNom, (m.profondeur === 2) ? '2 de profondeur' : ''].filter(Boolean).join(' · ');
 
   const card = document.createElement('div');
   card.className = 'meuble-card';
@@ -941,12 +967,10 @@ function rendreMeuble(m) {
       <div class="meuble-stat">${t('plan_taux')} <strong>${Math.round((occupees/capacite)*100)}%</strong></div>
     </div>`;
 
-  // Rendu en bandes : une bande par rangée. En profondeur 2, sous-bandes Devant / Derrière.
+  // Rendu en bandes : une bande par rangée, base (rangée 1) en bas.
   const body = card.querySelector(`#body-${m.id}`);
-  const profondeur  = m.profondeur || 1;
-  const disposition = normDisposition(m.disposition);
-  const arriereMoins = !!m.arriere_moins;
-  for (let r = 1; r <= m.rangees; r++) {
+  const prof2 = (m.profondeur || 1) === 2;
+  for (let r = m.rangees; r >= 1; r--) {
     const bande = document.createElement('div');
     bande.className = 'bande-rangee';
     const titre = document.createElement('div');
@@ -954,52 +978,34 @@ function rendreMeuble(m) {
     titre.textContent = `${t('plan_rng') || 'Rangée'} ${r}`;
     bande.appendChild(titre);
 
-    // Motif calculé DEPUIS LE BAS : la rangée du bas est toujours pleine.
-    // Les rangées « creuses » (à distance impaire du bas) se calent dans les creux.
-    const depuisBas = m.rangees - r;
-    const creuse = (disposition !== 'grille') && (depuisBas % 2 === 1);
-    // En pyramide la rangée creuse a une bouteille de moins ; en décalé, le même nombre.
-    const nbCol = (creuse && disposition === 'pyramide') ? Math.max(m.colonnes - 1, 0) : m.colonnes;
-
-    const faireStrip = (niveau, neckDown, decale, nb) => {
+    layoutRangee(m, r).forEach(couche => {
       const strip = document.createElement('div');
-      // En profondeur 2, le décalage du motif est porté par la sous-bande (voir plus bas),
-      // pour éviter qu'il ne se cumule avec le décalage « Derrière ».
-      const creuseIci = creuse && profondeur === 1;
-      strip.className = 'bande-strip' + (decale ? ' strip-decale' : '') + (creuseIci ? ' strip-creuse' : '');
-      for (let c = 1; c <= nb; c++) strip.appendChild(construireBouteille(m, c, r, niveau, neckDown));
-      return strip;
-    };
-
-    if (profondeur === 2) {
-      // Derrière : autant que devant, ou une de moins si elles se logent dans les creux.
-      const nbArriere = arriereMoins ? Math.max(nbCol - 1, 0) : nbCol;
-      // Derrière d'abord (goulot en bas), puis Devant.
-      // Derrière : TOUJOURS retournée et décalée d'une demi-place (elles se logent dans les creux).
-      // Le réglage ne change que le NOMBRE : autant que devant (6/6) ou une de moins (6/5).
-      [['Derrière', 2, true, true, nbArriere], ['Devant', 1, false, false, nbCol]]
-        .forEach(([lbl, niv, neckDown, decale, nb]) => {
-          const ssb = document.createElement('div');
-          ssb.className = 'sous-bande' + (creuse ? ' sous-bande-creuse' : '');
-          const st = document.createElement('div');
-          st.className = 'sous-titre';
-          st.textContent = lbl;
-          ssb.appendChild(st);
-          ssb.appendChild(faireStrip(niv, neckDown, decale, nb));
-          bande.appendChild(ssb);
-        });
-    } else {
-      bande.appendChild(faireStrip(1, false, false, nbCol));
-    }
+      strip.className = 'bande-strip' + (couche.offset ? ' strip-decale' : '');
+      for (let c = 1; c <= couche.nb; c++) {
+        strip.appendChild(construireBouteille(m, c, r, couche.niveau, couche.neckDown));
+      }
+      if (prof2) {
+        const ssb = document.createElement('div');
+        ssb.className = 'sous-bande';
+        const st = document.createElement('div');
+        st.className = 'sous-titre';
+        st.textContent = couche.niveau === 2 ? 'Derrière' : 'Devant';
+        ssb.appendChild(st);
+        ssb.appendChild(strip);
+        bande.appendChild(ssb);
+      } else {
+        bande.appendChild(strip);
+      }
+    });
     body.appendChild(bande);
   }
   return card;
 }
 
-// Normalise l'ancienne valeur 'quinconce' vers 'pyramide'.
+// (compat) — normalise une éventuelle ancienne valeur.
 function normDisposition(d) {
-  if (d === 'quinconce') return 'pyramide';
-  return d || 'grille';
+  const map = { quinconce: 'pyramide', grille: 'droit', pyramide: 'decale_inegal', decale: 'decale_egal' };
+  return map[d] || d || 'droit';
 }
 
 // Silhouette de bouteille de Bourgogne (épaules tombantes), repère 0..44, pivotée 180° pour goulot en bas.
@@ -1504,21 +1510,40 @@ function ouvrirModalMeuble(id = null) {
     document.getElementById('m-nom').value      = m.nom;
     document.getElementById('m-colonnes').value = m.colonnes;
     document.getElementById('m-rangees').value  = m.rangees;
-    document.getElementById('m-disposition').value = normDisposition(m.disposition);
     document.getElementById('m-profondeur').value  = String(m.profondeur || 1);
-    document.getElementById('m-arriere').value     = m.arriere_moins ? '1' : '0';
+    majDispositions(normDisp(m));
     mettreAJourCapacite();
   } else {
     document.getElementById('modal-meuble-titre').textContent = t('plan_modal_new');
     document.getElementById('m-nom').value      = '';
     document.getElementById('m-colonnes').value = 6;
     document.getElementById('m-rangees').value  = 8;
-    document.getElementById('m-disposition').value = 'grille';
     document.getElementById('m-profondeur').value  = '1';
-    document.getElementById('m-arriere').value     = '0';
+    majDispositions();
     mettreAJourCapacite();
   }
   appliquerTraductionsPlan(); ouvrirModal('modal-meuble');
+}
+
+// Dispositions proposées selon la profondeur (remplit le select).
+const DISPOSITIONS = {
+  1: [
+    ['droit',         'Droit (rangs alignés)'],
+    ['decale_inegal', 'Décalé, rangs inégaux (4-3-4-3)'],
+    ['decale_egal',   'Décalé, rangs égaux (quinconce)'],
+  ],
+  2: [
+    ['base_paire',   'Base paire (ex. 4 devant + 4 derrière)'],
+    ['base_impaire', 'Base impaire (ex. 5 devant + 4 derrière)'],
+  ],
+};
+function majDispositions(garder) {
+  const prof = parseInt(document.getElementById('m-profondeur').value) || 1;
+  const sel = document.getElementById('m-disposition');
+  const cible = garder || sel.value;
+  sel.innerHTML = DISPOSITIONS[prof].map(([v, l]) => `<option value="${v}">${l}</option>`).join('');
+  if ([...sel.options].some(o => o.value === cible)) sel.value = cible;
+  mettreAJourCapacite();
 }
 
 function mettreAJourCapacite() {
@@ -1526,15 +1551,11 @@ function mettreAJourCapacite() {
   const r = parseInt(document.getElementById('m-rangees').value)  || 0;
   const disp = document.getElementById('m-disposition').value;
   const prof = parseInt(document.getElementById('m-profondeur').value) || 1;
-  const arr  = document.getElementById('m-arriere').value === '1';
-  document.getElementById('grp-arriere').style.display = (prof === 2) ? '' : 'none';
-  document.getElementById('capacite-preview').textContent = capaciteMeuble(c, r, disp, prof, arr);
+  document.getElementById('capacite-preview').textContent = capaciteMeuble(c, r, disp, prof);
 }
 
 document.getElementById('m-colonnes').addEventListener('input', mettreAJourCapacite);
 document.getElementById('m-rangees').addEventListener('input', mettreAJourCapacite);
-document.getElementById('m-disposition').addEventListener('change', mettreAJourCapacite);
-document.getElementById('m-profondeur').addEventListener('change', mettreAJourCapacite);
 
 async function sauvegarderMeuble() {
   const nom      = document.getElementById('m-nom').value.trim();
@@ -1542,14 +1563,23 @@ async function sauvegarderMeuble() {
   const rangees  = parseInt(document.getElementById('m-rangees').value);
   const disposition = document.getElementById('m-disposition').value;
   const profondeur  = parseInt(document.getElementById('m-profondeur').value) || 1;
-  const arriere_moins = document.getElementById('m-arriere').value === '1';
   if (!nom || !colonnes || !rangees) return alert('Merci de remplir tous les champs.');
 
+  let err = null;
   if (meubleEnEdition) {
-    await sb.from('cave_meubles').update({ nom, colonnes, rangees, disposition, profondeur, arriere_moins }).eq('id', meubleEnEdition);
+    ({ error: err } = await sb.from('cave_meubles')
+      .update({ nom, colonnes, rangees, disposition, profondeur })
+      .eq('id', meubleEnEdition));
   } else {
     const { data: { session } } = await sb.auth.getSession();
-    await sb.from('cave_meubles').insert({ user_id: session.user.id, nom, colonnes, rangees, disposition, profondeur, arriere_moins, ordre: meubles.length });
+    ({ error: err } = await sb.from('cave_meubles')
+      .insert({ user_id: session.user.id, nom, colonnes, rangees, disposition, profondeur, ordre: meubles.length }));
+  }
+
+  if (err) {
+    alert('Enregistrement impossible : ' + err.message +
+      '\n\n(Si le message parle d\'une colonne inconnue, il faut l\'ajouter à la table cave_meubles dans Supabase.)');
+    return;
   }
 
   fermerModal('modal-meuble');

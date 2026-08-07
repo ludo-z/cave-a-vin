@@ -139,6 +139,13 @@
       font-size: 0.75rem; color: var(--muted); margin-top: 0.15rem;
     }
     .meuble-actions { display: flex; gap: 0.5rem; align-items: center; }
+    .btn-ordre {
+      background: none; border: 1px solid var(--stone); color: var(--ink);
+      width: 30px; height: 30px; border-radius: 2px; cursor: pointer;
+      font-size: 0.95rem; line-height: 1; transition: all 0.15s;
+    }
+    .btn-ordre:hover:not(:disabled) { border-color: var(--gold); color: var(--gold); background: rgba(201,168,76,0.08); }
+    .btn-ordre:disabled { opacity: 0.3; cursor: not-allowed; }
 
     .meuble-body { padding: 1.5rem; overflow-x: auto; }
 
@@ -871,7 +878,7 @@ function rendreInterface() {
     return;
   }
   container.innerHTML = '';
-  meubles.forEach(m => container.appendChild(rendreMeuble(m)));
+  meubles.forEach((m, idx) => container.appendChild(rendreMeuble(m, idx)));
   appliquerTraductionsPlan();
   surlignerDepuisURL();
 }
@@ -936,7 +943,7 @@ function capaciteMeuble(colonnes, rangees, disposition, profondeur) {
 }
 
 
-function rendreMeuble(m) {
+function rendreMeuble(m, idx) {
   const empl = emplacements.filter(e => e.meuble_id === m.id);
   const occupees = empl.filter(e => e.bouteilles).length;
   const capacite = capaciteMeuble(m.colonnes, m.rangees, m.disposition, m.profondeur);
@@ -957,6 +964,8 @@ function rendreMeuble(m) {
         <div class="meuble-info">${m.colonnes} ${t('plan_col')} × ${m.rangees} ${t('plan_rng')}${tags ? ' · ' + tags : ''} — ${capacite} ${t('plan_emplacements')}</div>
       </div>
       <div class="meuble-actions">
+        <button class="btn-ordre" title="Monter" ${idx === 0 ? 'disabled' : ''} onclick="deplacerMeuble('${m.id}', -1)">↑</button>
+        <button class="btn-ordre" title="Descendre" ${idx === meubles.length - 1 ? 'disabled' : ''} onclick="deplacerMeuble('${m.id}', 1)">↓</button>
         <button class="btn-secondary" style="font-size:0.72rem;padding:0.4rem 0.8rem" onclick="ouvrirModalMeuble('${m.id}')">${t('plan_btn_modify').replace('✏️ ','✏️ ')}</button>
         <button class="btn-danger" onclick="supprimerMeuble('${m.id}', '${m.nom.replace(/'/g,"\\'")}')">🗑</button>
       </div>
@@ -1584,6 +1593,29 @@ async function sauvegarderMeuble() {
   }
 
   fermerModal('modal-meuble');
+  await chargerTout();
+}
+
+// Déplace un meuble dans la liste (échange son ordre avec le voisin). sens : -1 = monter, +1 = descendre.
+async function deplacerMeuble(id, sens) {
+  const i = meubles.findIndex(m => m.id === id);
+  const j = i + sens;
+  if (i < 0 || j < 0 || j >= meubles.length) return;
+  const a = meubles[i], b = meubles[j];
+  // On échange les valeurs d'ordre. Si elles sont égales/nulles, on réindexe d'abord tout proprement.
+  let ordreA = a.ordre, ordreB = b.ordre;
+  if (ordreA == null || ordreB == null || ordreA === ordreB) {
+    for (let k = 0; k < meubles.length; k++) {
+      if (meubles[k].ordre !== k) {
+        await sb.from('cave_meubles').update({ ordre: k }).eq('id', meubles[k].id);
+        meubles[k].ordre = k;
+      }
+    }
+    ordreA = a.ordre; ordreB = b.ordre;
+  }
+  const { error: e1 } = await sb.from('cave_meubles').update({ ordre: ordreB }).eq('id', a.id);
+  const { error: e2 } = await sb.from('cave_meubles').update({ ordre: ordreA }).eq('id', b.id);
+  if (e1 || e2) { alert('Impossible de réordonner : ' + ((e1 || e2).message)); return; }
   await chargerTout();
 }
 

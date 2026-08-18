@@ -939,20 +939,6 @@
     </div>
     <select id="filtre-pays" onchange="filtrer()" style="min-width:140px">
       <option value="">🌍 Tous les pays</option>
-      <option value="France">🇫🇷 France</option>
-      <option value="Italie">🇮🇹 Italie</option>
-      <option value="Espagne">🇪🇸 Espagne</option>
-      <option value="Portugal">🇵🇹 Portugal</option>
-      <option value="Allemagne">🇩🇪 Allemagne</option>
-      <option value="Autriche">🇦🇹 Autriche</option>
-      <option value="Suisse">🇨🇭 Suisse</option>
-      <option value="Géorgie">🇬🇪 Géorgie</option>
-      <option value="Afrique du Sud">🇿🇦 Afrique du Sud</option>
-      <option value="États-Unis">🇺🇸 États-Unis</option>
-      <option value="Argentine">🇦🇷 Argentine</option>
-      <option value="Chili">🇨🇱 Chili</option>
-      <option value="Australie">🇦🇺 Australie</option>
-      <option value="Nouvelle-Zélande">🇳🇿 Nouvelle-Zélande</option>
     </select>
     <select id="filtre-couleur" onchange="filtrer()">
       <option value="" data-t="cave_filter_all_colors">Toutes les couleurs</option>
@@ -1102,39 +1088,39 @@
         </div>
         <div class="form-group">
           <label data-t="form_pays">Pays</label>
-          <select id="f-pays">
-          <option value="">— choisir —</option>
-          <option value="France">🇫🇷 France</option>
-          <option value="Italie">🇮🇹 Italie</option>
-          <option value="Espagne">🇪🇸 Espagne</option>
-          <option value="Portugal">🇵🇹 Portugal</option>
-          <option value="Allemagne">🇩🇪 Allemagne</option>
-          <option value="Autriche">🇦🇹 Autriche</option>
-          <option value="Suisse">🇨🇭 Suisse</option>
-          <option value="Grèce">🇬🇷 Grèce</option>
-          <option value="Hongrie">🇭🇺 Hongrie</option>
-          <option value="Roumanie">🇷🇴 Roumanie</option>
-          <option value="Bulgarie">🇧🇬 Bulgarie</option>
-          <option value="Croatie">🇭🇷 Croatie</option>
-          <option value="Slovénie">🇸🇮 Slovénie</option>
-          <option value="Géorgie">🇬🇪 Géorgie</option>
-          <option value="Liban">🇱🇧 Liban</option>
-          <option value="Israël">🇮🇱 Israël</option>
-          <option value="Maroc">🇲🇦 Maroc</option>
-          <option value="Algérie">🇩🇿 Algérie</option>
-          <option value="Tunisie">🇹🇳 Tunisie</option>
-          <option value="Afrique du Sud">🇿🇦 Afrique du Sud</option>
-          <option value="États-Unis">🇺🇸 États-Unis</option>
-          <option value="Argentine">🇦🇷 Argentine</option>
-          <option value="Chili">🇨🇱 Chili</option>
-          <option value="Australie">🇦🇺 Australie</option>
-          <option value="Nouvelle-Zélande">🇳🇿 Nouvelle-Zélande</option>
-          <option value="Uruguay">🇺🇾 Uruguay</option>
-          <option value="Brésil">🇧🇷 Brésil</option>
-          <option value="Chine">🇨🇳 Chine</option>
-          <option value="Japon">🇯🇵 Japon</option>
-          <option value="Canada">🇨🇦 Canada</option>
-          </select>
+          <input type="text" id="f-pays" class="champ-ia" list="liste-pays" placeholder="ex : France, Italie, Géorgie…" autocomplete="off"/>
+          <datalist id="liste-pays">
+            <option value="France"></option>
+            <option value="Italie"></option>
+            <option value="Espagne"></option>
+            <option value="Portugal"></option>
+            <option value="Allemagne"></option>
+            <option value="Autriche"></option>
+            <option value="Suisse"></option>
+            <option value="Grèce"></option>
+            <option value="Hongrie"></option>
+            <option value="Roumanie"></option>
+            <option value="Bulgarie"></option>
+            <option value="Croatie"></option>
+            <option value="Slovénie"></option>
+            <option value="Géorgie"></option>
+            <option value="Liban"></option>
+            <option value="Israël"></option>
+            <option value="Maroc"></option>
+            <option value="Algérie"></option>
+            <option value="Tunisie"></option>
+            <option value="Afrique du Sud"></option>
+            <option value="États-Unis"></option>
+            <option value="Argentine"></option>
+            <option value="Chili"></option>
+            <option value="Australie"></option>
+            <option value="Nouvelle-Zélande"></option>
+            <option value="Uruguay"></option>
+            <option value="Brésil"></option>
+            <option value="Chine"></option>
+            <option value="Japon"></option>
+            <option value="Canada"></option>
+          </datalist>
         </div>
         <div class="form-group">
           <label data-t="form_region">Région</label>
@@ -1539,9 +1525,22 @@ async function chargerBouteilles() {
     return b;
   }));
   peuplerFiltreMillesime();
+  peuplerFiltrePays();
   appliquerFiltresURL();
   filtrer();
   mettreAJourStats();
+}
+
+// Drapeaux connus (le filtre n'affiche que les pays réellement présents en cave).
+const DRAPEAUX_PAYS = {"France": "🇫🇷", "Italie": "🇮🇹", "Espagne": "🇪🇸", "Portugal": "🇵🇹", "Allemagne": "🇩🇪", "Autriche": "🇦🇹", "Suisse": "🇨🇭", "Grèce": "🇬🇷", "Hongrie": "🇭🇺", "Roumanie": "🇷🇴", "Bulgarie": "🇧🇬", "Croatie": "🇭🇷", "Slovénie": "🇸🇮", "Géorgie": "🇬🇪", "Liban": "🇱🇧", "Israël": "🇮🇱", "Maroc": "🇲🇦", "Algérie": "🇩🇿", "Tunisie": "🇹🇳", "Afrique du Sud": "🇿🇦", "États-Unis": "🇺🇸", "Argentine": "🇦🇷", "Chili": "🇨🇱", "Australie": "🇦🇺", "Nouvelle-Zélande": "🇳🇿", "Uruguay": "🇺🇾", "Brésil": "🇧🇷", "Chine": "🇨🇳", "Japon": "🇯🇵", "Canada": "🇨🇦"};
+function peuplerFiltrePays() {
+  const sel = document.getElementById('filtre-pays');
+  if (!sel) return;
+  const actuel = sel.value;
+  const pays = [...new Set(toutesLesBouteilles.map(b => b.pays).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'fr'));
+  sel.innerHTML = '<option value="">🌍 Tous les pays</option>' +
+    pays.map(p => `<option value="${p}">${(DRAPEAUX_PAYS[p] ? DRAPEAUX_PAYS[p]+' ' : '')}${p}</option>`).join('');
+  if ([...sel.options].some(o => o.value === actuel)) sel.value = actuel;
 }
 
 // Remplit la liste des millésimes à partir des vins présents en cave.

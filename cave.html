@@ -1143,6 +1143,10 @@
           <label data-t="form_appellation">Appellation</label>
           <input type="text" id="f-appellation" class="champ-ia" placeholder="ex : AOC Gevrey-Chambertin"/>
         </div>
+        <div class="form-group">
+          <label data-t="form_cepage">Cépage(s)</label>
+          <input type="text" id="f-cepage" class="champ-ia" placeholder="ex : Pinot Noir, Merlot…"/>
+        </div>
 
         <div class="section-sep" data-t="form_sep_cave">Cave & Valeur</div>
         <div class="form-group">
@@ -1345,7 +1349,7 @@
       <div style="margin-bottom:1.5rem">
         <div style="font-size:0.75rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:0.6rem" data-t="import_cols">Colonnes reconnues</div>
         <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
-          ${['nom','chateau','couleur','millesime','region','appellation','quantite','prix_achat','annee_maturite_debut','annee_maturite_fin','plats_accords','note_perso'].map(c =>
+          ${['nom','chateau','couleur','millesime','region','appellation','cepage','quantite','prix_achat','annee_maturite_debut','annee_maturite_fin','plats_accords','note_perso'].map(c =>
             `<span style="font-size:0.72rem;padding:0.2rem 0.5rem;background:rgba(107,26,42,0.08);color:var(--bordeaux);border-radius:1px;font-family:monospace">${c}</span>`
           ).join('')}
         </div>
@@ -1893,6 +1897,7 @@ async function voirDetail(id) {
       <div class="detail-section"><div class="detail-label">Millésime</div><div class="detail-value">${b.millesime || '—'}</div></div>
       <div class="detail-section"><div class="detail-label">Région</div><div class="detail-value">${b.region || '—'}</div></div>
       <div class="detail-section"><div class="detail-label">Appellation</div><div class="detail-value">${b.appellation || '—'}</div></div>
+      <div class="detail-section"><div class="detail-label">Cépage(s)</div><div class="detail-value">${b.cepage || '—'}</div></div>
       <div class="detail-section"><div class="detail-label">Quantité</div><div class="detail-value">${b.quantite ?? 1} bouteille(s)</div></div>
       <div class="detail-section"><div class="detail-label">Contenance</div><div class="detail-value">${b.contenance ? b.contenance + ' cl' : '75 cl'}</div></div>
       <div class="detail-section"><div class="detail-label">Prix d'achat</div><div class="detail-value">${prix}</div></div>
@@ -1921,7 +1926,7 @@ function ouvrirAjout() {
   modeEdition = null;
   photoFile = null;
   document.getElementById('modal-titre').textContent = t('form_add_title'); appliquerTraductions();
-  ['nom','chateau','millesime','region','appellation','quantite','prix','maturite-debut','maturite-fin','plats','note'].forEach(id => {
+  ['nom','chateau','millesime','region','appellation','cepage','quantite','prix','maturite-debut','maturite-fin','plats','note'].forEach(id => {
     const el = document.getElementById('f-' + id);
     if (el) el.value = '';
   });
@@ -1960,6 +1965,7 @@ function ouvrirEdition(id) {
   document.getElementById('f-pays').value           = b.pays || '';
   document.getElementById('f-region').value         = b.region || '';
   document.getElementById('f-appellation').value    = b.appellation || '';
+  document.getElementById('f-cepage').value          = b.cepage || '';
   document.getElementById('f-quantite').value       = b.quantite ?? 1;
   document.getElementById('f-prix').value           = b.prix_achat || '';
   document.getElementById('f-contenance').value     = b.contenance || '75';
@@ -2072,6 +2078,7 @@ async function analyserPhotoIA() {
       'f-pays':           vin.pays,
       'f-region':         vin.region,
       'f-appellation':    vin.appellation,
+      'f-cepage':         vin.cepage,
       'f-maturite-debut': vin.annee_maturite_debut,
       'f-maturite-fin':   vin.annee_maturite_fin,
       'f-plats':          vin.plats_accords,
@@ -2161,6 +2168,7 @@ async function sauvegarder() {
     pays:                 document.getElementById('f-pays').value || null,
     region:               document.getElementById('f-region').value.trim() || null,
     appellation:          document.getElementById('f-appellation').value.trim() || null,
+    cepage:               document.getElementById('f-cepage').value.trim() || null,
     quantite:             parseInt(document.getElementById('f-quantite').value) || 1,
     prix_achat:           parseFloat(document.getElementById('f-prix').value) || null,
     contenance:           parseFloat(document.getElementById('f-contenance').value) || 75,
@@ -2219,8 +2227,8 @@ function ouvrirImport() {
 }
 
 function telechargerModele() {
-  const entetes = 'nom,chateau,couleur,millesime,region,appellation,quantite,prix_achat,annee_maturite_debut,annee_maturite_fin,plats_accords,note_perso';
-  const exemple = 'Gevrey-Chambertin,Domaine Rossignol-Trapet,rouge,2019,Bourgogne,AOC Gevrey-Chambertin,6,45.00,2024,2032,Gibier et fromages,Belle robe grenat';
+  const entetes = 'nom,chateau,couleur,millesime,region,appellation,cepage,quantite,prix_achat,annee_maturite_debut,annee_maturite_fin,plats_accords,note_perso';
+  const exemple = 'Gevrey-Chambertin,Domaine Rossignol-Trapet,rouge,2019,Bourgogne,AOC Gevrey-Chambertin,Pinot Noir,6,45.00,2024,2032,Gibier et fromages,Belle robe grenat';
   const blob = new Blob([entetes + '\n' + exemple], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -2345,6 +2353,7 @@ async function lancerImport() {
     millesime:            parseInt(row['millesime']) || null,
     region:               row['region'] || null,
     appellation:          row['appellation'] || null,
+    cepage:               row['cepage'] || null,
     quantite:             parseInt(row['quantite']) || 1,
     prix_achat:           parseFloat(row['prix_achat']) || null,
     annee_maturite_debut: parseInt(row['annee_maturite_debut']) || null,
@@ -2473,8 +2482,10 @@ function selectionnerVin(index) {
     'f-nom':            vin.nom,
     'f-chateau':        vin.chateau,
     'f-millesime':      vin.millesime,
+    'f-pays':           vin.pays,
     'f-region':         vin.region,
     'f-appellation':    vin.appellation,
+    'f-cepage':         vin.cepage,
     'f-maturite-debut': vin.annee_maturite_debut,
     'f-maturite-fin':   vin.annee_maturite_fin,
     'f-plats':          vin.plats_accords,

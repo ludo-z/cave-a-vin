@@ -1701,6 +1701,64 @@ async function compresserPhotos(limite) {
 }
 window.compresserPhotos = compresserPhotos;
 
+// ── Remplit rétroactivement le cépage des vins qui n'en ont pas (via l'IA) ──
+// À lancer une fois depuis la console (F12) sur la page Mes vins :  remplirCepages()
+// Par lots pour maîtriser les appels API :  remplirCepages(20)
+// Ne touche jamais un vin qui a déjà un cépage. Relançable sans risque.
+async function remplirCepages(limite) {
+  limite = limite || 9999;
+  const aTraiter = toutesLesBouteilles
+    .filter(b => !b.cepage || !String(b.cepage).trim())
+    .filter(b => b.nom || b.chateau || b.appellation || b.region)
+    .slice(0, limite);
+
+  console.log(`🍇 ${aTraiter.length} vin(s) sans cépage à compléter…`);
+  if (!aTraiter.length) { console.log('Rien à faire.'); return { ok: 0, ko: 0 }; }
+
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { console.warn('Non connecté.'); return; }
+  const token = session.access_token;
+
+  let ok = 0, ko = 0, i = 0;
+  for (const b of aTraiter) {
+    i++;
+    // Requête la plus précise possible pour que l'IA déduise le bon cépage.
+    const query = [b.chateau || b.nom, b.appellation || b.region, b.pays, b.millesime]
+      .filter(Boolean).join(', ');
+    try {
+      const resp = await fetch(EDGE_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'apikey': SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({ query }),
+      });
+      if (!resp.ok) throw new Error('HTTP ' + resp.status);
+      const data = await resp.json();
+      const vin = (data.resultats || [])[0];
+      const cepage = vin && vin.cepage ? String(vin.cepage).trim() : '';
+      if (!cepage) { console.log(`· ${b.nom || b.id} : cépage introuvable`); ko++; }
+      else {
+        const { error } = await sb.from('bouteilles').update({ cepage }).eq('id', b.id);
+        if (error) throw error;
+        b.cepage = cepage;
+        ok++;
+        console.log(`✓ ${b.nom || b.id} → ${cepage}  (${ok}/${aTraiter.length})`);
+      }
+    } catch (e) {
+      ko++;
+      console.warn(`✗ ${b.nom || b.id} :`, e.message || e);
+    }
+    await new Promise(r => setTimeout(r, 400)); // throttle pour ménager l'API
+  }
+  console.log(`✅ Terminé — ${ok} complété(s), ${ko} sans résultat.`);
+  if (ok) filtrer();
+  return { ok, ko };
+}
+window.remplirCepages = remplirCepages;
+
 function mettreAJourStats() {
   const total  = toutesLesBouteilles.reduce((s, b) => s + (b.quantite || 1), 0);
   const rouges = toutesLesBouteilles.filter(b => b.couleur === 'rouge').reduce((s, b) => s + (b.quantite || 1), 0);
